@@ -99,7 +99,7 @@ export default function Header({
       <SignedIn>
         <div
           className="w-full px-2 md:pl-4 md:pr-14 py-4 flex justify-between items-center"
-          style={{ backgroundColor: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(10px)' }}
+          style={{ backgroundColor: 'transparent' }}
         >
           <div className="flex items-center gap-2">
             <div
@@ -122,7 +122,7 @@ export default function Header({
                 blubeez
               </div>
             </div>
-            <div className="md:hidden flex items-center gap-1">
+            <div className="md:hidden flex items-center gap-1" style={{ marginLeft: '44px' }}>
               <div className="w-5 h-[15px] relative">
                 <Image
                   src="/assets/logo-icon.svg"
