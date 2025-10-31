@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Poppins } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import Script from "next/script";
 import "./globals.css";
 
 const bricolageGrotesque = Bricolage_Grotesque({
@@ -201,6 +202,20 @@ export default function RootLayout({
         <body
           className={`${bricolageGrotesque.variable} ${poppins.variable} antialiased`}
         >
+          {/* Google Analytics */}
+          <Script
+            src="https://www.googletagmanager.com/gtag/js?id=G-WHKJFJSQRW"
+            strategy="afterInteractive"
+          />
+          <Script id="google-analytics" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-WHKJFJSQRW');
+            `}
+          </Script>
+          
           {children}
         </body>
       </html>
