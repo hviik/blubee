@@ -1,0 +1,38 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 30 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Logo Icon">
+<path id="Vector 1158" d="M21.5418 7.04155C27.9462 -0.867121 35.0297 10.5833 23.337 11.4566L21.5418 7.04155Z" fill="var(--fill-0, #84CEE4)"/>
+<path id="Vector 1159" d="M8.06219 7.04155C1.65788 -0.867121 -5.42568 10.5833 6.26704 11.4566L8.06219 7.04155Z" fill="var(--fill-0, #84CEE4)"/>
+<path id="Vector 1156" d="M19.0784 5.61431C18.4005 6.29219 17.8655 5.38785 18.108 5.03205C21.0191 0.76245 23.8331 -0.208076 25.0461 0.0345338C28.1888 0.824798 24.7925 3.8814 24.2212 1.19922C20.9221 2.36344 19.8061 4.88649 19.0784 5.61431Z" fill="var(--fill-0, black)"/>
+<path id="Vector 1157" d="M11.942 5.61431C12.6198 6.29219 13.1549 5.38785 12.9123 5.03205C10.0013 0.76245 7.18721 -0.208076 5.97427 0.0345338C2.83158 0.824798 6.2278 3.8814 6.79912 1.19922C10.0983 2.36344 11.2142 4.88649 11.942 5.61431Z" fill="var(--fill-0, black)"/>
+<path id="Vector 1155" d="M21.4933 22.6079L20.4745 20.5216C22.6449 20.5216 24.4044 18.7621 24.4044 16.5917V10.7211C24.4044 7.71998 21.9715 5.28711 18.9704 5.28711H11.3532C8.35209 5.28711 5.91922 7.71998 5.91922 10.7211V15.6699C5.91922 18.671 8.35208 21.1038 11.3532 21.1038H14.7009L21.4933 22.6079Z" fill="url(#paint0_radial_145_41)"/>
+<path id="Vector" d="M21.4202 22.5599L20.4013 20.4736C22.3231 20.4736 23.9227 19.0942 24.264 17.2715C23.4957 17.6931 16.0151 21.5821 6.19802 17.2715C6.89641 19.4661 8.85405 21.0559 11.28 21.0559H14.6278L21.4202 22.5599Z" fill="var(--fill-0, black)" stroke="var(--stroke-0, black)" stroke-width="0.097035"/>
+<ellipse id="Ellipse 113" cx="19.7952" cy="10.5278" rx="1.74663" ry="2.66846" fill="var(--fill-0, black)"/>
+<ellipse id="Ellipse 114" cx="11.2562" cy="10.5278" rx="1.74663" ry="2.66846" fill="var(--fill-0, black)"/>
+<ellipse id="Ellipse 115" cx="20.6685" cy="9.50932" rx="0.58221" ry="0.679245" fill="var(--fill-0, white)"/>
+<ellipse id="Ellipse 116" cx="11.6443" cy="9.50932" rx="0.58221" ry="0.679245" fill="var(--fill-0, white)"/>
+<path id="Vector_2" d="M24.3559 13.7793C24.3559 13.7793 16.3867 18.437 5.9554 13.7793V15.817C16.3867 20.4747 24.3559 15.817 24.3559 15.817V13.7793Z" fill="var(--fill-0, black)" stroke="var(--stroke-0, black)" stroke-width="0.097035"/>
+<path id="Vector 1160" d="M14.6524 14.3613C14.6524 14.3613 15.0806 14.6039 15.3801 14.6039C15.6797 14.6039 16.1079 14.3613 16.1079 14.3613" stroke="var(--stroke-0, black)" stroke-width="0.485175" stroke-linecap="round" stroke-linejoin="round"/>
+<g id="Ellipse 119" filter="url(#filter0_f_145_41)">
+<circle cx="9.59424" cy="14.5551" r="1.45553" fill="var(--fill-0, #EC7124)"/>
+</g>
+<g id="Ellipse 118" filter="url(#filter1_f_145_41)">
+<circle cx="22.1117" cy="14.5551" r="1.45553" fill="var(--fill-0, #EC7124)"/>
+</g>
+</g>
+<defs>
+<filter id="filter0_f_145_41" x="7.16837" y="12.1293" width="4.85175" height="4.85175" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="0.485175" result="effect1_foregroundBlur_145_41"/>
+</filter>
+<filter id="filter1_f_145_41" x="19.6859" y="12.1293" width="4.85175" height="4.85175" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="0.485175" result="effect1_foregroundBlur_145_41"/>
+</filter>
+<radialGradient id="paint0_radial_145_41" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(15.1375 5.33563) rotate(90) scale(13.876 14.8089)">
+<stop stop-color="#86D5FD"/>
+<stop offset="1" stop-color="#2A488E"/>
+</radialGradient>
+</defs>
+</svg>
