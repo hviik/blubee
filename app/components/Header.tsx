@@ -113,8 +113,8 @@ export default function Header({
 
       <SignedIn>
         <div
-          className="w-full px-2 md:pl-4 md:pr-14 py-4 backdrop-blur-sm flex justify-between items-center"
-          style={{ backgroundColor: 'rgba(255, 255, 255, 0.5)' }}
+          className="w-full px-2 md:pl-4 md:pr-14 py-4 flex justify-between items-center"
+          style={{ backgroundColor: 'transparent' }}
         >
           <div className="flex items-center gap-2">
             <div
