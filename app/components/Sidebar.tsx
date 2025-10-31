@@ -19,7 +19,7 @@ export default function Sidebar({ onExpandChange }: SidebarProps) {
     onExpandChange?.(newState);
   };
 
-  const openMobile = () => setIsMobileOpen(true);
+  const toggleMobile = () => setIsMobileOpen((s) => !s);
   const closeMobile = () => setIsMobileOpen(false);
 
   useEffect(() => {
@@ -41,11 +41,11 @@ export default function Sidebar({ onExpandChange }: SidebarProps) {
   return (
     <SignedIn>
       <button
-        onClick={openMobile}
+        onClick={toggleMobile}
         className="fixed left-3 top-3 z-40 md:hidden p-2 rounded-lg hover:bg-black/5 transition"
-        aria-label="Open menu"
+        aria-label={isMobileOpen ? 'Close menu' : 'Open menu'}
       >
-        <Image src="/assets/dehaze.svg" alt="Menu" width={24} height={24} />
+        <Image src={isMobileOpen ? '/assets/close.svg' : '/assets/dehaze.svg'} alt="Menu" width={24} height={24} />
       </button>
 
       <div
@@ -65,7 +65,7 @@ export default function Sidebar({ onExpandChange }: SidebarProps) {
               className="w-6 h-6 hover:opacity-70 transition-opacity"
               aria-label={isExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
             >
-              <Image src="/assets/dehaze.svg" alt="Menu" width={24} height={24} />
+              <Image src={isExpanded ? '/assets/close.svg' : '/assets/dehaze.svg'} alt="Menu" width={24} height={24} />
             </button>
           </div>
           <NavItems isExpanded={isExpanded} />
@@ -93,24 +93,6 @@ export default function Sidebar({ onExpandChange }: SidebarProps) {
         >
           <div className="h-full flex flex-col justify-between p-4">
             <div className="flex flex-col gap-12">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Image src="/assets/dehaze.svg" alt="Menu" width={24} height={24} />
-                  <span
-                    className="text-sm"
-                    style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.textQuaternary }}
-                  >
-                    Blubeez
-                  </span>
-                </div>
-                <button
-                  onClick={closeMobile}
-                  className="w-6 h-6 hover:opacity-70 transition-opacity"
-                  aria-label="Close menu"
-                >
-                  <Image src="/assets/close.svg" alt="Close" width={24} height={24} />
-                </button>
-              </div>
               <NavItems isExpanded />
             </div>
             <BottomItems isExpanded />
@@ -161,13 +143,13 @@ function NavItems({ isExpanded }: { isExpanded?: boolean }) {
       </button>
 
       <button className="flex items-center gap-3 hover:opacity-70 transition-opacity">
-        <Image src="/assets/997.svg" alt="997" width={24} height={24} />
+        <Image src="/assets/997.svg" alt="My trips" width={24} height={24} />
         {isExpanded && (
           <span
             className="text-sm font-normal whitespace-nowrap"
             style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.textQuaternary }}
           >
-            997
+            My trips
           </span>
         )}
       </button>
