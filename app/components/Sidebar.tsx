@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { SignedIn, UserButton, useAuth } from '@clerk/nextjs';
+import { SignedIn, UserButton } from '@clerk/nextjs';
 import { COLORS } from '../constants/colors';
 
 interface SidebarProps {
@@ -10,11 +10,8 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ onExpandChange }: SidebarProps) {
-  const { isLoaded, isSignedIn } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-
-  if (!isLoaded || !isSignedIn) return null;
 
   const toggleExpanded = () => {
     const newState = !isExpanded;

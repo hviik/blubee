@@ -18,15 +18,15 @@ export default function Header({
   const desktopBrandLeft = currentSidebarWidth + sidebarGutter;
 
   return (
-    <div className="w-full absolute left-0 top-0 z-20 hidden md:block">
+    <div className="w-full absolute left-0 top-0 z-20">
       <SignedOut>
         <div
-          className="w-full pl-4 pr-14 py-4 backdrop-blur-sm flex justify-between items-center"
+          className="w-full px-2 md:pl-4 md:pr-14 py-4 backdrop-blur-sm flex justify-between items-center"
           style={{ backgroundColor: 'rgba(255, 255, 255, 0.5)' }}
         >
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-7 relative">
+          <div className="flex items-center gap-1.5 md:gap-3">
+            <div className="flex items-center gap-1 md:gap-2">
+              <div className="w-5 h-[15px] md:w-9 md:h-7 relative">
                 <Image
                   src="/assets/logo-icon.svg"
                   alt="Blubeez Icon"
@@ -36,7 +36,7 @@ export default function Header({
                 />
               </div>
               <div
-                className="text-2xl font-semibold leading-normal"
+                className="text-[14.933px] md:text-2xl font-semibold leading-normal"
                 style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.blubeezBlue }}
               >
                 blubeez
@@ -44,7 +44,7 @@ export default function Header({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2">
             <div className="px-6 py-1.5 rounded-3xl hover:bg-black/5 transition-colors cursor-pointer">
               <div
                 className="text-base font-normal"
@@ -79,32 +79,65 @@ export default function Header({
               </div>
             </SignUpButton>
           </div>
+
+          <SignInButton mode="modal">
+            <div
+              className="md:hidden px-6 py-1.5 rounded-[32px] flex items-center hover:bg-[#234080] transition-colors cursor-pointer"
+              style={{ backgroundColor: COLORS.blubeezNavy }}
+            >
+              <div
+                className="text-xs font-normal leading-normal"
+                style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.white }}
+              >
+                Log in
+              </div>
+            </div>
+          </SignInButton>
         </div>
       </SignedOut>
 
       <SignedIn>
         <div
-          className="w-full pl-4 pr-14 py-4 flex justify-between items-center"
-          style={{ backgroundColor: 'transparent' }}
+          className="w-full px-2 md:pl-4 md:pr-14 py-4 flex justify-between items-center"
+          style={{ backgroundColor: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(10px)' }}
         >
-          <div
-            className="flex items-center gap-2 transition-all duration-300"
-            style={{ marginLeft: `${desktopBrandLeft}px` }}
-          >
-            <div className="w-9 h-7 relative">
-              <Image
-                src="/assets/logo-icon.svg"
-                alt="Blubeez Icon"
-                width={36}
-                height={28}
-                className="w-full h-full"
-              />
-            </div>
+          <div className="flex items-center gap-2">
             <div
-              className="text-2xl font-semibold"
-              style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.blubeezBlue }}
+              className="hidden md:flex items-center gap-2 transition-all duration-300"
+              style={{ marginLeft: `${desktopBrandLeft}px` }}
             >
-              blubeez
+              <div className="w-9 h-7 relative">
+                <Image
+                  src="/assets/logo-icon.svg"
+                  alt="Blubeez Icon"
+                  width={36}
+                  height={28}
+                  className="w-full h-full"
+                />
+              </div>
+              <div
+                className="text-2xl font-semibold"
+                style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.blubeezBlue }}
+              >
+                blubeez
+              </div>
+            </div>
+            <div className="md:hidden flex items-center gap-1">
+              <div className="w-5 h-[15px] relative">
+                <Image
+                  src="/assets/logo-icon.svg"
+                  alt="Blubeez Icon"
+                  width={36}
+                  height={28}
+                  className="w-full h-full"
+                />
+              </div>
+              <div
+                className="text-[14.933px] font-semibold leading-normal"
+                style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.blubeezBlue }}
+              >
+                blubeez
+              </div>
             </div>
           </div>
 

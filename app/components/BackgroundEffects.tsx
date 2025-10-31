@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { COLORS } from '../constants/colors';
 
 export default function BackgroundEffects() {
@@ -48,28 +49,28 @@ export default function BackgroundEffects() {
       />
 
       {/* Cloud Images */}
-      <img
+      <Image
         className="absolute z-0 w-[260px] h-[150px] right-[-40px] top-[220px] opacity-60 md:w-[662px] md:h-96 md:left-[843px] md:top-[234px] md:right-auto"
         src="/assets/cloud.png"
         alt=""
         width={662}
         height={372}
       />
-      <img
+      <Image
         className="absolute z-0 w-[260px] h-[150px] left-[-60px] bottom-[120px] opacity-60 md:w-[662px] md:h-96 md:left-[-97px] md:top-[517px] md:bottom-auto"
         src="/assets/cloud.png"
         alt=""
         width={662}
         height={372}
       />
-      <img
+      <Image
         className="absolute z-0 hidden md:block w-[662px] h-96 left-[760px] top-[812.57px] origin-top-left rotate-180 opacity-20"
         src="/assets/cloud.png"
         alt=""
         width={662}
         height={372}
       />
-      <img
+      <Image
         className="absolute z-0 hidden md:block w-[662px] h-96 left-[1281px] top-[546.57px] origin-top-left rotate-180 opacity-40"
         src="/assets/cloud.png"
         alt=""
