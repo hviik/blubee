@@ -37,7 +37,10 @@ export default function Header({
               </div>
               <div
                 className="text-[14.933px] md:text-2xl font-semibold leading-normal"
-                style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.blubeezBlue }}
+                style={{
+                  fontFamily: 'var(--font-bricolage-grotesque)',
+                  color: COLORS.blubeezBlue,
+                }}
               >
                 blubeez
               </div>
@@ -48,7 +51,10 @@ export default function Header({
             <div className="px-6 py-1.5 rounded-3xl hover:bg-black/5 transition-colors cursor-pointer">
               <div
                 className="text-base font-normal"
-                style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.textTertiary }}
+                style={{
+                  fontFamily: 'var(--font-bricolage-grotesque)',
+                  color: COLORS.textTertiary,
+                }}
               >
                 About
               </div>
@@ -61,7 +67,10 @@ export default function Header({
               >
                 <div
                   className="text-base font-normal"
-                  style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.white }}
+                  style={{
+                    fontFamily: 'var(--font-bricolage-grotesque)',
+                    color: COLORS.white,
+                  }}
                 >
                   Log in
                 </div>
@@ -72,7 +81,10 @@ export default function Header({
               <div className="px-6 py-1.5 rounded-3xl hover:bg-black/5 transition-colors cursor-pointer">
                 <div
                   className="text-base font-normal"
-                  style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.textTertiary }}
+                  style={{
+                    fontFamily: 'var(--font-bricolage-grotesque)',
+                    color: COLORS.textTertiary,
+                  }}
                 >
                   Sign up
                 </div>
@@ -87,7 +99,10 @@ export default function Header({
             >
               <div
                 className="text-xs font-normal leading-normal"
-                style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.white }}
+                style={{
+                  fontFamily: 'var(--font-bricolage-grotesque)',
+                  color: COLORS.white,
+                }}
               >
                 Log in
               </div>
@@ -98,8 +113,8 @@ export default function Header({
 
       <SignedIn>
         <div
-          className="w-full px-2 md:pl-4 md:pr-14 py-4 flex justify-between items-center"
-          style={{ backgroundColor: 'transparent' }}
+          className="w-full px-2 md:pl-4 md:pr-14 py-4 backdrop-blur-sm flex justify-between items-center"
+          style={{ backgroundColor: 'rgba(255, 255, 255, 0.5)' }}
         >
           <div className="flex items-center gap-2">
             <div
@@ -117,11 +132,15 @@ export default function Header({
               </div>
               <div
                 className="text-2xl font-semibold"
-                style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.blubeezBlue }}
+                style={{
+                  fontFamily: 'var(--font-bricolage-grotesque)',
+                  color: COLORS.blubeezBlue,
+                }}
               >
                 blubeez
               </div>
             </div>
+
             <div className="md:hidden flex items-center gap-1" style={{ marginLeft: '44px' }}>
               <div className="w-5 h-[15px] relative">
                 <Image
@@ -134,14 +153,16 @@ export default function Header({
               </div>
               <div
                 className="text-[14.933px] font-semibold leading-normal"
-                style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.blubeezBlue }}
+                style={{
+                  fontFamily: 'var(--font-bricolage-grotesque)',
+                  color: COLORS.blubeezBlue,
+                }}
               >
                 blubeez
               </div>
             </div>
           </div>
 
-          {/* Intentionally no desktop user actions here; sidebar handles auth UI */}
           <div />
         </div>
       </SignedIn>
