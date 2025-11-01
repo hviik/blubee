@@ -7,9 +7,10 @@ import { COLORS } from '../constants/colors';
 
 interface SidebarProps {
   onExpandChange?: (expanded: boolean) => void;
+  onMobileOpenChange?: (open: boolean) => void;
 }
 
-export default function Sidebar({ onExpandChange }: SidebarProps) {
+export default function Sidebar({ onExpandChange, onMobileOpenChange }: SidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -19,8 +20,16 @@ export default function Sidebar({ onExpandChange }: SidebarProps) {
     onExpandChange?.(newState);
   };
 
-  const toggleMobile = () => setIsMobileOpen((s) => !s);
-  const closeMobile = () => setIsMobileOpen(false);
+  const toggleMobile = () => {
+    const newState = !isMobileOpen;
+    setIsMobileOpen(newState);
+    onMobileOpenChange?.(newState);
+  };
+  
+  const closeMobile = () => {
+    setIsMobileOpen(false);
+    onMobileOpenChange?.(false);
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -43,7 +52,7 @@ export default function Sidebar({ onExpandChange }: SidebarProps) {
       {!isMobileOpen && (
         <button
           onClick={toggleMobile}
-          className="fixed left-2 z-50 md:hidden p-0 rounded-lg hover:bg-black/5 transition"
+          className="fixed left-2 z-50 md:hidden p-0 rounded-lg hover:bg-black/5 transition-all duration-200"
           style={{ top: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
           aria-label="Open menu"
         >
@@ -78,17 +87,17 @@ export default function Sidebar({ onExpandChange }: SidebarProps) {
       </div>
 
       <div
-        className={`md:hidden fixed inset-0 z-40 ${isMobileOpen ? '' : 'pointer-events-none'}`}
+        className={`md:hidden fixed inset-0 z-40 transition-all duration-400 ${isMobileOpen ? '' : 'pointer-events-none'}`}
         aria-hidden={!isMobileOpen}
       >
         <div
-          className={`absolute inset-0 transition-opacity duration-300 backdrop-blur-md ${
+          className={`absolute inset-0 transition-all duration-400 ease-out backdrop-blur-md ${
             isMobileOpen ? 'bg-black/50 opacity-100' : 'bg-black/0 opacity-0'
           }`}
           onClick={closeMobile}
         />
         <aside
-          className={`absolute left-0 top-0 h-full w-[280px] bg-[#f3f8ff] border-r border-[#b4c2cf] shadow-xl transition-transform duration-300 ease-in-out ${
+          className={`absolute left-0 top-0 h-full w-[280px] bg-[#f3f8ff] border-r border-[#b4c2cf] shadow-xl transition-all duration-400 ease-out ${
             isMobileOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
           role="dialog"
@@ -96,7 +105,7 @@ export default function Sidebar({ onExpandChange }: SidebarProps) {
         >
           <button
             onClick={closeMobile}
-            className="absolute right-2 z-50 p-2 rounded-lg hover:bg-black/5 transition"
+            className="absolute right-2 z-50 p-2 rounded-lg hover:bg-black/5 transition-all duration-200"
             style={{ top: 'calc(env(safe-area-inset-top, 0px) + 8px)' }}
             aria-label="Close menu"
           >

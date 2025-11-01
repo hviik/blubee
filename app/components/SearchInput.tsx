@@ -5,9 +5,10 @@ import { COLORS } from '../constants/colors';
 
 interface SearchInputProps {
   onHelpClick: () => void;
+  isMobileSidebarOpen?: boolean;
 }
 
-export default function SearchInput({ onHelpClick }: SearchInputProps) {
+export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false }: SearchInputProps) {
   return (
     <>
       {/* Search Input */}
@@ -30,7 +31,9 @@ export default function SearchInput({ onHelpClick }: SearchInputProps) {
       </div>
 
       {/* Mobile Footer Links */}
-      <div className="md:hidden w-full flex justify-between items-center">
+      <div className={`md:hidden w-full flex justify-between items-center transition-all duration-400 ease-out ${
+        isMobileSidebarOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
+      }`}>
         <div className="flex gap-2 items-center cursor-pointer">
           <div className="w-[18px] h-[18px] relative flex items-center justify-center">
             <Image src="/assets/travel-explore.svg" alt="Explore" width={18} height={18} />

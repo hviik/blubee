@@ -49,7 +49,7 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
       // Wait for animation to finish before unmounting
       const timer = setTimeout(() => {
         setShouldRender(false);
-      }, 300);
+      }, 400);
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
@@ -76,7 +76,7 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-40 backdrop-blur-[2px] transition-opacity duration-300 ease-in-out ${
+        className={`fixed inset-0 z-40 backdrop-blur-[2px] transition-all duration-400 ease-out ${
           isAnimating ? 'opacity-100' : 'opacity-0'
         }`}
         style={{ backgroundColor: COLORS.modalOverlay }}
@@ -88,7 +88,7 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
         className={`fixed z-50 rounded-2xl flex flex-col
           left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[343px] px-4 pt-5 pb-8 gap-4
           md:left-auto md:right-4 md:bottom-24 md:top-auto md:translate-x-0 md:translate-y-0 md:w-[523px] md:px-8 md:pt-4 md:gap-4
-          transition-all duration-300 ease-in-out ${
+          transition-all duration-400 ease-out ${
             isAnimating 
               ? 'opacity-100 scale-100' 
               : 'opacity-0 scale-95'

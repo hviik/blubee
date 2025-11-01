@@ -13,6 +13,7 @@ import HowToUseModal from './components/HowToUseModal';
 export default function BlubeezHome() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
@@ -23,7 +24,10 @@ export default function BlubeezHome() {
       <BackgroundEffects />
 
       {/* Sidebar - Desktop Only, Shows when signed in */}
-      <Sidebar onExpandChange={setIsSidebarExpanded} />
+      <Sidebar 
+        onExpandChange={setIsSidebarExpanded} 
+        onMobileOpenChange={setIsMobileSidebarOpen}
+      />
 
       {/* Header - Logo and Navigation */}
       <Header />
@@ -42,7 +46,10 @@ export default function BlubeezHome() {
           <PromptCards />
 
           {/* Search Input */}
-          <SearchInput onHelpClick={handleOpenModal} />
+          <SearchInput 
+            onHelpClick={handleOpenModal} 
+            isMobileSidebarOpen={isMobileSidebarOpen}
+          />
         </div>
       </div>
 
