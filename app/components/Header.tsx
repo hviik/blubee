@@ -1,5 +1,7 @@
+'use client';
+
 import Image from 'next/image';
-import { SignInButton, SignUpButton, SignedIn, SignedOut } from '@clerk/nextjs';
+import { SignInButton, SignUpButton, SignedIn, SignedOut, useUser } from '@clerk/nextjs';
 import { COLORS } from '../constants/colors';
 
 interface HeaderProps {
@@ -13,9 +15,13 @@ export default function Header({
   sidebarCollapsedWidth = 67,
   sidebarExpandedWidth = 240,
 }: HeaderProps) {
+  const { user } = useUser();
   const sidebarGutter = 2;
   const currentSidebarWidth = sidebarExpanded ? sidebarExpandedWidth : sidebarCollapsedWidth;
   const desktopBrandLeft = currentSidebarWidth + sidebarGutter;
+  
+  // Get user's first name, or fallback to full name or "there"
+  const userName = user?.firstName || user?.fullName || 'there';
 
   return (
     <div className="w-full absolute left-0 top-0 z-20">
@@ -163,7 +169,18 @@ export default function Header({
             </div>
           </div>
 
-          <div />
+          {/* User Greeting */}
+          <div className="flex items-center">
+            <div
+              className="text-sm md:text-base font-normal"
+              style={{
+                fontFamily: 'var(--font-bricolage-grotesque)',
+                color: COLORS.textQuaternary,
+              }}
+            >
+              Hey! <span className="font-medium">{userName}</span>
+            </div>
+          </div>
         </div>
       </SignedIn>
     </div>

@@ -31,7 +31,7 @@ export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false }
       </div>
 
       {/* Mobile Footer Links */}
-      <div className={`md:hidden w-full flex justify-between items-center transition-all duration-400 ease-out ${
+      <div className={`md:hidden w-full flex justify-between items-center transition-all duration-500 ease-in-out ${
         isMobileSidebarOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}>
         <div className="flex gap-2 items-center cursor-pointer">

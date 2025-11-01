@@ -18,7 +18,7 @@ export default function Footer({ onHelpClick }: FooterProps) {
         >
           <div 
             className="text-base font-normal"
-            style={{ 
+            style={{
               fontFamily: 'var(--font-bricolage-grotesque)',
               color: COLORS.textTertiary
             }}
