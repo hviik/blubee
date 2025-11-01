@@ -8,6 +8,21 @@ import { bricolageGrotesque, poppins } from "./fonts";
 export const metadata: Metadata = {
   title: "Blubeez - Your Travel Assistant",
   description: "Create your perfect itinerary by just chatting with us",
+  icons: {
+    icon: [
+      { url: '/assets/favicon/favicon.ico' },
+      { url: '/assets/favicon/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/assets/favicon/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/assets/favicon/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    other: [
+      { rel: 'android-chrome', url: '/assets/favicon/android-chrome-192x192.png', sizes: '192x192' },
+      { rel: 'android-chrome', url: '/assets/favicon/android-chrome-512x512.png', sizes: '512x512' },
+    ],
+  },
+  manifest: '/assets/favicon/site.webmanifest',
 };
 
 export default function RootLayout({
