@@ -40,14 +40,16 @@ export default function Sidebar({ onExpandChange }: SidebarProps) {
 
   return (
     <SignedIn>
-      <button
-        onClick={toggleMobile}
-        className="fixed left-2 z-50 md:hidden p-0 rounded-lg hover:bg-black/5 transition"
-        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
-        aria-label={isMobileOpen ? 'Close menu' : 'Open menu'}
-      >
-        <Image src={isMobileOpen ? '/assets/close.svg' : '/assets/dehaze.svg'} alt="Menu" width={24} height={24} />
-      </button>
+      {!isMobileOpen && (
+        <button
+          onClick={toggleMobile}
+          className="fixed left-2 z-50 md:hidden p-0 rounded-lg hover:bg-black/5 transition"
+          style={{ top: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
+          aria-label="Open menu"
+        >
+          <Image src="/assets/dehaze.svg" alt="Menu" width={24} height={24} />
+        </button>
+      )}
 
       <div
         className={`hidden md:flex h-screen fixed left-0 top-0 z-30 flex-col justify-between transition-all duration-300 ${
@@ -80,8 +82,8 @@ export default function Sidebar({ onExpandChange }: SidebarProps) {
         aria-hidden={!isMobileOpen}
       >
         <div
-          className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ease-in-out ${
-            isMobileOpen ? 'opacity-100' : 'opacity-0'
+          className={`absolute inset-0 transition-opacity duration-300 backdrop-blur-md ${
+            isMobileOpen ? 'bg-black/50 opacity-100' : 'bg-black/0 opacity-0'
           }`}
           onClick={closeMobile}
         />
@@ -92,7 +94,16 @@ export default function Sidebar({ onExpandChange }: SidebarProps) {
           role="dialog"
           aria-modal="true"
         >
-          <div className="h-full flex flex-col justify-between p-4">
+          <button
+            onClick={closeMobile}
+            className="absolute right-2 z-50 p-2 rounded-lg hover:bg-black/5 transition"
+            style={{ top: 'calc(env(safe-area-inset-top, 0px) + 8px)' }}
+            aria-label="Close menu"
+          >
+            <Image src="/assets/close.svg" alt="Close" width={20} height={20} />
+          </button>
+
+          <div className="h-full flex flex-col justify-between p-4 pt-12">
             <div className="flex flex-col gap-12">
               <NavItems isExpanded />
             </div>
