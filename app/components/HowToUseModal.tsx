@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { COLORS } from '../constants/colors';
 
@@ -32,22 +33,66 @@ const STEPS = [
 ];
 
 export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
-  if (!isOpen) return null;
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true);
+      // Small delay to ensure CSS transition is applied
+      const timer = setTimeout(() => {
+        setIsAnimating(true);
+      }, 10);
+      return () => clearTimeout(timer);
+    } else {
+      setIsAnimating(false);
+      // Wait for animation to finish before unmounting
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      document.addEventListener('keydown', onKey);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, onClose]);
+
+  if (!shouldRender) return null;
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 backdrop-blur-[2px]"
+        className={`fixed inset-0 z-40 backdrop-blur-[2px] transition-opacity duration-300 ease-in-out ${
+          isAnimating ? 'opacity-100' : 'opacity-0'
+        }`}
         style={{ backgroundColor: COLORS.modalOverlay }}
         onClick={onClose}
       />
 
       {/* Modal - Bottom right on desktop, centered on mobile */}
       <div 
-        className="fixed z-50 rounded-2xl flex flex-col
+        className={`fixed z-50 rounded-2xl flex flex-col
           left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[343px] px-4 pt-5 pb-8 gap-4
-          md:left-auto md:right-4 md:bottom-24 md:top-auto md:translate-x-0 md:translate-y-0 md:w-[523px] md:px-8 md:pt-4 md:gap-4"
+          md:left-auto md:right-4 md:bottom-24 md:top-auto md:translate-x-0 md:translate-y-0 md:w-[523px] md:px-8 md:pt-4 md:gap-4
+          transition-all duration-300 ease-in-out ${
+            isAnimating 
+              ? 'opacity-100 scale-100' 
+              : 'opacity-0 scale-95'
+          }`}
         style={{ backgroundColor: COLORS.white }}
       >
         {/* Close Button */}

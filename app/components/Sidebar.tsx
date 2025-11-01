@@ -80,13 +80,13 @@ export default function Sidebar({ onExpandChange }: SidebarProps) {
         aria-hidden={!isMobileOpen}
       >
         <div
-          className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
+          className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ease-in-out ${
             isMobileOpen ? 'opacity-100' : 'opacity-0'
           }`}
           onClick={closeMobile}
         />
         <aside
-          className={`absolute left-0 top-0 h-full w-[280px] bg-[#f3f8ff] border-r border-[#b4c2cf] shadow-xl transition-transform duration-300 ${
+          className={`absolute left-0 top-0 h-full w-[280px] bg-[#f3f8ff] border-r border-[#b4c2cf] shadow-xl transition-transform duration-300 ease-in-out ${
             isMobileOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
           role="dialog"
