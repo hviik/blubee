@@ -18,7 +18,7 @@ export default function HeroSection() {
 
       {/* Intro Text */}
       <div className="w-full flex flex-col items-center">
-        <div className="flex items-center gap-0 md:gap-2 whitespace-nowrap">
+        <div className="flex items-center gap-1 md:gap-2 whitespace-nowrap">
           <div 
             className="text-2xl md:text-4xl font-normal"
             style={{ 

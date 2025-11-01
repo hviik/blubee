@@ -141,7 +141,7 @@ export default function Header({
               </div>
             </div>
 
-            <div className="md:hidden flex items-center gap-1" style={{ marginLeft: '44px' }}>
+            <div className="md:hidden flex items-center gap-1" style={{ marginLeft: '32px' }}>
               <div className="w-5 h-[15px] relative">
                 <Image
                   src="/assets/logo-icon.svg"

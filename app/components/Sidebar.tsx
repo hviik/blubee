@@ -42,7 +42,7 @@ export default function Sidebar({ onExpandChange }: SidebarProps) {
     <SignedIn>
       <button
         onClick={toggleMobile}
-        className="fixed left-3 z-50 md:hidden p-2 rounded-lg hover:bg-black/5 transition"
+        className="fixed left-2 z-50 md:hidden p-0 rounded-lg hover:bg-black/5 transition"
         style={{ top: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
         aria-label={isMobileOpen ? 'Close menu' : 'Open menu'}
       >
