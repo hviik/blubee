@@ -13,7 +13,7 @@ export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false }
     <>
       {/* Search Input */}
       <div 
-        className="w-full px-4 py-2 md:py-3 rounded-xl md:rounded-2xl outline outline-1 outline-offset-[-1px] flex justify-between items-center"
+        className="w-full px-4 py-2 md:py-3 rounded-xl md:rounded-2xl outline outline-1 outline-offset-[-1px] flex items-center justify-between gap-2"
         style={{ 
           backgroundColor: 'rgba(255, 255, 255, 0.1)',
           outlineColor: COLORS.borderInput
@@ -21,29 +21,40 @@ export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false }
       >
         <input
           type="text"
-          placeholder="Ask blubee"
-          className="flex-1 bg-transparent text-neutral-400 text-xs md:text-base font-normal outline-none placeholder-neutral-400"
+          placeholder="Ask blu"
+          className="flex-1 bg-transparent text-neutral-400 text-xs md:text-base font-normal outline-none placeholder-neutral-400 leading-[1.6]"
           style={{ fontFamily: 'var(--font-poppins)' }}
         />
-        <div className="w-6 h-6 relative cursor-pointer">
-          <Image src="/assets/send.svg" alt="Send" width={19} height={16} />
-        </div>
+        <button
+          className="flex items-center justify-center w-8 h-8 md:w-9 md:h-9 rounded-full hover:bg-white/10 transition-colors"
+          aria-label="Send"
+        >
+          <Image 
+            src="/assets/send.svg" 
+            alt="Send" 
+            width={19} 
+            height={16} 
+            className="object-contain"
+          />
+        </button>
       </div>
 
       {/* Mobile Footer Links */}
-      <div className={`md:hidden w-full flex justify-between items-center transition-all duration-500 ease-in-out ${
-        isMobileSidebarOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
-      }`}>
+      <div
+        className={`md:hidden w-full flex justify-between items-center mt-2 transition-all duration-500 ease-in-out ${
+          isMobileSidebarOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
+      >
         <div className="flex gap-2 items-center cursor-pointer">
           <div className="w-[18px] h-[18px] relative flex items-center justify-center">
             <Image src="/assets/travel-explore.svg" alt="Explore" width={18} height={18} />
           </div>
-          <p 
+          <p
             className="text-sm font-normal underline decoration-solid"
-            style={{ 
+            style={{
               fontFamily: 'var(--font-bricolage-grotesque)',
               color: COLORS.textQuaternary,
-              textUnderlinePosition: 'from-font'
+              textUnderlinePosition: 'from-font',
             }}
           >
             Explore Iteneraries
@@ -53,17 +64,17 @@ export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false }
           onClick={onHelpClick}
           className="flex gap-2.5 items-center cursor-pointer"
         >
-          <p 
+          <p
             className="text-sm font-normal underline decoration-solid"
-            style={{ 
+            style={{
               fontFamily: 'var(--font-bricolage-grotesque)',
               color: COLORS.textQuaternary,
-              textUnderlinePosition: 'from-font'
+              textUnderlinePosition: 'from-font',
             }}
           >
             Blubeez Tips
           </p>
-          <div className="w-[18px] h-[18px] relative">
+          <div className="w-[18px] h-[18px] relative flex items-center justify-center">
             <Image src="/assets/help.svg" alt="Help" width={18} height={18} />
           </div>
         </button>
