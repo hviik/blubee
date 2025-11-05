@@ -6,7 +6,17 @@ const SAMPLE_PROMPTS = [
   "Design a budget-friendly adventure trip to Thailand for 7 days with activities like snorkeling, hiking, and exploring islands."
 ];
 
-export default function PromptCards() {
+interface PromptCardsProps {
+  onPromptClick?: (prompt: string) => void;
+}
+
+export default function PromptCards({ onPromptClick }: PromptCardsProps) {
+  const handlePromptClick = (prompt: string) => {
+    if (onPromptClick) {
+      onPromptClick(prompt);
+    }
+  };
+
   return (
     <div className="w-full flex flex-col gap-2 items-start">
       {/* Header */}
@@ -36,6 +46,7 @@ export default function PromptCards() {
         {SAMPLE_PROMPTS.map((prompt, index) => (
           <div
             key={index}
+            onClick={() => handlePromptClick(prompt)}
             className="w-full px-4 py-2 md:py-3 rounded-xl md:rounded-2xl outline outline-1 outline-offset-[-1px] hover:outline-[#2d4e92] transition-colors cursor-pointer"
             style={{ 
               backgroundColor: COLORS.white,

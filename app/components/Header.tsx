@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { SignInButton, SignUpButton, SignedIn, SignedOut, useUser } from '@clerk/nextjs';
 import { COLORS } from '../constants/colors';
 
@@ -8,13 +9,16 @@ interface HeaderProps {
   sidebarExpanded?: boolean;
   sidebarCollapsedWidth?: number;
   sidebarExpandedWidth?: number;
+  isChatMode?: boolean;
 }
 
 export default function Header({
   sidebarExpanded = false,
   sidebarCollapsedWidth = 67,
   sidebarExpandedWidth = 240,
+  isChatMode = false,
 }: HeaderProps) {
+  const router = useRouter();
   const { user } = useUser();
   const sidebarGutter = 2;
   const currentSidebarWidth = sidebarExpanded ? sidebarExpandedWidth : sidebarCollapsedWidth;
@@ -23,15 +27,27 @@ export default function Header({
   // Get user's first name, or fallback to full name or "there"
   const userName = user?.firstName || user?.fullName || 'there';
 
+  const handleLogoClick = () => {
+    router.push('/');
+    // Force reload to reset all states
+    setTimeout(() => window.location.href = '/', 100);
+  };
+
   return (
     <div className="w-full absolute left-0 top-0 z-20">
       <SignedOut>
         <div
-          className="w-full px-2 md:pl-4 md:pr-14 py-4 backdrop-blur-sm flex justify-between items-center"
-          style={{ backgroundColor: 'rgba(255, 255, 255, 0.5)' }}
+          className={`w-full px-2 md:pl-4 md:pr-14 py-4 backdrop-blur-sm flex justify-between items-center ${isChatMode ? 'border-b' : ''}`}
+          style={{ 
+            backgroundColor: 'rgba(255, 255, 255, 0.5)',
+            borderColor: isChatMode ? '#cee2f2' : 'transparent'
+          }}
         >
           <div className="flex items-center gap-1.5 md:gap-3">
-            <div className="flex items-center gap-1 md:gap-2">
+            <button 
+              onClick={handleLogoClick}
+              className="flex items-center gap-1 md:gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+            >
               <div className="w-5 h-[15px] md:w-9 md:h-7 relative">
                 <Image
                   src="/assets/logo-icon.svg"
@@ -50,7 +66,7 @@ export default function Header({
               >
                 blubeez
               </div>
-            </div>
+            </button>
           </div>
 
           <div className="hidden md:flex items-center gap-2">
@@ -119,12 +135,16 @@ export default function Header({
 
       <SignedIn>
         <div
-          className="w-full px-2 md:pl-4 md:pr-14 py-4 flex justify-between items-center"
-          style={{ backgroundColor: 'transparent' }}
+          className={`w-full px-2 md:pl-4 md:pr-14 py-4 flex justify-between items-center ${isChatMode ? 'border-b' : ''}`}
+          style={{ 
+            backgroundColor: 'transparent',
+            borderColor: isChatMode ? '#cee2f2' : 'transparent'
+          }}
         >
           <div className="flex items-center gap-2">
-            <div
-              className="hidden md:flex items-center gap-2 transition-all duration-300"
+            <button
+              onClick={handleLogoClick}
+              className="hidden md:flex items-center gap-2 transition-all duration-300 hover:opacity-80 cursor-pointer"
               style={{ marginLeft: `${desktopBrandLeft}px` }}
             >
               <div className="w-9 h-7 relative">
@@ -145,9 +165,13 @@ export default function Header({
               >
                 blubeez
               </div>
-            </div>
+            </button>
 
-            <div className="md:hidden flex items-center gap-1" style={{ marginLeft: '32px' }}>
+            <button 
+              onClick={handleLogoClick}
+              className="md:hidden flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer" 
+              style={{ marginLeft: '32px' }}
+            >
               <div className="w-5 h-[15px] relative">
                 <Image
                   src="/assets/logo-icon.svg"
@@ -166,7 +190,7 @@ export default function Header({
               >
                 blubeez
               </div>
-            </div>
+            </button>
           </div>
 
           {/* User Greeting */}

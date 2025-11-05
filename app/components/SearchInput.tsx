@@ -1,43 +1,69 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { COLORS } from '../constants/colors';
 
 interface SearchInputProps {
   onHelpClick: () => void;
   isMobileSidebarOpen?: boolean;
+  onSendMessage?: (message: string) => void;
 }
 
-export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false }: SearchInputProps) {
+export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false, onSendMessage }: SearchInputProps) {
+  const [inputValue, setInputValue] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputValue.trim() && onSendMessage) {
+      onSendMessage(inputValue.trim());
+      setInputValue('');
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
   return (
     <>
       {/* Search Input */}
-      <div 
-        className="w-full px-4 py-2 md:py-3 rounded-xl md:rounded-2xl outline outline-1 outline-offset-[-1px] flex items-center justify-between gap-2"
-        style={{ 
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          outlineColor: COLORS.borderInput
-        }}
-      >
-        <input
-          type="text"
-          placeholder="Ask blu"
-          className="flex-1 bg-transparent text-neutral-400 text-xs md:text-base font-normal outline-none placeholder-neutral-400 leading-[1.6]"
-          style={{ fontFamily: 'var(--font-poppins)' }}
-        />
-        <button
-          className="flex items-center justify-center w-8 h-8 md:w-9 md:h-9 rounded-full hover:bg-white/10 transition-colors"
-          aria-label="Send"
+      <form onSubmit={handleSubmit} className="w-full">
+        <div 
+          className="w-full px-4 py-2 md:py-3 rounded-xl md:rounded-2xl outline outline-1 outline-offset-[-1px] flex items-center justify-between gap-2"
+          style={{ 
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            outlineColor: COLORS.borderInput
+          }}
         >
-          <Image 
-            src="/assets/send.svg" 
-            alt="Send" 
-            width={19} 
-            height={16} 
-            className="object-contain"
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask blubee"
+            className="flex-1 bg-transparent text-neutral-400 text-xs md:text-base font-normal outline-none placeholder-neutral-400 leading-[1.6]"
+            style={{ fontFamily: 'var(--font-poppins)' }}
           />
-        </button>
-      </div>
+          <button
+            type="submit"
+            disabled={!inputValue.trim()}
+            className="flex items-center justify-center w-8 h-8 md:w-9 md:h-9 rounded-full hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Send"
+          >
+            <Image 
+              src="/assets/send.svg" 
+              alt="Send" 
+              width={19} 
+              height={16} 
+              className="object-contain"
+            />
+          </button>
+        </div>
+      </form>
 
       {/* Mobile Footer Links */}
       <div

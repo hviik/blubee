@@ -8,9 +8,10 @@ import { COLORS } from '../constants/colors';
 interface SidebarProps {
   onExpandChange?: (expanded: boolean) => void;
   onMobileOpenChange?: (open: boolean) => void;
+  isChatMode?: boolean;
 }
 
-export default function Sidebar({ onExpandChange, onMobileOpenChange }: SidebarProps) {
+export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode = false }: SidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -65,8 +66,8 @@ export default function Sidebar({ onExpandChange, onMobileOpenChange }: SidebarP
           isExpanded ? 'w-[240px]' : 'w-[67px]'
         }`}
         style={{
-          backgroundColor: isExpanded ? '#f3f8ff' : 'transparent',
-          borderRight: isExpanded ? '1px solid #b4c2cf' : 'none',
+          backgroundColor: isExpanded ? '#f3f8ff' : (isChatMode ? 'white' : 'transparent'),
+          borderRight: isExpanded ? '1px solid #b4c2cf' : (isChatMode ? '1px solid #cee2f2' : 'none'),
           padding: '16px'
         }}
       >
