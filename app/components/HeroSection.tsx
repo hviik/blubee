@@ -20,7 +20,7 @@ export default function HeroSection() {
       <div className="w-full flex flex-col items-center">
         <div className="flex items-center gap-1 md:gap-2 whitespace-nowrap">
           <div 
-            className="text-2xl md:text-4xl font-normal"
+            className="text-[1.5rem] sm:text-[1.75rem] md:text-[2rem] lg:text-[2.25rem] font-normal"
             style={{ 
               fontFamily: 'var(--font-bricolage-grotesque)',
               color: COLORS.textBlack
@@ -29,7 +29,7 @@ export default function HeroSection() {
             Meet
           </div>
           <div 
-            className="text-2xl md:text-4xl font-semibold"
+            className="text-[1.5rem] sm:text-[1.75rem] md:text-[2rem] lg:text-[2.25rem] font-semibold"
             style={{ 
               fontFamily: 'var(--font-bricolage-grotesque)',
               color: COLORS.blubeezBlue
@@ -39,7 +39,7 @@ export default function HeroSection() {
           </div>
         </div>
         <div 
-          className="w-full text-center text-2xl md:text-4xl font-normal whitespace-nowrap"
+          className="w-full text-center text-[1.5rem] sm:text-[1.75rem] md:text-[2rem] lg:text-[2.25rem] font-normal whitespace-nowrap"
           style={{ 
             fontFamily: 'var(--font-bricolage-grotesque)',
             color: COLORS.textBlack

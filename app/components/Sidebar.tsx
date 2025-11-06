@@ -132,7 +132,7 @@ function NavItems({ isExpanded }: { isExpanded?: boolean }) {
         <Image src="/assets/travel-explore.svg" alt="Explore" width={24} height={24} />
         {isExpanded && (
           <span
-            className="text-sm font-normal whitespace-nowrap"
+            className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal whitespace-nowrap"
             style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.textQuaternary }}
           >
             Explore
@@ -144,7 +144,7 @@ function NavItems({ isExpanded }: { isExpanded?: boolean }) {
         <Image src="/assets/bookmark-bag.svg" alt="Wishlist" width={24} height={24} />
         {isExpanded && (
           <span
-            className="text-sm font-normal whitespace-nowrap"
+            className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal whitespace-nowrap"
             style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.textQuaternary }}
           >
             Wishlist
@@ -156,7 +156,7 @@ function NavItems({ isExpanded }: { isExpanded?: boolean }) {
         <Image src="/assets/notifications.svg" alt="Updates" width={24} height={24} />
         {isExpanded && (
           <span
-            className="text-sm font-normal whitespace-nowrap"
+            className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal whitespace-nowrap"
             style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.textQuaternary }}
           >
             Updates
@@ -168,7 +168,7 @@ function NavItems({ isExpanded }: { isExpanded?: boolean }) {
         <Image src="/assets/997.svg" alt="My trips" width={24} height={24} />
         {isExpanded && (
           <span
-            className="text-sm font-normal whitespace-nowrap"
+            className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal whitespace-nowrap"
             style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.textQuaternary }}
           >
             My trips
@@ -187,7 +187,7 @@ function BottomItems({ isExpanded }: { isExpanded?: boolean }) {
           <Image src="/assets/settings.svg" alt="Settings" width={24} height={24} />
           {isExpanded && (
             <span
-              className="text-sm font-normal whitespace-nowrap"
+              className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal whitespace-nowrap"
               style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.textQuaternary }}
             >
               Settings
@@ -208,7 +208,7 @@ function BottomItems({ isExpanded }: { isExpanded?: boolean }) {
           />
           {isExpanded && (
             <span
-              className="text-sm font-normal whitespace-nowrap"
+              className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal whitespace-nowrap"
               style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.textQuaternary }}
             >
               Your Profile

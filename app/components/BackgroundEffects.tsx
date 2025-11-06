@@ -30,7 +30,7 @@ export default function BackgroundEffects() {
 
       {/* White Radial Gradient Overlay */}
       <div
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[1440px] h-[1024px] pointer-events-none"
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full md:w-[1440px] md:h-[1024px] pointer-events-none"
         style={{
           backgroundImage: "radial-gradient(ellipse 45.844% 32.6% at center, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%)",
         }}
@@ -38,11 +38,13 @@ export default function BackgroundEffects() {
 
       {/* Blur Ellipse 1 - Top Right Blue */}
       <div
-        className="absolute left-[513px] top-[69px] w-[407.434px] h-[706.753px]"
+        className="absolute 
+          left-[60%] top-[10%] w-[300px] h-[520px]
+          md:left-[513px] md:top-[69px] md:w-[407.434px] md:h-[706.753px]"
         style={{ transform: 'rotate(54.89deg)' }}
       >
         <div
-          className="absolute inset-0 rounded-full blur-[200px]"
+          className="absolute inset-0 rounded-full blur-[150px] md:blur-[200px]"
           style={{
             background: 'radial-gradient(ellipse at center, rgba(135, 185, 235, 0.8) 0%, rgba(135, 185, 235, 0.5) 50%, rgba(135, 185, 235, 0) 100%)',
           }}
@@ -51,19 +53,21 @@ export default function BackgroundEffects() {
 
       {/* Blur Ellipse 2 - Bottom Left Blue */}
       <div
-        className="absolute left-[8px] top-[44px] w-[509.87px] h-[884.441px]"
+        className="absolute 
+          left-[-10%] top-[5%] w-[350px] h-[600px]
+          md:left-[8px] md:top-[44px] md:w-[509.87px] md:h-[884.441px]"
         style={{ transform: 'rotate(320.139deg)' }}
       >
         <div
-          className="absolute inset-0 rounded-full blur-[200px]"
+          className="absolute inset-0 rounded-full blur-[150px] md:blur-[200px]"
           style={{
             background: 'radial-gradient(ellipse at center, rgba(135, 185, 235, 0.8) 0%, rgba(135, 185, 235, 0.5) 50%, rgba(135, 185, 235, 0) 100%)',
           }}
         />
       </div>
 
-      {/* Cloud Images */}
-      <div className="absolute left-[-97px] top-[175px] w-[1602px] h-[713.567px]">
+      {/* Cloud Images - Hidden on mobile, visible on desktop */}
+      <div className="hidden md:block absolute left-[-97px] top-[175px] w-[1602px] h-[713.567px]">
         {/* Cloud 1 - Top Right */}
         <Image
           className="absolute left-[843px] top-[234px] w-[662px] h-[371.567px]"
@@ -104,6 +108,28 @@ export default function BackgroundEffects() {
             height={372}
           />
         </div>
+      </div>
+      
+      {/* Simplified Cloud Images for Mobile */}
+      <div className="md:hidden absolute inset-0 overflow-hidden">
+        {/* Cloud 1 - Mobile Top Right */}
+        <Image
+          className="absolute right-[-10%] top-[15%] w-[60vw] max-w-[400px] h-auto opacity-60"
+          src="/assets/cloud.png"
+          alt=""
+          width={400}
+          height={224}
+          priority
+        />
+        
+        {/* Cloud 2 - Mobile Bottom Left */}
+        <Image
+          className="absolute left-[-15%] bottom-[20%] w-[60vw] max-w-[400px] h-auto opacity-60"
+          src="/assets/cloud.png"
+          alt=""
+          width={400}
+          height={224}
+        />
       </div>
     </div>
   );

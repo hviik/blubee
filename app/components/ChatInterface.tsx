@@ -173,7 +173,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage }: C
 
                 <div className="flex-1 min-w-0 pt-1">
                   <p
-                    className="text-sm leading-relaxed whitespace-pre-wrap"
+                    className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] leading-relaxed whitespace-pre-wrap"
                     style={{ fontFamily: 'var(--font-poppins)', color: COLORS.textSecondary }}
                   >
                     {message.content}
@@ -222,7 +222,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage }: C
                 onKeyDown={handleKeyDown}
                 placeholder="Ask blubee"
                 disabled={isLoading}
-                className="flex-1 bg-transparent text-[16px] font-normal outline-none placeholder-neutral-400"
+                className="flex-1 bg-transparent text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal outline-none placeholder-neutral-400"
                 style={{ fontFamily: 'var(--font-poppins)', color: COLORS.textSecondary }}
               />
               <button

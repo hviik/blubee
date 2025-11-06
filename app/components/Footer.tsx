@@ -17,7 +17,7 @@ export default function Footer({ onHelpClick }: FooterProps) {
           style={{ outlineColor: COLORS.borderLight }}
         >
           <div 
-            className="text-base font-normal"
+            className="text-[1rem] lg:text-[1.125rem] font-normal"
             style={{
               fontFamily: 'var(--font-bricolage-grotesque)',
               color: COLORS.textTertiary
@@ -32,7 +32,7 @@ export default function Footer({ onHelpClick }: FooterProps) {
       {/* Center - Terms Text */}
       <div className="flex justify-center items-center">
         <div 
-          className="text-xs font-normal text-center max-w-[500px]"
+          className="text-[0.75rem] lg:text-[0.813rem] font-normal text-center max-w-[500px]"
           style={{ 
             fontFamily: 'var(--font-poppins)',
             color: COLORS.textSecondary
@@ -53,7 +53,7 @@ export default function Footer({ onHelpClick }: FooterProps) {
           }}
         >
           <div 
-            className="text-base font-normal"
+            className="text-[1rem] lg:text-[1.125rem] font-normal"
             style={{ 
               fontFamily: 'var(--font-bricolage-grotesque)',
               color: COLORS.textTertiary

@@ -45,7 +45,7 @@ export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false, 
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask blubee"
-            className="flex-1 bg-transparent text-neutral-400 text-xs md:text-base font-normal outline-none placeholder-neutral-400 leading-[1.6]"
+            className="flex-1 bg-transparent text-neutral-400 text-[0.75rem] sm:text-[0.875rem] md:text-[1rem] lg:text-[1.125rem] font-normal outline-none placeholder-neutral-400 leading-[1.6]"
             style={{ fontFamily: 'var(--font-poppins)' }}
           />
           <button
@@ -76,7 +76,7 @@ export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false, 
             <Image src="/assets/travel-explore.svg" alt="Explore" width={18} height={18} />
           </div>
           <p
-            className="text-sm font-normal underline decoration-solid"
+            className="text-[0.875rem] sm:text-[0.938rem] font-normal underline decoration-solid"
             style={{
               fontFamily: 'var(--font-bricolage-grotesque)',
               color: COLORS.textQuaternary,
@@ -91,7 +91,7 @@ export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false, 
           className="flex gap-2.5 items-center cursor-pointer"
         >
           <p
-            className="text-sm font-normal underline decoration-solid"
+            className="text-[0.875rem] sm:text-[0.938rem] font-normal underline decoration-solid"
             style={{
               fontFamily: 'var(--font-bricolage-grotesque)',
               color: COLORS.textQuaternary,

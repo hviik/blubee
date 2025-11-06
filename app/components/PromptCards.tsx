@@ -22,7 +22,7 @@ export default function PromptCards({ onPromptClick }: PromptCardsProps) {
       {/* Header */}
       <div className="w-full flex flex-wrap items-center gap-1 md:gap-2">
         <div 
-          className="text-[10px] md:text-xs font-medium whitespace-nowrap"
+          className="text-[0.625rem] sm:text-[0.688rem] md:text-[0.75rem] lg:text-[0.813rem] font-medium whitespace-nowrap"
           style={{ 
             fontFamily: 'var(--font-poppins)',
             color: COLORS.textPrimary
@@ -31,7 +31,7 @@ export default function PromptCards({ onPromptClick }: PromptCardsProps) {
           Not Sure Where to Start?
         </div>
         <div 
-          className="text-[10px] md:text-xs font-medium"
+          className="text-[0.625rem] sm:text-[0.688rem] md:text-[0.75rem] lg:text-[0.813rem] font-medium"
           style={{ 
             fontFamily: 'var(--font-poppins)',
             color: COLORS.textPrimary
@@ -54,7 +54,7 @@ export default function PromptCards({ onPromptClick }: PromptCardsProps) {
             }}
           >
             <div 
-              className="text-xs md:text-sm font-normal leading-normal"
+              className="text-[0.75rem] sm:text-[0.813rem] md:text-[0.875rem] lg:text-[0.938rem] font-normal leading-normal"
               style={{ 
                 fontFamily: 'var(--font-poppins)',
                 color: COLORS.textSecondary

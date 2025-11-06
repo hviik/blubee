@@ -111,7 +111,7 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
           <div className="flex flex-col gap-2 items-center text-center w-full">
             {/* Title - Different colors for mobile/desktop */}
             <p
-              className="text-[30px] md:text-4xl font-normal"
+              className="text-[1.875rem] sm:text-[2rem] md:text-[2.25rem] lg:text-[2.5rem] font-normal"
               style={{
                 fontFamily: 'var(--font-bricolage-grotesque)',
               }}
@@ -125,7 +125,7 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
             </p>
             {/* Subtitle - Different text and colors for mobile/desktop */}
             <p
-              className="text-sm md:text-base font-medium"
+              className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] lg:text-[1.063rem] font-medium"
               style={{
                 fontFamily: 'var(--font-poppins)',
               }}
@@ -149,7 +149,7 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
                     <Image src={step.icon} alt="" width={16} height={16} />
                   </div>
                   <p
-                    className="text-lg md:text-2xl font-normal"
+                    className="text-[1.125rem] sm:text-[1.25rem] md:text-[1.5rem] lg:text-[1.625rem] font-normal"
                     style={{
                       fontFamily: 'var(--font-bricolage-grotesque)',
                       color: COLORS.textQuaternary
@@ -158,7 +158,7 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
                     {step.title}
                   </p>
                   <p
-                    className="text-xs md:text-sm font-normal"
+                    className="text-[0.75rem] sm:text-[0.813rem] md:text-[0.875rem] lg:text-[0.938rem] font-normal"
                     style={{
                       fontFamily: 'var(--font-poppins)',
                     }}
@@ -182,7 +182,7 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
                     <Image src={step.icon} alt="" width={16} height={16} />
                   </div>
                   <p
-                    className="text-lg md:text-2xl font-normal"
+                    className="text-[1.125rem] sm:text-[1.25rem] md:text-[1.5rem] lg:text-[1.625rem] font-normal"
                     style={{
                       fontFamily: 'var(--font-bricolage-grotesque)',
                       color: COLORS.textQuaternary
@@ -191,7 +191,7 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
                     {step.title}
                   </p>
                   <p
-                    className="text-xs md:text-sm font-normal"
+                    className="text-[0.75rem] sm:text-[0.813rem] md:text-[0.875rem] lg:text-[0.938rem] font-normal"
                     style={{
                       fontFamily: 'var(--font-poppins)',
                     }}

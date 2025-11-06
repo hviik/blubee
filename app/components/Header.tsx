@@ -58,7 +58,7 @@ export default function Header({
                 />
               </div>
               <div
-                className="text-[14.933px] md:text-2xl font-semibold leading-normal"
+                className="text-[0.933rem] sm:text-[1.125rem] md:text-[1.5rem] lg:text-[1.5rem] font-semibold leading-normal"
                 style={{
                   fontFamily: 'var(--font-bricolage-grotesque)',
                   color: COLORS.blubeezBlue,
@@ -72,7 +72,7 @@ export default function Header({
           <div className="hidden md:flex items-center gap-2">
             <div className="px-6 py-1.5 rounded-3xl hover:bg-black/5 transition-colors cursor-pointer">
               <div
-                className="text-base font-normal"
+                className="text-[1rem] lg:text-[1.125rem] font-normal"
                 style={{
                   fontFamily: 'var(--font-bricolage-grotesque)',
                   color: COLORS.textTertiary,
@@ -88,7 +88,7 @@ export default function Header({
                 style={{ backgroundColor: COLORS.blubeezNavy }}
               >
                 <div
-                  className="text-base font-normal"
+                  className="text-[1rem] lg:text-[1.125rem] font-normal"
                   style={{
                     fontFamily: 'var(--font-bricolage-grotesque)',
                     color: COLORS.white,
@@ -102,7 +102,7 @@ export default function Header({
             <SignUpButton mode="modal">
               <div className="px-6 py-1.5 rounded-3xl hover:bg-black/5 transition-colors cursor-pointer">
                 <div
-                  className="text-base font-normal"
+                  className="text-[1rem] lg:text-[1.125rem] font-normal"
                   style={{
                     fontFamily: 'var(--font-bricolage-grotesque)',
                     color: COLORS.textTertiary,
@@ -120,7 +120,7 @@ export default function Header({
               style={{ backgroundColor: COLORS.blubeezNavy }}
             >
               <div
-                className="text-xs font-normal leading-normal"
+                className="text-[0.75rem] sm:text-[0.875rem] font-normal leading-normal"
                 style={{
                   fontFamily: 'var(--font-bricolage-grotesque)',
                   color: COLORS.white,
@@ -157,7 +157,7 @@ export default function Header({
                 />
               </div>
               <div
-                className="text-2xl font-semibold"
+                className="text-[1.5rem] lg:text-[1.5rem] font-semibold"
                 style={{
                   fontFamily: 'var(--font-bricolage-grotesque)',
                   color: COLORS.blubeezBlue,
@@ -182,7 +182,7 @@ export default function Header({
                 />
               </div>
               <div
-                className="text-[14.933px] font-semibold leading-normal"
+                className="text-[0.933rem] sm:text-[1.125rem] font-semibold leading-normal"
                 style={{
                   fontFamily: 'var(--font-bricolage-grotesque)',
                   color: COLORS.blubeezBlue,
@@ -196,7 +196,7 @@ export default function Header({
           {/* User Greeting */}
           <div className="flex items-center">
             <div
-              className="text-sm md:text-base font-normal"
+              className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] lg:text-[1.125rem] font-normal"
               style={{
                 fontFamily: 'var(--font-bricolage-grotesque)',
                 color: COLORS.textQuaternary,
