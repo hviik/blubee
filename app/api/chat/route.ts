@@ -20,17 +20,17 @@ export async function POST(req: NextRequest) {
       ...messages
     ];
 
-    const apiKey = process.env.OPEN_AI_KEY;
+    const apiKey = process.env.sk_oai;
     
     if (!apiKey) {
-      console.error('OPEN_AI_KEY is not set');
+      console.error('sk_oai is not set');
       return NextResponse.json(
         { error: 'API key not configured' },
         { status: 500 }
       );
     }
 
-    // Call NanoGPT API
+    // Call OpenAI API
     const resp = await fetch(API_URL, {
       method: "POST",
       headers: {
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
 
     if (!resp.ok) {
       const errorText = await resp.text();
-      console.error('NanoGPT API error:', resp.status, errorText);
+      console.error('OpenAI API error:', resp.status, errorText);
       return NextResponse.json(
         { error: `API error: ${resp.status}` },
         { status: resp.status }

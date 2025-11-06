@@ -47,7 +47,7 @@ export default function PromptCards({ onPromptClick }: PromptCardsProps) {
           <div
             key={index}
             onClick={() => handlePromptClick(prompt)}
-            className="w-full px-4 py-2 md:py-3 rounded-xl md:rounded-2xl outline outline-1 outline-offset-[-1px] hover:outline-[#2d4e92] transition-colors cursor-pointer"
+            className="w-full px-4 py-2 md:py-2 rounded-xl md:rounded-2xl outline outline-1 outline-offset-[-1px] hover:outline-[#2d4e92] transition-colors cursor-pointer"
             style={{ 
               backgroundColor: COLORS.white,
               outlineColor: COLORS.borderMedium

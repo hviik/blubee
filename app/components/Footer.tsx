@@ -9,7 +9,7 @@ interface FooterProps {
 
 export default function Footer({ onHelpClick }: FooterProps) {
   return (
-    <div className="hidden md:flex w-full max-w-[1329px] mx-auto px-4 absolute bottom-8 left-1/2 -translate-x-1/2 z-10 justify-between items-center">
+    <div className="hidden md:flex w-full max-w-[1329px] mx-auto px-4 absolute bottom-[clamp(1rem,2.5vh,1.75rem)] left-1/2 -translate-x-1/2 z-10 justify-between items-center">
       {/* Left - Explore Button */}
       <div className="flex-1 flex justify-start">
         <div 
@@ -32,7 +32,7 @@ export default function Footer({ onHelpClick }: FooterProps) {
       {/* Center - Terms Text */}
       <div className="flex justify-center items-center">
         <div 
-          className="text-[0.75rem] lg:text-[0.813rem] font-normal text-center max-w-[500px]"
+          className="text-[0.75rem] font-normal text-center max-w-[500px]"
           style={{ 
             fontFamily: 'var(--font-poppins)',
             color: COLORS.textSecondary
@@ -48,7 +48,6 @@ export default function Footer({ onHelpClick }: FooterProps) {
           onClick={onHelpClick}
           className="px-4 py-1.5 rounded-[32px] outline outline-1 outline-offset-[-1px] flex items-center gap-2.5 cursor-pointer hover:outline-[#2d4e92] transition-colors"
           style={{ 
-            backgroundColor: COLORS.white,
             outlineColor: COLORS.borderLight 
           }}
         >

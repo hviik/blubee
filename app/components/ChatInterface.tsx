@@ -143,12 +143,11 @@ export default function ChatInterface({ initialMessages = [], onSendMessage }: C
 
   return (
     <div 
-      className="w-full h-full flex flex-col backdrop-blur-[5px] bg-gradient-to-b from-[rgba(255,255,255,0.4)] to-[rgba(255,255,255,0.8)] border-r border-[#cee2f2]" 
-      style={{ opacity: 0.8 }}
+      className="w-full h-full flex flex-col backdrop-blur-[5px] bg-gradient-to-b from-[rgba(255,255,255,0.4)] to-[rgba(255,255,255,0.8)] border-r border-[#cee2f2]"
     >
       {/* Messages container must have min-h-0 to allow overflow-y in flex layouts */}
       <div ref={containerRef} className="flex-1 min-h-0 overflow-y-auto">
-        <div className="w-full max-w-[664px] px-4 py-4">
+        <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-4 py-4">
           {messages.map((message, index) => (
             <div key={index}>
               <div className="flex gap-4 items-start py-4">
@@ -167,7 +166,9 @@ export default function ChatInterface({ initialMessages = [], onSendMessage }: C
                       <div className="w-6 h-6 rounded-full" style={{ backgroundColor: COLORS.textSecondary }} />
                     )
                   ) : (
-                    <Image src="/assets/logo.svg" alt="Blubeez" width={32} height={32} className="object-contain" />
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Image src="/assets/logo.svg" alt="Blubeez" width={32} height={23} className="object-contain" />
+                    </div>
                   )}
                 </div>
 
@@ -191,7 +192,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage }: C
             <div>
               <div className="flex gap-4 items-start py-4">
                 <div className="shrink-0 w-8 h-8 flex items-center justify-center">
-                  <Image src="/assets/logo.svg" alt="Blubeez" width={32} height={32} className="object-contain" />
+                  <Image src="/assets/logo.svg" alt="Blubeez" width={32} height={23} className="object-contain" />
                 </div>
                 <div className="flex-1 pt-1">
                   <div className="flex gap-1">
@@ -209,7 +210,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage }: C
       </div>
 
       <div className="border-t" style={{ borderColor: COLORS.borderLight }}>
-        <div className="w-full max-w-[664px] px-4 py-4">
+        <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-4 py-4">
           <form onSubmit={handleSubmit}>
             <div
               className="w-full px-[16px] py-[12px] rounded-[16px] border border-[#2c3d5d] flex items-center justify-between gap-2"
@@ -220,7 +221,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage }: C
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask blubee"
+                placeholder="Ask blu"
                 disabled={isLoading}
                 className="flex-1 bg-transparent text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal outline-none placeholder-neutral-400"
                 style={{ fontFamily: 'var(--font-poppins)', color: COLORS.textSecondary }}

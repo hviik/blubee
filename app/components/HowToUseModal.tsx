@@ -35,6 +35,15 @@ const STEPS = [
 export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
   const [isAnimating, setIsAnimating] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  // Detect screen size
+  useEffect(() => {
+    const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -83,17 +92,19 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
         onClick={onClose}
       />
 
-      {/* Modal - Bottom right on desktop, centered on mobile */}
+      {/* Modal - Bottom right on desktop, bottom center on mobile */}
       <div 
-        className={`fixed z-50 rounded-2xl flex flex-col
-          left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[343px] px-4 pt-5 pb-8 gap-4
-          md:left-auto md:right-4 md:bottom-24 md:top-auto md:translate-x-0 md:translate-y-0 md:w-[523px] md:px-8 md:pt-4 md:gap-4
-          transition-all duration-500 ease-in-out ${
-            isAnimating 
-              ? 'opacity-100 scale-100' 
-              : 'opacity-0 scale-95'
-          }`}
-        style={{ backgroundColor: COLORS.white }}
+        className={`fixed z-50 rounded-2xl flex flex-col shadow-2xl max-h-[calc(100vh-2rem)]
+          w-[343px] px-4 pt-5 pb-8 gap-4
+          md:w-[523px] md:px-8 md:pt-4 md:gap-4 overflow-y-auto`}
+        style={{ 
+          backgroundColor: COLORS.white,
+          left: isDesktop ? 'auto' : '50%',
+          right: isDesktop ? '1rem' : 'auto',
+          transform: isDesktop ? 'none' : 'translateX(-50%)',
+          bottom: isAnimating ? (isDesktop ? '1rem' : '1rem') : '-500px',
+          transition: 'all 0.5s ease-out',
+        }}
       >
         {/* Close Button */}
         <div className="flex items-center justify-end w-full">

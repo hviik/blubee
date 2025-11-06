@@ -37,9 +37,9 @@ export default function Header({
     <div className="w-full absolute left-0 top-0 z-20">
       <SignedOut>
         <div
-          className={`w-full px-2 md:pl-4 md:pr-14 py-4 backdrop-blur-sm flex justify-between items-center ${isChatMode ? 'border-b' : ''}`}
+          className={`w-full px-2 md:pl-4 md:pr-14 py-4 flex justify-between items-center ${isChatMode ? 'border-b' : ''}`}
           style={{ 
-            backgroundColor: 'rgba(255, 255, 255, 0.5)',
+            backgroundColor: 'transparent',
             borderColor: isChatMode ? '#cee2f2' : 'transparent'
           }}
         >

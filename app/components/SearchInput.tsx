@@ -33,7 +33,7 @@ export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false, 
       {/* Search Input */}
       <form onSubmit={handleSubmit} className="w-full">
         <div 
-          className="w-full px-4 py-2 md:py-3 rounded-xl md:rounded-2xl outline outline-1 outline-offset-[-1px] flex items-center justify-between gap-2"
+          className="w-full px-4 py-2 md:py-2 rounded-xl md:rounded-2xl outline outline-1 outline-offset-[-1px] flex items-center justify-between gap-2"
           style={{ 
             backgroundColor: 'rgba(255, 255, 255, 0.1)',
             outlineColor: COLORS.borderInput
@@ -44,7 +44,7 @@ export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false, 
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask blubee"
+            placeholder="Ask blu"
             className="flex-1 bg-transparent text-neutral-400 text-[0.75rem] sm:text-[0.875rem] md:text-[1rem] lg:text-[1.125rem] font-normal outline-none placeholder-neutral-400 leading-[1.6]"
             style={{ fontFamily: 'var(--font-poppins)' }}
           />

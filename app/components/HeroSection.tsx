@@ -5,7 +5,7 @@ export default function HeroSection() {
   return (
     <div className="flex flex-col gap-2.5 items-center w-full">
       {/* Logo */}
-      <div className="w-[73px] h-14 md:w-28 md:h-20 relative">
+      <div className="w-[73px] h-14 md:w-[clamp(5.5rem,7vw,6.5rem)] md:h-[clamp(4rem,5vw,4.75rem)] relative">
         <Image
           src="/assets/logo.svg"
           alt="Blubeez Logo"

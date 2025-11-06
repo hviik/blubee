@@ -38,10 +38,8 @@ export default function BackgroundEffects() {
 
       {/* Blur Ellipse 1 - Top Right Blue */}
       <div
-        className="absolute 
-          left-[60%] top-[10%] w-[300px] h-[520px]
-          md:left-[513px] md:top-[69px] md:w-[407.434px] md:h-[706.753px]"
-        style={{ transform: 'rotate(54.89deg)' }}
+        className="absolute right-[10%] top-[5%] w-[300px] h-[400px] 
+                   md:left-[1091px] md:right-auto md:top-[69px] md:w-[812px] md:h-[740px]"
       >
         <div
           className="absolute inset-0 rounded-full blur-[150px] md:blur-[200px]"
@@ -53,10 +51,8 @@ export default function BackgroundEffects() {
 
       {/* Blur Ellipse 2 - Bottom Left Blue */}
       <div
-        className="absolute 
-          left-[-10%] top-[5%] w-[350px] h-[600px]
-          md:left-[8px] md:top-[44px] md:w-[509.87px] md:h-[884.441px]"
-        style={{ transform: 'rotate(320.139deg)' }}
+        className="absolute left-[2%] bottom-[10%] w-[350px] h-[450px]
+                   md:left-[8px] md:top-[371px] md:bottom-auto md:w-[958px] md:h-[1006px]"
       >
         <div
           className="absolute inset-0 rounded-full blur-[150px] md:blur-[200px]"
@@ -66,11 +62,12 @@ export default function BackgroundEffects() {
         />
       </div>
 
-      {/* Cloud Images - Hidden on mobile, visible on desktop */}
-      <div className="hidden md:block absolute left-[-97px] top-[175px] w-[1602px] h-[713.567px]">
-        {/* Cloud 1 - Top Right */}
+      {/* Cloud Images */}
+      <div className="absolute left-[-97px] top-[175px] w-[1602px] h-[713.567px]">
+        {/* Cloud 1 - Top Right (visible on all screens) */}
         <Image
-          className="absolute left-[843px] top-[234px] w-[662px] h-[371.567px]"
+          className="absolute right-[10%] top-[100px] w-[400px] h-[225px] 
+                     md:left-[843px] md:right-auto md:top-[234px] md:w-[662px] md:h-[371.567px]"
           src="/assets/cloud.png"
           alt=""
           width={662}
@@ -78,17 +75,18 @@ export default function BackgroundEffects() {
           priority
         />
         
-        {/* Cloud 2 - Bottom Left */}
+        {/* Cloud 2 - Bottom Left (visible on all screens) */}
         <Image
-          className="absolute left-[-97px] top-[517px] w-[662px] h-[371.567px]"
+          className="absolute left-[-50px] bottom-[50px] w-[400px] h-[225px]
+                     md:left-[-97px] md:top-[517px] md:bottom-auto md:w-[662px] md:h-[371.567px]"
           src="/assets/cloud.png"
           alt=""
           width={662}
           height={372}
         />
         
-        {/* Cloud 3 - Bottom Middle (flipped, 20% opacity) */}
-        <div className="absolute left-[98px] top-[441px] w-[662px] h-[371.567px]" style={{ transform: 'rotateY(180deg) scale(-1, 1)' }}>
+        {/* Cloud 3 - Bottom Middle (flipped, 20% opacity, hidden on mobile) */}
+        <div className="hidden md:block absolute left-[760px] top-[441px] w-[662px] h-[371.567px]" style={{ transform: 'rotateY(180deg) scale(-1, 1)' }}>
           <Image
             className="opacity-20"
             src="/assets/cloud.png"
@@ -98,8 +96,8 @@ export default function BackgroundEffects() {
           />
         </div>
         
-        {/* Cloud 4 - Top Middle (flipped, 40% opacity) */}
-        <div className="absolute left-[619px] top-[175px] w-[662px] h-[371.567px]" style={{ transform: 'rotate(180deg)' }}>
+        {/* Cloud 4 - Top Middle (flipped, 40% opacity, hidden on mobile) */}
+        <div className="hidden md:block absolute left-[1281px] top-[547px] w-[662px] h-[371.567px]" style={{ transform: 'rotate(180deg)' }}>
           <Image
             className="opacity-40"
             src="/assets/cloud.png"
@@ -108,28 +106,6 @@ export default function BackgroundEffects() {
             height={372}
           />
         </div>
-      </div>
-      
-      {/* Simplified Cloud Images for Mobile */}
-      <div className="md:hidden absolute inset-0 overflow-hidden">
-        {/* Cloud 1 - Mobile Top Right */}
-        <Image
-          className="absolute right-[-10%] top-[15%] w-[60vw] max-w-[400px] h-auto opacity-60"
-          src="/assets/cloud.png"
-          alt=""
-          width={400}
-          height={224}
-          priority
-        />
-        
-        {/* Cloud 2 - Mobile Bottom Left */}
-        <Image
-          className="absolute left-[-15%] bottom-[20%] w-[60vw] max-w-[400px] h-auto opacity-60"
-          src="/assets/cloud.png"
-          alt=""
-          width={400}
-          height={224}
-        />
       </div>
     </div>
   );
