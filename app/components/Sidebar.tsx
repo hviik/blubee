@@ -129,7 +129,7 @@ function NavItems({ isExpanded }: { isExpanded?: boolean }) {
   return (
     <div className="flex flex-col gap-6 w-full">
       <button className="flex items-center gap-3 hover:opacity-70 transition-opacity">
-        <Image src="/assets/explore.svg" alt="Explore" width={24} height={24} />
+        <Image src="/assets/travel-explore.svg" alt="Explore" width={24} height={24} />
         {isExpanded && (
           <span
             className="text-sm font-normal whitespace-nowrap"
