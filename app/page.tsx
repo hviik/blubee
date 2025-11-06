@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useUser } from '@clerk/nextjs';
 import BackgroundEffects from './components/BackgroundEffects';
 import Header from './components/Header';
@@ -9,9 +10,11 @@ import HeroSection from './components/HeroSection';
 import PromptCards from './components/PromptCards';
 import SearchInput from './components/SearchInput';
 import Footer from './components/Footer';
-import HowToUseModal from './components/HowToUseModal';
-import ChatInterface from './components/ChatInterface';
-import AuthPromptModal from './components/AuthPromptModal';
+
+// Lazy load heavy components
+const HowToUseModal = dynamic(() => import('./components/HowToUseModal'), { ssr: false });
+const ChatInterface = dynamic(() => import('./components/ChatInterface'), { ssr: false });
+const AuthPromptModal = dynamic(() => import('./components/AuthPromptModal'), { ssr: false });
 
 export default function BlubeezHome() {
   const { isSignedIn } = useUser();
