@@ -96,11 +96,14 @@ export default function BlubeezHome() {
       />
 
       {isChatActive ? (
-        // Chat Interface - responsive positioning with sidebar
+        // Chat Interface - bounded container to prevent scroll issues
+        // Using absolute positioning with calculated height to stay below header
+        // z-30: below sidebar(40) and header(50), above background content
         <div 
-          className="fixed inset-x-0 bottom-0 z-10 transition-all duration-300 ease-in-out"
+          className="absolute left-0 right-0 z-[30] overflow-hidden transition-all duration-300 ease-in-out"
           style={{
             top: isDesktop ? '80px' : '64px',
+            height: isDesktop ? 'calc(100vh - 80px)' : 'calc(100vh - 64px)',
             paddingLeft: isDesktop ? `${sidebarWidth}px` : '0px'
           }}
         >
