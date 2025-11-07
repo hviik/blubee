@@ -26,7 +26,9 @@ export default function ChatInterface({ initialMessages = [], onSendMessage }: C
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hasInitialized = useRef(false);
   const prevMessageCount = useRef(0);
+  const userScrolledUp = useRef(false);
 
+  // Check if user is near bottom of chat (within 100px)
   const isNearBottom = () => {
     const el = containerRef.current;
     if (!el) return true;
@@ -35,10 +37,30 @@ export default function ChatInterface({ initialMessages = [], onSendMessage }: C
     return dist < threshold;
   };
 
+  // Scroll to bottom only if user hasn't scrolled up intentionally
   const scrollToBottom = (smooth: boolean) => {
-    if (!isNearBottom()) return;
+    if (userScrolledUp.current && !isNearBottom()) return;
     messagesEndRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto' });
+    userScrolledUp.current = false;
   };
+
+  // Detect when user scrolls up manually
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const handleScroll = () => {
+      const isAtBottom = isNearBottom();
+      if (!isAtBottom) {
+        userScrolledUp.current = true;
+      } else {
+        userScrolledUp.current = false;
+      }
+    };
+
+    el.addEventListener('scroll', handleScroll);
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     if (messages.length > prevMessageCount.current) {
@@ -146,8 +168,10 @@ export default function ChatInterface({ initialMessages = [], onSendMessage }: C
     <div 
       className="w-full h-full flex flex-col backdrop-blur-[5px] bg-gradient-to-b from-[rgba(255,255,255,0.4)] to-[rgba(255,255,255,0.8)] border-r border-[#cee2f2]"
     >
-      {/* Messages container must have min-h-0 to allow overflow-y in flex layouts */}
-      <div ref={containerRef} className="flex-1 min-h-0 overflow-y-auto">
+      {/* Messages container - bounded scrolling with max-height to prevent escaping */}
+      {/* min-h-0 allows flex child to shrink, overflow-y-auto enables scroll */}
+      {/* max-h ensures messages don't scroll behind input area */}
+      <div ref={containerRef} className="flex-1 min-h-0 overflow-y-auto max-h-[calc(100vh-200px)] pr-2">
         <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-4 py-4">
           {messages.map((message, index) => (
             <div key={index}>
@@ -216,8 +240,10 @@ export default function ChatInterface({ initialMessages = [], onSendMessage }: C
         </div>
       </div>
 
+      {/* Input area - sticky positioning at bottom of chat container */}
+      {/* Prevents input from being scrolled away with messages */}
       <div 
-        className="border-t" 
+        className="border-t sticky bottom-0 bg-white" 
         style={{ 
           borderColor: COLORS.borderLight,
           paddingBottom: 'env(safe-area-inset-bottom, 0px)'
