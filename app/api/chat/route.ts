@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MODEL, SYSTEM_PROMPT, API_URL } from '@/app/workers/chat';
 
-// Enable edge runtime for better performance and lower cold starts
-export const runtime = 'edge';
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -33,7 +30,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Call OpenAI API with optimized settings
+    // Call OpenAI API
     const resp = await fetch(API_URL, {
       method: "POST",
       headers: {
@@ -43,12 +40,8 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: MODEL,
         messages: fullMessages,
-        stream: true,
-        temperature: 0.7,
-        max_tokens: 2000,
-      }),
-      // Add timeout and signal for better error handling
-      signal: AbortSignal.timeout(60000), // 60 second timeout
+        stream: true
+      })
     });
 
     if (!resp.ok) {
@@ -153,10 +146,8 @@ export async function POST(req: NextRequest) {
     return new Response(readableStream, {
       headers: {
         'Content-Type': 'text/plain; charset=utf-8',
-        'Cache-Control': 'no-cache, no-transform',
+        'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
-        'X-Accel-Buffering': 'no', // Disable buffering for Nginx
-        'Content-Encoding': 'none', // Prevent compression of streaming response
       },
     });
 

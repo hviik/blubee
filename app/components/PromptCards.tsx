@@ -1,4 +1,3 @@
-import { memo, useCallback } from 'react';
 import { COLORS } from '../constants/colors';
 
 const SAMPLE_PROMPTS = [
@@ -11,12 +10,12 @@ interface PromptCardsProps {
   onPromptClick?: (prompt: string) => void;
 }
 
-const PromptCards = memo(({ onPromptClick }: PromptCardsProps) => {
-  const handlePromptClick = useCallback((prompt: string) => {
+export default function PromptCards({ onPromptClick }: PromptCardsProps) {
+  const handlePromptClick = (prompt: string) => {
     if (onPromptClick) {
       onPromptClick(prompt);
     }
-  }, [onPromptClick]);
+  };
 
   return (
     <div className="w-full flex flex-col gap-2 items-start">
@@ -68,8 +67,4 @@ const PromptCards = memo(({ onPromptClick }: PromptCardsProps) => {
       </div>
     </div>
   );
-});
-
-PromptCards.displayName = 'PromptCards';
-
-export default PromptCards;
+}

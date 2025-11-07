@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback, memo } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
 import { COLORS } from '../constants/colors';
@@ -14,49 +14,6 @@ interface ChatInterfaceProps {
   initialMessages?: Message[];
   onSendMessage?: (message: string) => void;
 }
-
-// Memoized message component to prevent unnecessary re-renders
-const MessageRow = memo(({ message, user }: { message: Message; user: any }) => {
-  return (
-    <div className="flex gap-4 items-start py-4">
-      <div
-        className="shrink-0 w-8 h-8 rounded-full overflow-hidden flex items-center justify-center"
-        style={{ backgroundColor: message.role === 'user' ? COLORS.borderMedium : 'transparent' }}
-      >
-        {message.role === 'user' ? (
-          user?.imageUrl ? (
-            <img
-              src={user.imageUrl}
-              alt={user.firstName || 'User'}
-              className="object-cover w-full h-full rounded-full"
-            />
-          ) : (
-            <div className="w-6 h-6 rounded-full" style={{ backgroundColor: COLORS.textSecondary }} />
-          )
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Image src="/assets/logo.svg" alt="Blubeez" width={32} height={23} className="object-contain" />
-          </div>
-        )}
-      </div>
-
-      <div className="flex-1 min-w-0 pt-1">
-        <p
-          className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] leading-relaxed whitespace-pre-wrap"
-          style={{ fontFamily: 'var(--font-poppins)', color: COLORS.textSecondary }}
-        >
-          {message.content}
-        </p>
-      </div>
-    </div>
-  );
-}, (prevProps, nextProps) => {
-  // Only re-render if message content changes
-  return prevProps.message.content === nextProps.message.content && 
-         prevProps.message.role === nextProps.message.role;
-});
-
-MessageRow.displayName = 'MessageRow';
 
 export default function ChatInterface({ initialMessages = [], onSendMessage }: ChatInterfaceProps) {
   const { user } = useUser();
@@ -115,7 +72,6 @@ export default function ChatInterface({ initialMessages = [], onSendMessage }: C
           throw new Error(errorData.error || 'Failed to send message');
         }
 
-        // Add empty assistant message
         setMessages((prev) => {
           const assistantMessage: Message = { role: 'assistant', content: '' };
           const next = [...prev, assistantMessage];
@@ -127,56 +83,26 @@ export default function ChatInterface({ initialMessages = [], onSendMessage }: C
         
         scrollToBottom(true);
 
-        // Optimized streaming with batch updates
         const reader = response.body?.getReader();
         const decoder = new TextDecoder();
 
         if (reader) {
           let acc = '';
-          let updateBuffer = '';
-          let lastUpdate = Date.now();
-          const UPDATE_INTERVAL = 50; // Update UI every 50ms for smoother rendering
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
 
-          const flushBuffer = () => {
-            if (updateBuffer) {
-              acc += updateBuffer;
-              const contentToSet = acc;
-              updateBuffer = '';
-              
-              setMessages((prev) => {
-                const next = [...prev];
-                const last = next[next.length - 1];
-                if (last && last.role === 'assistant') {
-                  last.content = contentToSet;
-                }
-                return next;
-              });
-              
-              scrollToBottom(false);
-            }
-          };
+            const chunk = decoder.decode(value, { stream: true });
+            acc += chunk;
 
-          try {
-            while (true) {
-              const { value, done } = await reader.read();
-              if (done) {
-                flushBuffer();
-                break;
-              }
+            setMessages((prev) => {
+              const next = [...prev];
+              const last = next[next.length - 1];
+              if (last && last.role === 'assistant') last.content = acc;
+              return next;
+            });
 
-              const chunk = decoder.decode(value, { stream: true });
-              updateBuffer += chunk;
-
-              // Batch updates for better performance
-              const now = Date.now();
-              if (now - lastUpdate >= UPDATE_INTERVAL) {
-                flushBuffer();
-                lastUpdate = now;
-              }
-            }
-          } catch (readError) {
-            console.error('Stream read error:', readError);
-            flushBuffer();
+            scrollToBottom(false);
           }
         }
       } catch (err) {
@@ -224,7 +150,38 @@ export default function ChatInterface({ initialMessages = [], onSendMessage }: C
         <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-4 py-4">
           {messages.map((message, index) => (
             <div key={index}>
-              <MessageRow message={message} user={user} />
+              <div className="flex gap-4 items-start py-4">
+                <div
+                  className="shrink-0 w-8 h-8 rounded-full overflow-hidden flex items-center justify-center"
+                  style={{ backgroundColor: message.role === 'user' ? COLORS.borderMedium : 'transparent' }}
+                >
+                  {message.role === 'user' ? (
+                    user?.imageUrl ? (
+                      <img
+                        src={user.imageUrl}
+                        alt={user.firstName || 'User'}
+                        className="object-cover w-full h-full rounded-full"
+                      />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full" style={{ backgroundColor: COLORS.textSecondary }} />
+                    )
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Image src="/assets/logo.svg" alt="Blubeez" width={32} height={23} className="object-contain" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1 min-w-0 pt-1">
+                  <p
+                    className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] leading-relaxed whitespace-pre-wrap"
+                    style={{ fontFamily: 'var(--font-poppins)', color: COLORS.textSecondary }}
+                  >
+                    {message.content}
+                  </p>
+                </div>
+              </div>
+
               {index < messages.length - 1 && (
                 <div className="w-full h-px" style={{ backgroundColor: COLORS.borderLight }} />
               )}
