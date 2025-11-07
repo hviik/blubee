@@ -88,19 +88,25 @@ export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode
       </div>
 
       <div
-        className={`md:hidden fixed inset-0 z-40 transition-all duration-500 ${isMobileOpen ? '' : 'pointer-events-none'}`}
+        className={`md:hidden fixed inset-0 z-40 ${isMobileOpen ? '' : 'pointer-events-none'}`}
         aria-hidden={!isMobileOpen}
       >
         <div
-          className={`absolute inset-0 transition-all duration-500 ease-in-out backdrop-blur-md ${
+          className={`absolute inset-0 backdrop-blur-md transition-opacity duration-300 ease-out ${
             isMobileOpen ? 'bg-black/50 opacity-100' : 'bg-black/0 opacity-0'
           }`}
+          style={{
+            transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
           onClick={closeMobile}
         />
         <aside
-          className={`absolute left-0 top-0 h-full w-[280px] bg-[#f3f8ff] border-r border-[#b4c2cf] shadow-xl transition-all duration-500 ease-in-out ${
+          className={`absolute left-0 top-0 h-full w-[280px] bg-[#f3f8ff] border-r border-[#b4c2cf] shadow-xl ${
             isMobileOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
+          style={{
+            transition: 'transform 350ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+          }}
           role="dialog"
           aria-modal="true"
         >
