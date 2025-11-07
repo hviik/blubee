@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
 import { COLORS } from '../constants/colors';
+import MarkdownMessage from './MarkdownMessage';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -173,12 +174,18 @@ export default function ChatInterface({ initialMessages = [], onSendMessage }: C
                 </div>
 
                 <div className="flex-1 min-w-0 pt-1">
-                  <p
-                    className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] leading-relaxed whitespace-pre-wrap"
-                    style={{ fontFamily: 'var(--font-poppins)', color: COLORS.textSecondary }}
-                  >
-                    {message.content}
-                  </p>
+                  {message.role === 'assistant' ? (
+                    <div className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem]">
+                      <MarkdownMessage content={message.content} />
+                    </div>
+                  ) : (
+                    <p
+                      className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] leading-relaxed whitespace-pre-wrap"
+                      style={{ fontFamily: 'var(--font-poppins)', color: COLORS.textSecondary }}
+                    >
+                      {message.content}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -209,7 +216,13 @@ export default function ChatInterface({ initialMessages = [], onSendMessage }: C
         </div>
       </div>
 
-      <div className="border-t" style={{ borderColor: COLORS.borderLight }}>
+      <div 
+        className="border-t" 
+        style={{ 
+          borderColor: COLORS.borderLight,
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)'
+        }}
+      >
         <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-4 py-4">
           <form onSubmit={handleSubmit}>
             <div

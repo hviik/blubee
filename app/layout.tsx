@@ -1,9 +1,17 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import Script from "next/script";
 import "./globals.css";
 import { clerkAppearance, clerkLocalization } from "./clerkConfig";
 import { bricolageGrotesque, poppins } from "./fonts";
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: 'cover',
+};
 
 export const metadata: Metadata = {
   title: "Blubeez - Your Travel Assistant",
