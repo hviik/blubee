@@ -20,10 +20,10 @@ export async function POST(req: NextRequest) {
       ...messages
     ];
 
-    const apiKey = process.env.sk_oai;
+    const apiKey = process.env.OPENAI_API_KEY;
     
     if (!apiKey) {
-      console.error('sk_oai is not set');
+      console.error('OPENAI_API_KEY is not set');
       return NextResponse.json(
         { error: 'API key not configured' },
         { status: 500 }
