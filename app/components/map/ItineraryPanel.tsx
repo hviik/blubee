@@ -12,13 +12,49 @@ interface ItineraryPanelProps {
 
 export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [panelHeight, setPanelHeight] = useState<number>(377); // Default height
+  const [panelHeight, setPanelHeight] = useState<number>(377);
   const [isDragging, setIsDragging] = useState(false);
   const [activeLocation, setActiveLocation] = useState<string | null>(
     itinerary?.locations?.[0]?.id || null
   );
 
-  // Handle case where itinerary is not loaded yet
+  // --- Hooks must always be declared before any early returns ---
+
+  const handleDragMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isDragging) return;
+
+      const container = document.querySelector('[data-itinerary-container]');
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      const newHeight = rect.bottom - e.clientY;
+
+      const minHeight = 200;
+      const maxHeight = rect.height * 0.8;
+      const clampedHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+
+      setPanelHeight(clampedHeight);
+    },
+    [isDragging]
+  );
+
+  const handleDragEnd = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleDragMove);
+      document.addEventListener('mouseup', handleDragEnd);
+      return () => {
+        document.removeEventListener('mousemove', handleDragMove);
+        document.removeEventListener('mouseup', handleDragEnd);
+      };
+    }
+  }, [isDragging, handleDragMove, handleDragEnd]);
+
+  // --- After all hooks are defined, we can safely early-return ---
   if (!itinerary) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-white border border-[#d7e7f5]">
@@ -55,41 +91,6 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
     setIsDragging(true);
     e.preventDefault();
   };
-
-  const handleDragMove = useCallback(
-    (e: MouseEvent) => {
-      if (!isDragging) return;
-
-      const container = document.querySelector('[data-itinerary-container]');
-      if (!container) return;
-
-      const rect = container.getBoundingClientRect();
-      const newHeight = rect.bottom - e.clientY;
-
-      // Min 200px, max 80% of container
-      const minHeight = 200;
-      const maxHeight = rect.height * 0.8;
-      const clampedHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
-
-      setPanelHeight(clampedHeight);
-    },
-    [isDragging]
-  );
-
-  const handleDragEnd = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleDragMove);
-      document.addEventListener('mouseup', handleDragEnd);
-      return () => {
-        document.removeEventListener('mousemove', handleDragMove);
-        document.removeEventListener('mouseup', handleDragEnd);
-      };
-    }
-  }, [isDragging, handleDragMove, handleDragEnd]);
 
   return (
     <div className="flex flex-col h-full bg-white relative">
@@ -180,7 +181,7 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
             </div>
           </div>
 
-          {/* Days List - Scrollable */}
+          {/* Days List */}
           <div className="flex-1 overflow-y-auto bg-white">
             <div className="p-4 space-y-0">
               {filteredDays.map((day, index) => (
@@ -194,7 +195,7 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
             </div>
           </div>
 
-          {/* Scroll to top button */}
+          {/* Scroll-to-top Button */}
           {filteredDays.length > 3 && (
             <div className="absolute bottom-4 right-4">
               <button
