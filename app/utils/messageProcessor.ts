@@ -115,7 +115,6 @@ function extractDates(content: string): { start?: string; end?: string } {
  * Extract itinerary structure from AI response
  */
 function extractItinerary(content: string): Itinerary | null {
-  // Look for day-by-day structure
   const dayPattern = /Day\s+(\d+):\s*([^\n]+)/gi;
   const dayMatches = [...content.matchAll(dayPattern)];
   
@@ -128,33 +127,36 @@ function extractItinerary(content: string): Itinerary | null {
     const dayNumber = parseInt(match[1]);
     const title = match[2].trim();
     
-    // Extract location from title
+    // Extract main location from title
     const locationMatch = title.match(/^([^-–(]+)/);
-    const location = locationMatch ? locationMatch[1].trim() : 'Unknown';
-    locationSet.add(location);
+    const mainLocation = locationMatch ? locationMatch[1].trim() : 'Unknown';
+    locationSet.add(mainLocation);
     
-    // Get description (text after the day line until next day)
+    // Get full description
     const dayIndex = content.indexOf(match[0]);
     const nextDayIndex = content.indexOf(`Day ${dayNumber + 1}:`, dayIndex);
-    const description = nextDayIndex > -1
+    const fullDescription = nextDayIndex > -1
       ? content.slice(dayIndex + match[0].length, nextDayIndex).trim()
       : content.slice(dayIndex + match[0].length).trim();
     
+    // Extract specific places from description
+    const places = extractPlacesFromDescription(fullDescription, mainLocation);
+    
     days.push({
       dayNumber,
-      date: '', // Will be filled later
-      location,
+      date: '',
+      location: mainLocation,
       title,
-      description: description.split('\n').slice(0, 3).join(' ').trim(),
+      description: fullDescription.split('\n').slice(0, 3).join(' ').trim(),
       expanded: false,
+      places,
     });
   });
   
-  // Create locations array
   const locations: TripLocation[] = Array.from(locationSet).map((name, idx) => ({
     id: `loc_${idx}`,
     name,
-    coordinates: { lat: 0, lng: 0 }, // Will be geocoded later
+    coordinates: { lat: 0, lng: 0 },
     active: idx === 0,
   }));
   
@@ -167,6 +169,49 @@ function extractItinerary(content: string): Itinerary | null {
     startDate: new Date().toISOString().split('T')[0],
     endDate: new Date(Date.now() + days.length * 86400000).toISOString().split('T')[0],
   };
+}
+
+function extractPlacesFromDescription(description: string, mainLocation: string) {
+  const places: Array<{ name: string; type: string }> = [];
+  const lines = description.split('\n');
+  
+  lines.forEach(line => {
+    // Morning/Afternoon/Evening activities
+    if (/morning:/i.test(line)) {
+      const matches = line.match(/:\s*([^,\n]+)/gi);
+      matches?.forEach(m => {
+        const name = m.replace(/^:\s*/, '').trim();
+        if (name) places.push({ name, type: 'attraction' });
+      });
+    }
+    
+    if (/afternoon:/i.test(line)) {
+      const matches = line.match(/:\s*([^,\n]+)/gi);
+      matches?.forEach(m => {
+        const name = m.replace(/^:\s*/, '').trim();
+        if (name) places.push({ name, type: 'attraction' });
+      });
+    }
+    
+    if (/evening:/i.test(line) || /dinner/i.test(line)) {
+      const matches = line.match(/(?:at|near)\s+([^,\n]+)/gi);
+      matches?.forEach(m => {
+        const name = m.replace(/^(?:at|near)\s+/i, '').trim();
+        if (name) places.push({ name, type: 'restaurants' });
+      });
+    }
+    
+    // Hotel/Stay mentions
+    if (/hotel|stay|accommodation/i.test(line)) {
+      const matches = line.match(/(?:at|stay at)\s+([^,\n]+)/gi);
+      matches?.forEach(m => {
+        const name = m.replace(/^(?:at|stay at)\s+/i, '').trim();
+        if (name) places.push({ name, type: 'stays' });
+      });
+    }
+  });
+  
+  return places.slice(0, 5); // Limit to 5 places per day
 }
 
 /**

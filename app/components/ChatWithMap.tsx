@@ -31,12 +31,39 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
     ) {
       lastProcessedContent.current = lastMessage.content;
       const processed = processMessage(lastMessage.content);
+      
       if (processed.hasItinerary && processed.itinerary) {
-        setItinerary(processed.itinerary);
-        setShowMap(true);
+        // Geocode locations asynchronously
+        geocodeItineraryLocations(processed.itinerary).then(geocodedItinerary => {
+          setItinerary(geocodedItinerary);
+          setShowMap(true);
+        });
       }
     }
   }, [messages]);
+
+  const geocodeItineraryLocations = async (itinerary: Itinerary): Promise<Itinerary> => {
+    const { geocodeLocation } = await import('@/app/utils/geocoding');
+    
+    // Geocode main locations
+    const updatedLocations = await Promise.all(
+      itinerary.locations.map(async (loc) => {
+        const result = await geocodeLocation(loc.name);
+        if (result) {
+          return {
+            ...loc,
+            coordinates: { lat: result.lat, lng: result.lng },
+          };
+        }
+        return loc;
+      })
+    );
+    
+    return {
+      ...itinerary,
+      locations: updatedLocations,
+    };
+  };
 
   const handleMessagesUpdate = useCallback((msgs: Message[]) => {
     setMessages(msgs);

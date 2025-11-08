@@ -12,6 +12,8 @@ interface ItineraryPanelProps {
 
 export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [panelHeight, setPanelHeight] = useState<number>(377); // Default height
+  const [isDragging, setIsDragging] = useState(false);
   const [activeLocation, setActiveLocation] = useState<string | null>(
     itinerary?.locations[0]?.id || null
   );
@@ -50,10 +52,55 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
     return location && day.location === location.name;
   });
 
+  const handleDragStart = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    e.preventDefault();
+  };
+
+  const handleDragMove = useCallback((e: MouseEvent) => {
+    if (!isDragging) return;
+    
+    const container = document.querySelector('[data-itinerary-container]');
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    const newHeight = rect.bottom - e.clientY;
+    
+    // Min 200px, max 80% of container
+    const minHeight = 200;
+    const maxHeight = rect.height * 0.8;
+    const clampedHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+    
+    setPanelHeight(clampedHeight);
+  }, [isDragging]);
+
+  const handleDragEnd = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleDragMove);
+      document.addEventListener('mouseup', handleDragEnd);
+      return () => {
+        document.removeEventListener('mousemove', handleDragMove);
+        document.removeEventListener('mouseup', handleDragEnd);
+      };
+    }
+  }, [isDragging, handleDragMove, handleDragEnd]);
+
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* Header with title and collapse button */}
-      <div className="p-4 flex-shrink-0">
+    <div className="flex flex-col h-full bg-white relative">
+      {/* Drag Handle */}
+      <div
+        onMouseDown={handleDragStart}
+        className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize hover:bg-blue-100 z-10 flex items-center justify-center"
+      >
+        <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+      </div>
+
+      {/* Header */}
+      <div className="p-4 pt-6 flex-shrink-0">
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="flex items-center gap-1 bg-white rounded-full px-3 py-2 shadow-md hover:bg-gray-50 transition-colors"
@@ -83,7 +130,10 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
 
       {/* Itinerary Content */}
       {!isCollapsed && (
-        <div className="flex-1 border border-[#d7e7f5] mt-4 overflow-hidden flex flex-col">
+        <div 
+          className="flex-1 border border-[#d7e7f5] mt-4 overflow-hidden flex flex-col"
+          style={{ maxHeight: isCollapsed ? 0 : `${panelHeight}px` }}
+        >
           {/* Location Tabs */}
           <div className="bg-white border-b border-[#d7e7f5] p-4 flex-shrink-0">
             <div className="flex items-center gap-1 flex-wrap">
