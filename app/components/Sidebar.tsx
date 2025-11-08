@@ -50,11 +50,10 @@ export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode
 
   return (
     <SignedIn>
-      {/* Hamburger button - z-70 to stay above all other elements */}
       {!isMobileOpen && (
         <button
           onClick={toggleMobile}
-          className="fixed left-2 z-[70] md:hidden p-0 rounded-lg hover:bg-black/5 transition-all duration-200"
+          className="fixed left-2 z-50 md:hidden p-0 rounded-lg hover:bg-black/5 transition-all duration-200"
           style={{ top: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
           aria-label="Open menu"
         >
@@ -62,9 +61,8 @@ export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode
         </button>
       )}
 
-      {/* Desktop sidebar - z-40, below header(50) but above chat(30) */}
       <div
-        className={`hidden md:flex h-screen fixed left-0 top-0 bottom-0 z-[40] flex-col justify-between transition-all duration-300 ${
+        className={`hidden md:flex h-screen fixed left-0 top-0 z-30 flex-col justify-between transition-all duration-300 ${
           isExpanded ? 'w-[240px]' : 'w-[67px]'
         }`}
         style={{
@@ -89,12 +87,10 @@ export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode
         <BottomItems isExpanded={isExpanded} />
       </div>
 
-      {/* Mobile sidebar container - overlay at z-60, panel at z-65 */}
       <div
-        className={`md:hidden fixed inset-0 z-[60] ${isMobileOpen ? '' : 'pointer-events-none'}`}
+        className={`md:hidden fixed inset-0 z-40 ${isMobileOpen ? '' : 'pointer-events-none'}`}
         aria-hidden={!isMobileOpen}
       >
-        {/* Backdrop/overlay - z-60 */}
         <div
           className={`absolute inset-0 backdrop-blur-md transition-opacity duration-300 ease-out ${
             isMobileOpen ? 'bg-black/50 opacity-100' : 'bg-black/0 opacity-0'
@@ -104,9 +100,8 @@ export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode
           }}
           onClick={closeMobile}
         />
-        {/* Sidebar panel - z-65, above backdrop */}
         <aside
-          className={`absolute left-0 top-0 h-full w-[280px] bg-[#f3f8ff] border-r border-[#b4c2cf] shadow-xl z-[65] ${
+          className={`absolute left-0 top-0 h-full w-[280px] bg-[#f3f8ff] border-r border-[#b4c2cf] shadow-xl ${
             isMobileOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
           style={{

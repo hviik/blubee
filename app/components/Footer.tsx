@@ -58,7 +58,7 @@ export default function Footer({ onHelpClick }: FooterProps) {
               color: COLORS.textTertiary
             }}
           >
-            How to use Blubeez?
+            How to use blubeez?
           </div>
           <Image src="/assets/help.svg" alt="Help" width={20} height={20} />
         </button>

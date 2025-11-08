@@ -34,9 +34,7 @@ export default function Header({
   };
 
   return (
-    // Fixed positioning with z-50 to stay above content but below modals
-    // Avoid transforms on this or parent elements to maintain stacking context
-    <div className="w-full fixed left-0 top-0 right-0 z-[50]">
+    <div className="w-full absolute left-0 top-0 z-20">
       <SignedOut>
         <div
           className={`w-full px-2 md:pl-4 md:pr-14 py-4 flex justify-between items-center ${isChatMode ? 'border-b' : ''}`}
@@ -204,7 +202,7 @@ export default function Header({
                 color: COLORS.textQuaternary,
               }}
             >
-              Hey! <span className="font-medium">{userName}</span>
+              Hi! <span className="font-medium">{userName}</span>
             </div>
           </div>
         </div>
