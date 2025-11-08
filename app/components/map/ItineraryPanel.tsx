@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Image from 'next/image';
-import { Itinerary, ItineraryDay } from '@/app/types/itinerary';
+import { Itinerary } from '@/app/types/itinerary';
 import { DayCard } from './DayCard';
 
 interface ItineraryPanelProps {
@@ -15,9 +15,10 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
   const [panelHeight, setPanelHeight] = useState<number>(377); // Default height
   const [isDragging, setIsDragging] = useState(false);
   const [activeLocation, setActiveLocation] = useState<string | null>(
-    itinerary?.locations[0]?.id || null
+    itinerary?.locations?.[0]?.id || null
   );
 
+  // Handle case where itinerary is not loaded yet
   if (!itinerary) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-white border border-[#d7e7f5]">
@@ -41,9 +42,7 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
 
   const handleLocationClick = (locationId: string) => {
     setActiveLocation(locationId);
-    if (onLocationSelect) {
-      onLocationSelect(locationId);
-    }
+    onLocationSelect?.(locationId);
   };
 
   const filteredDays = itinerary.days.filter((day) => {
@@ -52,27 +51,30 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
     return location && day.location === location.name;
   });
 
-  const handleDragStart = (e: React.MouseEvent) => {
+  const handleDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
     e.preventDefault();
   };
 
-  const handleDragMove = useCallback((e: MouseEvent) => {
-    if (!isDragging) return;
-    
-    const container = document.querySelector('[data-itinerary-container]');
-    if (!container) return;
-    
-    const rect = container.getBoundingClientRect();
-    const newHeight = rect.bottom - e.clientY;
-    
-    // Min 200px, max 80% of container
-    const minHeight = 200;
-    const maxHeight = rect.height * 0.8;
-    const clampedHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
-    
-    setPanelHeight(clampedHeight);
-  }, [isDragging]);
+  const handleDragMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isDragging) return;
+
+      const container = document.querySelector('[data-itinerary-container]');
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      const newHeight = rect.bottom - e.clientY;
+
+      // Min 200px, max 80% of container
+      const minHeight = 200;
+      const maxHeight = rect.height * 0.8;
+      const clampedHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+
+      setPanelHeight(clampedHeight);
+    },
+    [isDragging]
+  );
 
   const handleDragEnd = useCallback(() => {
     setIsDragging(false);
@@ -130,7 +132,7 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
 
       {/* Itinerary Content */}
       {!isCollapsed && (
-        <div 
+        <div
           className="flex-1 border border-[#d7e7f5] mt-4 overflow-hidden flex flex-col"
           style={{ maxHeight: isCollapsed ? 0 : `${panelHeight}px` }}
         >
@@ -192,7 +194,7 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
             </div>
           </div>
 
-          {/* Scroll to top button (optional) */}
+          {/* Scroll to top button */}
           {filteredDays.length > 3 && (
             <div className="absolute bottom-4 right-4">
               <button
@@ -223,4 +225,3 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
     </div>
   );
 }
-
