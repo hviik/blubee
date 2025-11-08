@@ -145,9 +145,21 @@ export default function ChatInterface({ initialMessages = [], onSendMessage }: C
   return (
     <div 
       className="w-full h-full flex flex-col backdrop-blur-[5px] bg-gradient-to-b from-[rgba(255,255,255,0.4)] to-[rgba(255,255,255,0.8)] border-r border-[#cee2f2]"
+      style={{
+        // Chrome: ensure proper rendering with transform
+        WebkitTransform: 'translateZ(0)',
+        transform: 'translateZ(0)',
+      }}
     >
       {/* Messages container must have min-h-0 to allow overflow-y in flex layouts */}
-      <div ref={containerRef} className="flex-1 min-h-0 overflow-y-auto">
+      <div 
+        ref={containerRef} 
+        className="flex-1 min-h-0 overflow-y-auto"
+        style={{
+          // Chrome: improve scrolling performance
+          WebkitOverflowScrolling: 'touch',
+        }}
+      >
         <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-4 py-4">
           {messages.map((message, index) => (
             <div key={index}>

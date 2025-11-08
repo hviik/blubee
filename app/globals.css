@@ -19,6 +19,15 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: contain;
+  /* Chrome-specific: ensure proper viewport rendering */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Chrome mobile: prevent layout shifts during scrolling */
+@supports (-webkit-touch-callout: none) {
+  body {
+    min-height: -webkit-fill-available;
+  }
 }
 
 *,
