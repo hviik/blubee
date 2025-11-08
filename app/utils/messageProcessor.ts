@@ -1,4 +1,4 @@
-import { Itinerary, ItineraryDay, TripLocation } from '@/app/types/itinerary';
+import { Itinerary, ItineraryDay, TripLocation, PlaceType } from '@/app/types/itinerary';
 
 export interface ProcessedMessage {
   hasItinerary: boolean;
@@ -172,7 +172,7 @@ function extractItinerary(content: string): Itinerary | null {
 }
 
 function extractPlacesFromDescription(description: string, mainLocation: string) {
-  const places: Array<{ name: string; type: string }> = [];
+  const places: Array<{ name: string; type: PlaceType }> = [];
   const lines = description.split('\n');
   
   lines.forEach(line => {
@@ -181,7 +181,7 @@ function extractPlacesFromDescription(description: string, mainLocation: string)
       const matches = line.match(/:\s*([^,\n]+)/gi);
       matches?.forEach(m => {
         const name = m.replace(/^:\s*/, '').trim();
-        if (name) places.push({ name, type: 'attraction' });
+        if (name) places.push({ name, type: 'attraction' as PlaceType });
       });
     }
     
@@ -189,7 +189,7 @@ function extractPlacesFromDescription(description: string, mainLocation: string)
       const matches = line.match(/:\s*([^,\n]+)/gi);
       matches?.forEach(m => {
         const name = m.replace(/^:\s*/, '').trim();
-        if (name) places.push({ name, type: 'attraction' });
+        if (name) places.push({ name, type: 'attraction' as PlaceType });
       });
     }
     
@@ -197,7 +197,7 @@ function extractPlacesFromDescription(description: string, mainLocation: string)
       const matches = line.match(/(?:at|near)\s+([^,\n]+)/gi);
       matches?.forEach(m => {
         const name = m.replace(/^(?:at|near)\s+/i, '').trim();
-        if (name) places.push({ name, type: 'restaurants' });
+        if (name) places.push({ name, type: 'restaurants' as PlaceType });
       });
     }
     
@@ -206,12 +206,17 @@ function extractPlacesFromDescription(description: string, mainLocation: string)
       const matches = line.match(/(?:at|stay at)\s+([^,\n]+)/gi);
       matches?.forEach(m => {
         const name = m.replace(/^(?:at|stay at)\s+/i, '').trim();
-        if (name) places.push({ name, type: 'stays' });
+        if (name) places.push({ name, type: 'stays' as PlaceType });
       });
     }
   });
   
-  return places.slice(0, 5); // Limit to 5 places per day
+  return places.slice(0, 5).map((p, idx) => ({
+    id: `place_${Date.now()}_${idx}`,
+    name: p.name,
+    type: p.type,
+    location: { lat: 0, lng: 0 }
+  }));
 }
 
 /**
