@@ -1,0 +1,176 @@
+'use client';
+
+import { useState } from 'react';
+import Image from 'next/image';
+import { Itinerary, ItineraryDay } from '@/app/types/itinerary';
+import { DayCard } from './DayCard';
+
+interface ItineraryPanelProps {
+  itinerary: Itinerary | null;
+  onLocationSelect?: (locationId: string) => void;
+}
+
+export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [activeLocation, setActiveLocation] = useState<string | null>(
+    itinerary?.locations[0]?.id || null
+  );
+
+  if (!itinerary) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-white border border-[#d7e7f5]">
+        <div className="text-center p-8">
+          <div className="text-[#7286b0] mb-2">
+            <Image
+              src="/assets/logo-icon.svg"
+              alt="Logo"
+              width={48}
+              height={48}
+              className="mx-auto opacity-30 mb-4"
+            />
+          </div>
+          <p className="text-sm text-[#7286b0]">
+            Start planning your trip to see the itinerary here
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const handleLocationClick = (locationId: string) => {
+    setActiveLocation(locationId);
+    if (onLocationSelect) {
+      onLocationSelect(locationId);
+    }
+  };
+
+  const filteredDays = itinerary.days.filter((day) => {
+    if (!activeLocation) return true;
+    const location = itinerary.locations.find((loc) => loc.id === activeLocation);
+    return location && day.location === location.name;
+  });
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Header with title and collapse button */}
+      <div className="px-4 py-0 flex-shrink-0">
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="flex items-center gap-1 bg-white rounded-full px-3 py-2 shadow-lg hover:bg-gray-50 transition-colors"
+        >
+          <span className="text-sm text-[#475f73]">Generated itinerary</span>
+          <div
+            className={`transform transition-transform duration-200 ${
+              isCollapsed ? 'rotate-180' : ''
+            }`}
+          >
+            <svg
+              className="w-[18px] h-[18px] text-[#475f73]"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 15l7-7 7 7"
+              />
+            </svg>
+          </div>
+        </button>
+      </div>
+
+      {/* Itinerary Content */}
+      {!isCollapsed && (
+        <div className="flex-1 border border-[#d7e7f5] mt-4 overflow-hidden flex flex-col">
+          {/* Location Tabs */}
+          <div className="bg-white border-b border-[#d7e7f5] p-4 flex-shrink-0">
+            <div className="flex items-center gap-1 flex-wrap">
+              {itinerary.locations.map((location, index) => (
+                <div key={location.id} className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleLocationClick(location.id)}
+                    className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs transition-colors ${
+                      activeLocation === location.id
+                        ? 'bg-[#475f73] text-[#eff7ff]'
+                        : 'bg-[#e8f0f7] text-[#475f73] hover:bg-[#d7e7f5]'
+                    }`}
+                  >
+                    <Image
+                      src="/assets/logo-icon.svg"
+                      alt="Location"
+                      width={12}
+                      height={12}
+                      className={activeLocation === location.id ? 'brightness-0 invert' : ''}
+                    />
+                    <span>{location.name}</span>
+                  </button>
+                  {index < itinerary.locations.length - 1 && (
+                    <div className="w-6 h-6 flex items-center justify-center">
+                      <svg
+                        className="w-6 h-6 text-[#475f73] rotate-90"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 7l5 5m0 0l-5 5m5-5H6"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Days List - Scrollable */}
+          <div className="flex-1 overflow-y-auto bg-white">
+            <div className="p-4 space-y-0">
+              {filteredDays.map((day, index) => (
+                <DayCard
+                  key={day.dayNumber}
+                  day={day}
+                  isFirst={index === 0}
+                  isLast={index === filteredDays.length - 1}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Scroll to top button (optional) */}
+          {filteredDays.length > 3 && (
+            <div className="absolute bottom-4 right-4">
+              <button
+                onClick={() => {
+                  const scrollContainer = document.querySelector('.overflow-y-auto');
+                  scrollContainer?.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="bg-white rounded-full p-2 shadow-lg hover:bg-gray-50 transition-colors"
+              >
+                <svg
+                  className="w-4 h-4 text-[#475f73]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 10l7-7m0 0l7 7m-7-7v18"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+

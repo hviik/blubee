@@ -10,7 +10,7 @@ import PromptCards from './components/PromptCards';
 import SearchInput from './components/SearchInput';
 import Footer from './components/Footer';
 import HowToUseModal from './components/HowToUseModal';
-import ChatInterface from './components/ChatInterface';
+import ChatWithMap from './components/ChatWithMap';
 import AuthPromptModal from './components/AuthPromptModal';
 
 export default function BlubeezHome() {
@@ -125,8 +125,8 @@ export default function BlubeezHome() {
           }}
         >
           <div className="w-full h-full">
-            <ChatInterface
-              initialMessages={initialMessage ? [{ role: 'user', content: initialMessage }] : []}
+            <ChatWithMap
+              initialMessage={initialMessage || undefined}
             />
           </div>
         </div>
