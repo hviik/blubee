@@ -51,14 +51,14 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
   });
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-white">
       {/* Header with title and collapse button */}
-      <div className="px-4 py-0 flex-shrink-0">
+      <div className="p-4 flex-shrink-0">
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="flex items-center gap-1 bg-white rounded-full px-3 py-2 shadow-lg hover:bg-gray-50 transition-colors"
+          className="flex items-center gap-1 bg-white rounded-full px-3 py-2 shadow-md hover:bg-gray-50 transition-colors"
         >
-          <span className="text-sm text-[#475f73]">Generated itinerary</span>
+          <span className="text-sm text-[#475f73] font-medium">Generated itinerary</span>
           <div
             className={`transform transition-transform duration-200 ${
               isCollapsed ? 'rotate-180' : ''

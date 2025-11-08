@@ -11,23 +11,15 @@ interface ChatWithMapProps {
 }
 
 export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
-  const [itinerary, setItinerary] = useState<Itinerary | null>(null);
-  const [showMap, setShowMap] = useState(false);
+  const [itinerary, setItinerary] = useState<Itinerary | null>(mockItinerary);
+  const [showMap, setShowMap] = useState(true);
 
   // Handle messages to detect when to show itinerary
   const handleSendMessage = useCallback((message: string) => {
-    // Simple trigger: if message mentions trip/itinerary/plan, show the mock itinerary
-    const triggerWords = ['trip', 'itinerary', 'plan', 'vietnam', 'travel', 'destination'];
-    const shouldShowItinerary = triggerWords.some((word) =>
-      message.toLowerCase().includes(word)
-    );
-
-    if (shouldShowItinerary && !showMap) {
-      // Simulate async itinerary generation with a delay
-      setTimeout(() => {
-        setItinerary(mockItinerary);
-        setShowMap(true);
-      }, 2000);
+    // Always show map for now - will integrate with AI later
+    if (!showMap) {
+      setShowMap(true);
+      setItinerary(mockItinerary);
     }
   }, [showMap]);
 

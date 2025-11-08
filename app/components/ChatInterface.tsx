@@ -99,10 +99,13 @@ export default function ChatInterface({ initialMessages = [], onSendMessage }: C
             setMessages((prev) => {
               const next = [...prev];
               const last = next[next.length - 1];
-              if (last && last.role === 'assistant') last.content = acc;
-              return next;
+              if (last && last.role === 'assistant') {
+                last.content = acc;
+              }
+              return [...next];
             });
 
+            await new Promise(resolve => setTimeout(resolve, 0));
             scrollToBottom(false);
           }
         }

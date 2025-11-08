@@ -68,9 +68,9 @@ export function TripRightPanel({
   }
 
   return (
-    <div className="w-full h-full flex flex-col bg-white relative">
-      {/* Map Section */}
-      <div className="relative h-[585px] flex-shrink-0">
+    <div className="w-full h-full flex flex-col bg-white">
+      {/* Map Section - Fixed height */}
+      <div className="relative" style={{ height: '585px' }}>
         <MapPanel
           locations={itinerary?.locations || []}
           places={places}
@@ -79,8 +79,8 @@ export function TripRightPanel({
         />
       </div>
 
-      {/* Itinerary Section - Can slide over map */}
-      <div className="flex-1 overflow-hidden relative">
+      {/* Itinerary Section - Takes remaining space */}
+      <div className="flex-1 overflow-hidden">
         <ItineraryPanel
           itinerary={itinerary}
           onLocationSelect={handleLocationSelect}
