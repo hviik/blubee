@@ -144,7 +144,7 @@ export function MapPanel({
     });
   }, [places, filters, onPlaceClick]);
 
-  const getMarkerIcon = (type: Place['type']): google.maps.Icon => {
+  const getMarkerIcon = (type: Place['type']): google.maps.Symbol => {
     const icons: Record<Place['type'], string> = {
       stays: '#FF6B6B',
       restaurants: '#4ECDC4',
