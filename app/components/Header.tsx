@@ -202,7 +202,7 @@ export default function Header({
                 color: COLORS.textQuaternary,
               }}
             >
-              Hey! <span className="font-medium">{userName}</span>
+              Hi! <span className="font-medium">{userName}</span>
             </div>
           </div>
         </div>
