@@ -1,33 +1,54 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import ChatInterface from './ChatInterface';
 import { TripRightPanel } from './map/TripRightPanel';
 import { Itinerary } from '@/app/types/itinerary';
-import { mockItinerary } from '@/app/utils/mockItinerary';
+import { processMessage, hasItineraryData } from '@/app/utils/messageProcessor';
 
 interface ChatWithMapProps {
   initialMessage?: string;
 }
 
-export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
-  const [itinerary, setItinerary] = useState<Itinerary | null>(mockItinerary);
-  const [showMap, setShowMap] = useState(true);
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
-  // Handle messages to detect when to show itinerary
-  const handleSendMessage = useCallback((message: string) => {
-    // Always show map for now - will integrate with AI later
-    if (!showMap) {
-      setShowMap(true);
-      setItinerary(mockItinerary);
+export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
+  const [itinerary, setItinerary] = useState<Itinerary | null>(null);
+  const [showMap, setShowMap] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const lastProcessedContent = useRef('');
+
+  // Process assistant messages for itinerary
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    if (
+      lastMessage &&
+      lastMessage.role === 'assistant' &&
+      lastMessage.content !== lastProcessedContent.current &&
+      hasItineraryData(lastMessage.content)
+    ) {
+      lastProcessedContent.current = lastMessage.content;
+      const processed = processMessage(lastMessage.content);
+      
+      if (processed.hasItinerary && processed.itinerary) {
+        setItinerary(processed.itinerary);
+        setShowMap(true);
+      }
     }
-  }, [showMap]);
+  }, [messages]);
+
+  const handleMessagesUpdate = useCallback((msgs: Message[]) => {
+    setMessages(msgs);
+  }, []);
 
   return (
     <div className="flex w-full h-full">
       {/* Chat Section */}
       <div
-        className={`transition-all duration-300 ease-in-out bg-white ${
+        className={`transition-all duration-300 ease-in-out ${
           showMap ? 'w-[696px]' : 'w-full'
         } h-full flex-shrink-0`}
       >
@@ -35,7 +56,7 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
           initialMessages={
             initialMessage ? [{ role: 'user', content: initialMessage }] : []
           }
-          onSendMessage={handleSendMessage}
+          onMessagesChange={handleMessagesUpdate}
         />
       </div>
 
@@ -45,7 +66,7 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
           showMap ? 'w-[504px]' : 'w-0'
         } h-full flex-shrink-0 overflow-hidden`}
       >
-        {showMap && (
+        {showMap && itinerary && (
           <TripRightPanel
             itinerary={itinerary}
             places={[]}

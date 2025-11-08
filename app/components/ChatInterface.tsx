@@ -14,11 +14,18 @@ interface Message {
 interface ChatInterfaceProps {
   initialMessages?: Message[];
   onSendMessage?: (message: string) => void;
+  onMessagesChange?: (messages: Message[]) => void;
 }
 
-export default function ChatInterface({ initialMessages = [], onSendMessage }: ChatInterfaceProps) {
+export default function ChatInterface({ initialMessages = [], onSendMessage, onMessagesChange }: ChatInterfaceProps) {
   const { user } = useUser();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
+
+  useEffect(() => {
+    if (onMessagesChange) {
+      onMessagesChange(messages);
+    }
+  }, [messages, onMessagesChange]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -89,24 +96,25 @@ export default function ChatInterface({ initialMessages = [], onSendMessage }: C
 
         if (reader) {
           let acc = '';
-          while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
+          try {
+            while (true) {
+              const { value, done } = await reader.read();
+              if (done) break;
 
-            const chunk = decoder.decode(value, { stream: true });
-            acc += chunk;
+              const chunk = decoder.decode(value, { stream: true });
+              acc += chunk;
 
-            setMessages((prev) => {
-              const next = [...prev];
-              const last = next[next.length - 1];
-              if (last && last.role === 'assistant') {
-                last.content = acc;
-              }
-              return [...next];
-            });
-
-            await new Promise(resolve => setTimeout(resolve, 0));
-            scrollToBottom(false);
+              setMessages((prev) => {
+                const copy = [...prev];
+                const lastMsg = copy[copy.length - 1];
+                if (lastMsg && lastMsg.role === 'assistant') {
+                  copy[copy.length - 1] = { ...lastMsg, content: acc };
+                }
+                return copy;
+              });
+            }
+          } catch (streamErr) {
+            console.error('Stream read error:', streamErr);
           }
         }
       } catch (err) {
