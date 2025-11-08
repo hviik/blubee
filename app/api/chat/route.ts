@@ -1,8 +1,7 @@
-// app/api/chat/route.ts
 import { NextResponse } from 'next/server';
 import { MODEL, SYSTEM_PROMPT, API_URL } from '@/app/workers/chat';
 
-export const runtime = 'nodejs'; // ✅ important — enables real streaming
+export const runtime = 'nodejs'; 
 
 export async function POST(req: Request) {
   try {
@@ -23,7 +22,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
     }
 
-    // 🔥 Call OpenAI with streaming enabled
     const resp = await fetch(API_URL, {
       method: 'POST',
       headers: {
@@ -46,7 +44,6 @@ export async function POST(req: Request) {
     const decoder = new TextDecoder();
     const encoder = new TextEncoder();
 
-    // 🔥 Stream tokens to client as they arrive
     const stream = new ReadableStream({
       async start(controller) {
         const reader = resp.body!.getReader();
