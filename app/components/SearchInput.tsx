@@ -98,7 +98,7 @@ export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false, 
               textUnderlinePosition: 'from-font',
             }}
           >
-            Blubeez Tips
+            blubeez Tips
           </p>
           <div className="w-[18px] h-[18px] relative flex items-center justify-center">
             <Image src="/assets/help.svg" alt="Help" width={18} height={18} />
