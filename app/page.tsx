@@ -30,6 +30,21 @@ export default function BlubeezHome() {
     window.addEventListener('resize', checkDesktop);
     return () => window.removeEventListener('resize', checkDesktop);
   }, []);
+
+  // Set dynamic viewport height for older browsers (fallback for dvh)
+  useEffect(() => {
+    const setVH = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+    setVH();
+    window.addEventListener('resize', setVH);
+    window.addEventListener('orientationchange', setVH);
+    return () => {
+      window.removeEventListener('resize', setVH);
+      window.removeEventListener('orientationchange', setVH);
+    };
+  }, []);
   
   // Calculate sidebar width for responsive chat positioning
   const sidebarWidth = isSidebarExpanded ? 240 : 67;
@@ -96,11 +111,12 @@ export default function BlubeezHome() {
       />
 
       {isChatActive ? (
-        // Chat Interface - responsive positioning with sidebar
+        // Chat Interface - responsive positioning with sidebar using dvh for mobile viewport
         <div 
-          className="fixed inset-x-0 bottom-0 z-10 transition-all duration-300 ease-in-out"
+          className="fixed inset-x-0 z-10 transition-all duration-300 ease-in-out"
           style={{
             top: isDesktop ? '80px' : '64px',
+            height: isDesktop ? 'calc(100dvh - 80px)' : 'calc(100dvh - 64px)',
             paddingLeft: isDesktop ? `${sidebarWidth}px` : '0px'
           }}
         >
