@@ -21,7 +21,6 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const lastProcessedContent = useRef('');
 
-  // Process assistant messages for itinerary
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
     if (
@@ -32,7 +31,6 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
     ) {
       lastProcessedContent.current = lastMessage.content;
       const processed = processMessage(lastMessage.content);
-      
       if (processed.hasItinerary && processed.itinerary) {
         setItinerary(processed.itinerary);
         setShowMap(true);
@@ -45,12 +43,12 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
   }, []);
 
   return (
-    <div className="flex w-full h-full">
+    <div className="relative flex w-full h-full overflow-hidden bg-white">
       {/* Chat Section */}
       <div
-        className={`transition-all duration-300 ease-in-out ${
-          showMap ? 'w-[696px]' : 'w-full'
-        } h-full flex-shrink-0`}
+        className={`flex flex-col transition-all duration-500 ease-in-out ${
+          showMap ? 'md:w-[60%] w-full' : 'w-full'
+        }`}
       >
         <ChatInterface
           initialMessages={
@@ -62,18 +60,13 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
 
       {/* Map & Itinerary Panel */}
       <div
-        className={`transition-all duration-300 ease-in-out ${
-          showMap ? 'w-[504px]' : 'w-0'
-        } h-full flex-shrink-0 overflow-hidden`}
+        className={`absolute right-0 top-0 h-full bg-white border-l border-[#d9e3f0] shadow-lg transition-transform duration-500 ease-in-out
+          ${showMap ? 'translate-x-0 md:w-[40%]' : 'translate-x-full md:translate-x-0 md:w-0'}`}
       >
         {showMap && itinerary && (
-          <TripRightPanel
-            itinerary={itinerary}
-            places={[]}
-          />
+          <TripRightPanel itinerary={itinerary} places={[]} />
         )}
       </div>
     </div>
   );
 }
-
