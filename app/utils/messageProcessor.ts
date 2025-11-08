@@ -1,8 +1,3 @@
-/**
- * Message processor to extract structured data from AI responses
- * Acts as a lightweight MCP (Model Context Protocol) for intent detection
- */
-
 import { Itinerary, ItineraryDay, TripLocation } from '@/app/types/itinerary';
 
 export interface ProcessedMessage {
@@ -13,9 +8,7 @@ export interface ProcessedMessage {
   dates?: { start?: string; end?: string };
 }
 
-/**
- * Process AI message to extract structured data
- */
+
 export function processMessage(content: string): ProcessedMessage {
   const result: ProcessedMessage = {
     hasItinerary: false,
@@ -38,9 +31,7 @@ export function processMessage(content: string): ProcessedMessage {
   return result;
 }
 
-/**
- * Detect user intent from message
- */
+
 function detectIntent(content: string): ProcessedMessage['intent'] {
   const lower = content.toLowerCase();
   
@@ -94,7 +85,8 @@ function extractLocations(content: string): string[] {
           locations.push(loc);
         }
       }
-    });
+    }
+  });
   
   return locations;
 }
