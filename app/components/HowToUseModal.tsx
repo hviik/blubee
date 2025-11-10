@@ -11,22 +11,22 @@ interface HowToUseModalProps {
 
 const STEPS = [
   {
-    icon: '/assets/chat.svg',
+    icon: '/assets/stat-0.svg',
     title: 'Start a Conversation',
     description: 'Tell Blu what kind of trip you want — your destination, budget, duration, and interests like beaches, food, or adventure.'
   },
   {
-    icon: '/assets/itinerary.svg',
+    icon: '/assets/stat-0.svg',
     title: 'Get a Custom Itinerary',
     description: 'Blu instantly crafts a personalized day-by-day travel plan with activities, routes, and recommendations tailored to your inputs.'
   },
   {
-    icon: '/assets/discover.svg',
+    icon: '/assets/stat-1.svg',
     title: 'Explore and Refine',
     description: 'Ask Blu to add, remove, or modify places. You can explore suggestions like “hidden beaches” or “best cafes nearby.”'
   },
   {
-    icon: '/assets/save.svg',
+    icon: '/assets/stat-1.svg',
     title: 'Save or Share Your Trip',
     description: 'Finalize your itinerary, save it for later, or share it with your travel buddies — all in one place.'
   }
