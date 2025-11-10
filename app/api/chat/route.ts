@@ -10,28 +10,45 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return Response.json({ error: 'Messages array is required' }, { status: 400 });
+      return new Response(JSON.stringify({ error: 'Messages array is required' }), { status: 400 });
     }
 
-    const result = await streamText({
+    const { textStream } = await streamText({
       model: openai('gpt-5-nano-2025-08-07'),
       system: SYSTEM_PROMPT,
       messages,
     });
 
-    return result.toTextStreamResponse({
+    const encoder = new TextEncoder();
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const delta of textStream) {
+            controller.enqueue(encoder.encode(delta));
+          }
+        } catch (err) {
+          controller.error(err);
+        } finally {
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(stream, {
       headers: {
         'Content-Type': 'text/plain; charset=utf-8',
         'Cache-Control': 'no-cache, no-transform',
         'X-Accel-Buffering': 'no',
+        'Connection': 'keep-alive',
+        'Transfer-Encoding': 'chunked',
       },
     });
-
   } catch (err: any) {
     console.error('Chat API error:', err);
-    return Response.json(
-      { error: err?.message || 'Internal Server Error' },
-      { status: 500 }
-    );
+    return new Response(JSON.stringify({ error: err?.message || 'Internal Server Error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }
