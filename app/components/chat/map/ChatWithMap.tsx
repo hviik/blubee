@@ -6,6 +6,7 @@ import { TripRightPanel } from '../itinerary/TripRightPanel';
 import ExplorePage from '../../ExplorePage';
 import { Itinerary } from '@/app/types/itinerary';
 import { processMessage, hasItineraryData } from '@/app/utils/messageProcessor';
+import { useGoogleMaps } from './useGoogleMaps';
 
 interface ChatWithMapProps {
   initialMessage?: string;
@@ -22,6 +23,8 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [triggerMessage, setTriggerMessage] = useState<string | null>(null);
   const lastProcessedContent = useRef('');
+  const hasTriedGeocoding = useRef(false);
+  const { isLoaded } = useGoogleMaps();
 
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
@@ -35,14 +38,24 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
       const processed = processMessage(lastMessage.content);
       
       if (processed.hasItinerary && processed.itinerary) {
-        // Geocode locations asynchronously
-        geocodeItineraryLocations(processed.itinerary).then(geocodedItinerary => {
-          setItinerary(geocodedItinerary);
+        // Reset geocoding flag for new itinerary
+        hasTriedGeocoding.current = false;
+        
+        // Wait for Google Maps to load before geocoding
+        if (isLoaded) {
+          hasTriedGeocoding.current = true;
+          geocodeItineraryLocations(processed.itinerary).then(geocodedItinerary => {
+            setItinerary(geocodedItinerary);
+            setShowMap(true);
+          });
+        } else {
+          // Set itinerary without geocoding if Google Maps not loaded yet
+          setItinerary(processed.itinerary);
           setShowMap(true);
-        });
+        }
       }
     }
-  }, [messages]);
+  }, [messages, isLoaded]);
 
   const geocodeItineraryLocations = async (itinerary: Itinerary): Promise<Itinerary> => {
     const { geocodeLocation } = await import('./geocoding');
@@ -56,15 +69,17 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
         }
         
         // Otherwise, geocode the location
+        console.log('Geocoding location:', loc.name);
         const result = await geocodeLocation(loc.name);
         if (result) {
+          console.log('Geocoded successfully:', loc.name, result);
           return {
             ...loc,
             coordinates: { lat: result.lat, lng: result.lng },
           };
         }
         
-        // If geocoding fails, return location with default coordinates (will show error)
+        // If geocoding fails, return location with default coordinates
         console.warn(`Failed to geocode location: ${loc.name}`);
         return loc;
       })
@@ -76,13 +91,44 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
     };
   };
 
+  // Retry geocoding when Google Maps loads (only once per itinerary)
+  useEffect(() => {
+    if (isLoaded && itinerary && !hasTriedGeocoding.current) {
+      const hasInvalidCoordinates = itinerary.locations.some(
+        loc => !loc.coordinates || loc.coordinates.lat === 0 || loc.coordinates.lng === 0
+      );
+      
+      if (hasInvalidCoordinates) {
+        console.log('Google Maps loaded, retrying geocoding...');
+        hasTriedGeocoding.current = true;
+        geocodeItineraryLocations(itinerary).then(geocodedItinerary => {
+          setItinerary(geocodedItinerary);
+        });
+      }
+    }
+  }, [isLoaded]);
+
   const handleMessagesUpdate = useCallback((msgs: Message[]) => {
     setMessages(msgs);
   }, []);
 
-  const handleDestinationClick = useCallback((countryName: string) => {
-    // Trigger a message with the country name
-    const message = `Plan me a trip to ${countryName}`;
+  const handleDestinationClick = useCallback((countryName: string, route: string[]) => {
+    // Format the places in the route
+    let placesText = '';
+    if (route.length > 0) {
+      if (route.length === 1) {
+        placesText = ` visiting ${route[0]}`;
+      } else if (route.length === 2) {
+        placesText = ` visiting ${route[0]} and ${route[1]}`;
+      } else {
+        const lastPlace = route[route.length - 1];
+        const otherPlaces = route.slice(0, -1).join(', ');
+        placesText = ` visiting ${otherPlaces}, and ${lastPlace}`;
+      }
+    }
+    
+    // Trigger a message with the country name and places
+    const message = `Plan me a trip to ${countryName}${placesText}`;
     setTriggerMessage(message);
   }, []);
 

@@ -6,7 +6,7 @@ import { COLORS } from '../constants/colors';
 
 interface ExplorePageProps {
   compact?: boolean;
-  onDestinationClick?: (countryName: string) => void;
+  onDestinationClick?: (countryName: string, route: string[]) => void;
 }
 
 interface Destination {
@@ -170,7 +170,7 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
             <div
               key={d.id}
               className="relative aspect-[4/5] rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform duration-300"
-              onClick={() => onDestinationClick?.(d.name)}
+              onClick={() => onDestinationClick?.(d.name, d.route)}
             >
               <div className="absolute inset-0">
                 <Image

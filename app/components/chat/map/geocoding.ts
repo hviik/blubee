@@ -1,5 +1,6 @@
 /**
  * Geocoding utilities for location processing
+ * Uses client-side Google Maps Geocoder API
  */
 
 export interface GeocodeResult {
@@ -10,30 +11,34 @@ export interface GeocodeResult {
 }
 
 /**
- * Geocode a location name to coordinates
+ * Geocode a location name to coordinates using Google Maps JavaScript API
  */
 export async function geocodeLocation(locationName: string): Promise<GeocodeResult | null> {
   try {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
-    if (!apiKey) return null;
-
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(locationName)}&key=${apiKey}`
-    );
-    
-    const data = await response.json();
-    
-    if (data.status === 'OK' && data.results[0]) {
-      const result = data.results[0];
-      return {
-        name: locationName,
-        lat: result.geometry.location.lat,
-        lng: result.geometry.location.lng,
-        address: result.formatted_address,
-      };
+    // Check if Google Maps is loaded
+    if (typeof google === 'undefined' || !google.maps) {
+      console.error('Google Maps not loaded');
+      return null;
     }
-    
-    return null;
+
+    return new Promise((resolve) => {
+      const geocoder = new google.maps.Geocoder();
+      
+      geocoder.geocode({ address: locationName }, (results, status) => {
+        if (status === google.maps.GeocoderStatus.OK && results && results[0]) {
+          const location = results[0].geometry.location;
+          resolve({
+            name: locationName,
+            lat: location.lat(),
+            lng: location.lng(),
+            address: results[0].formatted_address,
+          });
+        } else {
+          console.error('Geocoding failed for', locationName, ':', status);
+          resolve(null);
+        }
+      });
+    });
   } catch (error) {
     console.error('Geocoding error:', error);
     return null;

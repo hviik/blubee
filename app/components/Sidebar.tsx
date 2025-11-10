@@ -200,35 +200,19 @@ function BottomItems({ isExpanded, onHelpClick }: { isExpanded?: boolean; onHelp
     <div className="flex flex-col gap-4 w-full">
       <div className="flex flex-col gap-6">
           <button 
-      onClick={onHelpClick}
-      className="flex items-center gap-3 hover:opacity-80 transition-opacity text-[#6b85b7]"
-    >
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="text-[#6b85b7]"
-      >
-        <circle cx="12" cy="12" r="10" />
-        <path d="M9.09 9a3 3 0 1 1 5.82 1c0 1.5-1.5 2-2.25 2.5s-.75 1-.75 1.5" />
-        <line x1="12" y1="17" x2="12" y2="17.5" />
-      </svg>
-      {isExpanded && (
-        <span
-          className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal whitespace-nowrap text-[#6b85b7]"
-          style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}
+          onClick={onHelpClick}
+          className="flex items-center gap-3 hover:opacity-70 transition-opacity"
         >
-          How to use Blubeez?
-        </span>
-      )}
-    </button>
-
-
+          <Image src="/assets/help.svg" alt="Help" width={24} height={24} />
+          {isExpanded && (
+            <span
+              className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal whitespace-nowrap"
+              style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.textQuaternary }}
+            >
+              How to use Blubeez?
+            </span>
+          )}
+        </button>
         <button className="flex items-center gap-3 hover:opacity-70 transition-opacity">
           <Image src="/assets/settings.svg" alt="Settings" width={24} height={24} />
           {isExpanded && (
