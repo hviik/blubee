@@ -112,18 +112,6 @@ function extractDates(content: string): { start?: string; end?: string } {
 }
 
 /**
- * Strip markdown formatting from text (e.g., ** for bold, * for italic)
- */
-function stripMarkdown(text: string): string {
-  return text
-    .replace(/\*\*/g, '') // Remove bold markers
-    .replace(/\*/g, '')   // Remove italic markers
-    .replace(/_/g, '')    // Remove underscores
-    .replace(/~/g, '')    // Remove strikethrough
-    .trim();
-}
-
-/**
  * Extract itinerary structure from AI response
  */
 function extractItinerary(content: string): Itinerary | null {
@@ -138,11 +126,11 @@ function extractItinerary(content: string): Itinerary | null {
   
   dayMatches.forEach(match => {
     const dayNumber = parseInt(match[1]);
-    const title = stripMarkdown(match[2].trim());
+    const title = match[2].trim();
     
     // Extract main location from title
     const locationMatch = title.match(/^([^-–(]+)/);
-    const mainLocation = locationMatch ? stripMarkdown(locationMatch[1].trim()) : 'Unknown';
+    const mainLocation = locationMatch ? locationMatch[1].trim() : 'Unknown';
     locationSet.add(mainLocation);
     
     // Get full description
@@ -193,7 +181,7 @@ function extractPlacesFromDescription(description: string, mainLocation: string)
     if (/morning:/i.test(line)) {
       const matches = line.match(/:\s*([^,\n]+)/gi);
       matches?.forEach(m => {
-        const name = stripMarkdown(m.replace(/^:\s*/, '').trim());
+        const name = m.replace(/^:\s*/, '').trim();
         if (name) places.push({ name, type: 'attraction' as PlaceType });
       });
     }
@@ -201,7 +189,7 @@ function extractPlacesFromDescription(description: string, mainLocation: string)
     if (/afternoon:/i.test(line)) {
       const matches = line.match(/:\s*([^,\n]+)/gi);
       matches?.forEach(m => {
-        const name = stripMarkdown(m.replace(/^:\s*/, '').trim());
+        const name = m.replace(/^:\s*/, '').trim();
         if (name) places.push({ name, type: 'attraction' as PlaceType });
       });
     }
@@ -209,7 +197,7 @@ function extractPlacesFromDescription(description: string, mainLocation: string)
     if (/evening:/i.test(line) || /dinner/i.test(line)) {
       const matches = line.match(/(?:at|near)\s+([^,\n]+)/gi);
       matches?.forEach(m => {
-        const name = stripMarkdown(m.replace(/^(?:at|near)\s+/i, '').trim());
+        const name = m.replace(/^(?:at|near)\s+/i, '').trim();
         if (name) places.push({ name, type: 'restaurants' as PlaceType });
       });
     }
@@ -218,7 +206,7 @@ function extractPlacesFromDescription(description: string, mainLocation: string)
     if (/hotel|stay|accommodation/i.test(line)) {
       const matches = line.match(/(?:at|stay at)\s+([^,\n]+)/gi);
       matches?.forEach(m => {
-        const name = stripMarkdown(m.replace(/^(?:at|stay at)\s+/i, '').trim());
+        const name = m.replace(/^(?:at|stay at)\s+/i, '').trim();
         if (name) places.push({ name, type: 'stays' as PlaceType });
       });
     }
@@ -226,7 +214,7 @@ function extractPlacesFromDescription(description: string, mainLocation: string)
   
   return places.slice(0, 5).map((p, idx) => ({
     id: `place_${Date.now()}_${idx}`,
-    name: stripMarkdown(p.name),
+    name: p.name,
     type: p.type,
     location: { lat: 0, lng: 0 }
   }));
