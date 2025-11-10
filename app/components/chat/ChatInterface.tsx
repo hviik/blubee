@@ -64,7 +64,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
       setMessages(updated);
       prevMessageCount.current = updated.length;
       
-      // Add empty assistant message that will be filled as streaming happens
+      // Placeholder assistant message
       setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
       scrollToBottom(true);
       
@@ -79,41 +79,45 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
           const err = await response.json().catch(() => ({}));
           throw new Error(err.error || 'Network error');
         }
-        
-        // Read the stream chunk by chunk
+  
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
+        let buffer = '';
         let accumulated = '';
-        
+  
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
-          
-          // Decode chunk and accumulate
-          const chunk = decoder.decode(value, { stream: true });
-          accumulated += chunk;
-          
-          // Update the last message with accumulated content
-          setMessages((prev) => {
-            const newMessages = [...prev];
-            const lastIndex = newMessages.length - 1;
-            if (newMessages[lastIndex]?.role === 'assistant') {
-              newMessages[lastIndex] = {
-                role: 'assistant',
-                content: accumulated
-              };
-            }
-            return newMessages;
-          });
-          
-          // Scroll as content streams in
-          scrollToBottom(false);
+  
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || ''; // keep incomplete line
+  
+          for (const line of lines) {
+            if (!line.trim() || !line.startsWith('data:')) continue;
+            const chunk = line.replace(/^data:\s*/, '');
+            if (chunk === '[DONE]') continue;
+            accumulated += chunk;
+  
+            // Update assistant message progressively
+            setMessages((prev) => {
+              const newMessages = [...prev];
+              const lastIndex = newMessages.length - 1;
+              if (newMessages[lastIndex]?.role === 'assistant') {
+                newMessages[lastIndex] = {
+                  role: 'assistant',
+                  content: accumulated,
+                };
+              }
+              return newMessages;
+            });
+            scrollToBottom(false);
+          }
         }
-        
       } catch (err: any) {
         console.error('Stream error:', err);
         setMessages((prev) => {
-          const filtered = prev.filter((m, idx) => 
+          const filtered = prev.filter((m, idx) =>
             idx < prev.length - 1 || m.content !== ''
           );
           return [
@@ -130,6 +134,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
     },
     [isLoading, onSendMessage, scrollToBottom]
   );
+  
 
   useEffect(() => {
     if (!hasInitialized.current && initialMessages.length > 0) {
