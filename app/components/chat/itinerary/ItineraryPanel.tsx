@@ -97,13 +97,17 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
 
   return (
     <div className="flex flex-col h-full bg-transparent relative">
-      {/* Drag Handle - More visible */}
+      {/* Drag Handle - Properly aligned and visible */}
       <div
         onMouseDown={handleDragStart}
-        className="absolute top-0 left-0 right-0 h-6 cursor-ns-resize hover:bg-blue-50 z-30 flex items-center justify-center group transition-colors"
-        style={{ marginTop: '-6px' }}
+        className="absolute -top-5 left-0 right-0 h-8 cursor-ns-resize hover:bg-blue-50/50 z-30 flex items-center justify-center group transition-all duration-200 rounded-t-lg"
+        style={{ 
+          touchAction: 'none',
+          WebkitUserSelect: 'none',
+          userSelect: 'none'
+        }}
       >
-        <div className="w-16 h-1.5 bg-gray-400 rounded-full group-hover:bg-blue-400 transition-colors"></div>
+        <div className="w-20 h-2 bg-gray-300 rounded-full group-hover:bg-blue-500 group-hover:scale-110 transition-all duration-200 shadow-sm"></div>
       </div>
 
       {/* Header */}

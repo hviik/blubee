@@ -24,6 +24,7 @@ export function TripRightPanel({
     lng: 100.9925 
   });
   const [mapZoom, setMapZoom] = useState<number>(6);
+  const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
 
   // Update map center when itinerary changes
   useEffect(() => {
@@ -47,6 +48,8 @@ export function TripRightPanel({
   }, [itinerary]);
 
   const handleLocationSelect = (locationId: string) => {
+    setSelectedLocationId(locationId);
+    
     if (itinerary) {
       const location = itinerary.locations.find((loc) => loc.id === locationId);
       if (location && location.coordinates) {
@@ -54,7 +57,7 @@ export function TripRightPanel({
         if (location.coordinates.lat !== 0 || location.coordinates.lng !== 0) {
           console.log('Zooming to location:', location.name, location.coordinates);
           setMapCenter(location.coordinates);
-          setMapZoom(12); // Closer zoom when clicking a specific location
+          setMapZoom(14); // Closer zoom when clicking a specific location for better detail
         } else {
           console.warn('Location has invalid coordinates:', location.name);
         }
@@ -99,6 +102,7 @@ export function TripRightPanel({
             places={places}
             center={mapCenter}
             zoom={mapZoom}
+            selectedLocationId={selectedLocationId}
           />
         )}
       </div>

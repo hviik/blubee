@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { SignInButton, SignUpButton, SignedIn, SignedOut, useUser } from '@clerk/nextjs';
+import { SignInButton, SignUpButton, SignedIn, SignedOut, useUser, UserButton } from '@clerk/nextjs';
 import { COLORS } from '../constants/colors';
 
 interface HeaderProps {
@@ -193,8 +193,8 @@ export default function Header({
             </button>
           </div>
 
-          {/* User Greeting - 14px on mobile, with avatar */}
-          <div className="flex items-center gap-1">
+          {/* User Greeting - 14px on mobile, with Clerk avatar */}
+          <div className="flex items-center gap-1 md:gap-2">
             <div
               className="text-[14px] md:text-[1rem] lg:text-[1.125rem] font-normal"
               style={{
@@ -204,19 +204,15 @@ export default function Header({
             >
               Hey! {userName}
             </div>
-            <div className="w-6 h-6 md:w-7 md:h-7 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-              {user?.imageUrl ? (
-                <Image
-                  src={user.imageUrl}
-                  alt={userName}
-                  width={28}
-                  height={28}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gray-300" />
-              )}
-            </div>
+            <UserButton
+              afterSignOutUrl="/"
+              appearance={{
+                elements: {
+                  rootBox: 'w-6 h-6 md:w-7 md:h-7',
+                  avatarBox: 'w-6 h-6 md:w-7 md:h-7',
+                },
+              }}
+            />
           </div>
         </div>
       </SignedIn>

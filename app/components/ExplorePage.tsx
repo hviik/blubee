@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { COLORS } from '../constants/colors';
 
@@ -105,6 +105,70 @@ const destinations: Destination[] = [
 
 export default function ExplorePage({ compact = false, onDestinationClick }: ExplorePageProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [userCurrency, setUserCurrency] = useState<string>('INR');
+  const [exchangeRate, setExchangeRate] = useState<number>(1);
+  const [currencySymbol, setCurrencySymbol] = useState<string>('₹');
+
+  // Detect user's location and currency on mount
+  useEffect(() => {
+    const detectCurrency = async () => {
+      try {
+        // Get user's country from IP
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        const userCountry = data.currency;
+        
+        if (userCountry && userCountry !== 'INR') {
+          setUserCurrency(userCountry);
+          
+          // Fetch exchange rate
+          const rateResponse = await fetch(
+            `https://api.exchangerate-api.com/v4/latest/INR`
+          );
+          const rateData = await rateResponse.json();
+          
+          if (rateData.rates[userCountry]) {
+            setExchangeRate(rateData.rates[userCountry]);
+            
+            // Set currency symbol
+            const symbols: Record<string, string> = {
+              USD: '$',
+              EUR: '€',
+              GBP: '£',
+              JPY: '¥',
+              AUD: 'A$',
+              CAD: 'C$',
+              CHF: 'Fr',
+              CNY: '¥',
+              INR: '₹',
+            };
+            setCurrencySymbol(symbols[userCountry] || userCountry);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to detect currency:', error);
+        // Keep default INR
+      }
+    };
+
+    detectCurrency();
+  }, []);
+
+  const convertPrice = (inrPrice: string): string => {
+    // Extract numeric value from INR price (e.g., "₹ 74,500" -> 74500)
+    const numericValue = parseInt(inrPrice.replace(/[^\d]/g, ''));
+    
+    if (isNaN(numericValue)) return inrPrice;
+    
+    if (userCurrency === 'INR') {
+      return inrPrice;
+    }
+    
+    const converted = Math.round(numericValue * exchangeRate);
+    
+    // Format with commas and currency symbol
+    return `${currencySymbol} ${converted.toLocaleString()}`;
+  };
 
   return (
     <div className="w-full h-full flex flex-col bg-transparent overflow-hidden">
@@ -202,7 +266,7 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                     className="text-[10px] md:text-[12px] font-medium leading-tight"
                     style={{ fontFamily: 'var(--font-poppins)' }}
                   >
-                    {d.price}
+                    {convertPrice(d.price)}
                   </p>
                   <p
                     className="text-[8px] md:text-[9px] font-medium opacity-90"

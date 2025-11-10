@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { PlaceFilters, Place, MapMarker, TripLocation } from '@/app/types/itinerary';
 import { PlaceFilterPanel } from './PlaceFilterPanel';
+import { PlaceInfoCard } from './PlaceInfoCard';
+import { searchPlaces } from './googlePlaces';
 
 interface MapPanelProps {
   locations: TripLocation[];
@@ -10,6 +12,7 @@ interface MapPanelProps {
   center?: { lat: number; lng: number };
   zoom?: number;
   onPlaceClick?: (place: Place) => void;
+  selectedLocationId?: string | null;
 }
 
 export function MapPanel({
@@ -18,12 +21,16 @@ export function MapPanel({
   center = { lat: 15.8700, lng: 100.9925 }, // Default: Southeast Asia
   zoom = 6,
   onPlaceClick,
+  selectedLocationId,
 }: MapPanelProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<MapMarker[]>([]);
+  const locationMarkersRef = useRef<google.maps.Marker[]>([]);
   
   const [isFilterOpen, setIsFilterOpen] = useState(true);
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
+  const [nearbyPlaces, setNearbyPlaces] = useState<Place[]>([]);
   const [filters, setFilters] = useState<PlaceFilters>({
     all: true,
     stays: false,
@@ -77,6 +84,10 @@ export function MapPanel({
     }
 
     const map = mapInstanceRef.current;
+
+    // Clear existing location markers
+    locationMarkersRef.current.forEach((marker) => marker.setMap(null));
+    locationMarkersRef.current = [];
 
     // Clear existing location markers (markers without places)
     const existingMarkers = markersRef.current.filter(m => !m.place && m.location);
@@ -196,13 +207,39 @@ export function MapPanel({
       const infoWindow = new google.maps.InfoWindow({ content });
 
       marker.addListener('click', () => {
-        infoWindow.open(mapInstanceRef.current!, marker);
+        setSelectedPlace(place);
+        // Smooth pan to place with animation
+        mapInstanceRef.current?.panTo(place.location);
         if (onPlaceClick) onPlaceClick(place);
       });
 
       markersRef.current.push({ place, marker });
     });
   }, [places, filters, onPlaceClick]);
+
+  // Fetch nearby places when a location is selected
+  useEffect(() => {
+    if (!selectedLocationId || !mapInstanceRef.current || locations.length === 0) return;
+
+    const selectedLocation = locations.find(loc => loc.id === selectedLocationId);
+    if (!selectedLocation || !selectedLocation.coordinates) return;
+
+    const { lat, lng } = selectedLocation.coordinates;
+    if (lat === 0 && lng === 0) return;
+
+    // Fetch nearby attractions for the selected location
+    searchPlaces(mapInstanceRef.current, {
+      location: { lat, lng },
+      radius: 3000, // 3km radius
+      type: 'attraction',
+    })
+      .then((places) => {
+        setNearbyPlaces(places);
+      })
+      .catch((error) => {
+        console.error('Failed to fetch nearby places:', error);
+      });
+  }, [selectedLocationId, locations]);
 
   const getMarkerIcon = (type: Place['type']): google.maps.Symbol => {
     const icons: Record<Place['type'], string> = {
@@ -234,6 +271,13 @@ export function MapPanel({
         style={{
           background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0) 100%)',
         }}
+      />
+
+      {/* Place Info Card Overlay */}
+      <PlaceInfoCard
+        place={selectedPlace}
+        map={mapInstanceRef.current}
+        onClose={() => setSelectedPlace(null)}
       />
 
       {/* Filter Panel */}
