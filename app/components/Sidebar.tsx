@@ -199,22 +199,35 @@ function BottomItems({ isExpanded, onHelpClick }: { isExpanded?: boolean; onHelp
   return (
     <div className="flex flex-col gap-4 w-full">
       <div className="flex flex-col gap-6">
-        <button 
-          onClick={onHelpClick}
-          className="flex items-center gap-3 hover:opacity-70 transition-opacity text-[#6b85b7]"
+          <button 
+      onClick={onHelpClick}
+      className="flex items-center gap-3 hover:opacity-80 transition-opacity text-[#6b85b7]"
+    >
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="text-[#6b85b7]"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <path d="M9.09 9a3 3 0 1 1 5.82 1c0 1.5-1.5 2-2.25 2.5s-.75 1-.75 1.5" />
+        <line x1="12" y1="17" x2="12" y2="17.5" />
+      </svg>
+      {isExpanded && (
+        <span
+          className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal whitespace-nowrap text-[#6b85b7]"
+          style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm.88 17h-1.75v-1.75h1.75V19zm1.85-7.85c-.55.57-1.08.95-1.08 2.1h-1.55v-.37c0-.99.36-1.64 1.04-2.3.62-.6 1.16-1.02 1.16-1.78 0-.84-.64-1.44-1.65-1.44-.94 0-1.55.5-1.73 1.29l-1.59-.36c.27-1.34 1.37-2.43 3.27-2.43 1.84 0 3.28 1.04 3.28 2.79 0 1.15-.68 1.79-1.4 2.5z"/>
-          </svg>
-          {isExpanded && (
-            <span
-              className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal whitespace-nowrap text-[#6b85b7]"
-              style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}
-            >
-              How to use Blubeez?
-            </span>
-          )}
-        </button>
+          How to use Blubeez?
+        </span>
+      )}
+    </button>
+
 
         <button className="flex items-center gap-3 hover:opacity-70 transition-opacity">
           <Image src="/assets/settings.svg" alt="Settings" width={24} height={24} />
