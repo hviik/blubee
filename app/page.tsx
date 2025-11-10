@@ -124,7 +124,7 @@ export default function BlubeezHome() {
             maxHeight: isDesktop ? 'calc(100vh - 80px)' : 'calc(100vh - 64px)',
           }}
         >
-          <ExplorePage onClose={() => setIsExploreActive(false)} />
+          <ExplorePage />
         </div>
       ) : isChatActive ? (
         // Chat Interface - responsive positioning with sidebar
