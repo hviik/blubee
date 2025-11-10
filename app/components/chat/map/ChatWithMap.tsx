@@ -85,6 +85,7 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
         className={`flex flex-col transition-all duration-500 ease-in-out ${
           showMap ? 'md:w-[60%] w-full' : 'w-full'
         }`}
+        style={{ paddingTop: '1px' }} // Subtle padding below navbar border for visual consistency
       >
         <ChatInterface
           initialMessages={
@@ -98,6 +99,7 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
       <div
         className={`absolute right-0 top-0 h-full bg-white border-l border-[#d9e3f0] shadow-lg transition-transform duration-500 ease-in-out
           ${showMap ? 'translate-x-0 md:w-[40%]' : 'translate-x-full md:translate-x-0 md:w-0'}`}
+        style={{ paddingTop: '1px' }} // Subtle padding below navbar border for visual consistency
       >
         {showMap && itinerary && (
           <TripRightPanel itinerary={itinerary} places={[]} />
