@@ -115,14 +115,24 @@ export function MapPanel({
           },
         });
 
+        // Strip any markdown formatting from location name
+        const cleanName = location.name.replace(/\*\*/g, '').replace(/\*/g, '').trim();
+        
         const infoWindow = new google.maps.InfoWindow({
-          content: `<div style="padding: 8px; font-family: Poppins, sans-serif;">
-            <strong>${location.name}</strong>
+          content: `<div class="p-2 font-poppins">
+            <strong class="text-base text-gray-900">${cleanName}</strong>
           </div>`,
         });
 
         marker.addListener('click', () => {
           infoWindow.open(map, marker);
+          // When location marker is clicked, trigger place search for details
+          setSelectedPlace({
+            id: location.id,
+            name: cleanName,
+            location: location.coordinates,
+            type: 'locations',
+          });
         });
 
         markersRef.current.push({ location, marker });
@@ -188,26 +198,33 @@ export function MapPanel({
 
     // Add new markers
     filteredPlaces.forEach((place) => {
+      // Strip any markdown formatting from place name
+      const cleanName = place.name.replace(/\*\*/g, '').replace(/\*/g, '').trim();
+      
       const marker = new google.maps.Marker({
         position: place.location,
         map: mapInstanceRef.current,
-        title: place.name,
+        title: cleanName,
         icon: getMarkerIcon(place.type),
       });
 
       const content = `
-        <div style="padding: 12px; font-family: Poppins, sans-serif; max-width: 200px;">
-          <strong style="color: #2f4f93;">${place.name}</strong>
-          ${place.rating ? `<div style="color: #666; font-size: 12px; margin-top: 4px;">⭐ ${place.rating}</div>` : ''}
-          ${filters.showPrices && place.priceLevel ? `<div style="color: #666; font-size: 12px;">${'$'.repeat(place.priceLevel)}</div>` : ''}
-          ${place.address ? `<div style="color: #888; font-size: 11px; margin-top: 4px;">${place.address}</div>` : ''}
+        <div class="p-3 font-poppins max-w-[200px]">
+          <strong class="text-base text-[#2f4f93] block mb-1">${cleanName}</strong>
+          ${place.rating ? `<div class="text-gray-600 text-xs mt-1">⭐ ${place.rating.toFixed(1)}</div>` : ''}
+          ${filters.showPrices && place.priceLevel ? `<div class="text-gray-600 text-xs">${'$'.repeat(place.priceLevel)}</div>` : ''}
+          ${place.address ? `<div class="text-gray-500 text-xs mt-1">${place.address}</div>` : ''}
         </div>
       `;
 
       const infoWindow = new google.maps.InfoWindow({ content });
 
       marker.addListener('click', () => {
-        setSelectedPlace(place);
+        // Update place with cleaned name
+        setSelectedPlace({
+          ...place,
+          name: cleanName,
+        });
         // Smooth pan to place with animation
         mapInstanceRef.current?.panTo(place.location);
         if (onPlaceClick) onPlaceClick(place);
@@ -217,7 +234,7 @@ export function MapPanel({
     });
   }, [places, filters, onPlaceClick]);
 
-  // Fetch nearby places when a location is selected
+  // Fetch nearby places and show place details when a location is selected
   useEffect(() => {
     if (!selectedLocationId || !mapInstanceRef.current || locations.length === 0) return;
 
@@ -226,6 +243,25 @@ export function MapPanel({
 
     const { lat, lng } = selectedLocation.coordinates;
     if (lat === 0 && lng === 0) return;
+
+    // Clean the location name of any markdown
+    const cleanName = selectedLocation.name.replace(/\*\*/g, '').replace(/\*/g, '').trim();
+
+    // Try to search for this specific place first
+    searchPlaces(mapInstanceRef.current, {
+      location: { lat, lng },
+      radius: 2000, // 2km radius for more precise results
+      keyword: cleanName,
+    })
+      .then((foundPlaces) => {
+        if (foundPlaces.length > 0) {
+          // Show the first matching place in the info card
+          setSelectedPlace(foundPlaces[0]);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to search for place:', error);
+      });
 
     // Fetch nearby attractions for the selected location
     searchPlaces(mapInstanceRef.current, {
