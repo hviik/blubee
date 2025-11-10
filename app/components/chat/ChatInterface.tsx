@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { flushSync } from 'react-dom';
 import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
 import { COLORS } from '../../constants/colors';
@@ -90,12 +89,15 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
         const decoder = new TextDecoder();
         let accumulated = '';
 
+        // Process stream chunks immediately as they arrive
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
 
-          // Decode the chunk (each chunk is plain text from the backend)
+          // Decode the chunk immediately
           const chunk = decoder.decode(value, { stream: true });
+          
+          if (!chunk) continue;
           
           // Accumulate the text
           accumulated += chunk;
@@ -103,28 +105,26 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
           // Mark streaming as started once we get first chunk
           if (!hasStartedStreamingRef.current && chunk.trim()) {
             hasStartedStreamingRef.current = true;
-            flushSync(() => {
-              setHasStartedStreaming(true);
-            });
+            setHasStartedStreaming(true);
           }
 
-          // Update UI immediately with accumulated content - use flushSync to prevent batching
-          flushSync(() => {
-            setMessages((prev) => {
-              const newMessages = [...prev];
-              const lastIndex = newMessages.length - 1;
-              if (newMessages[lastIndex]?.role === 'assistant') {
-                newMessages[lastIndex] = {
-                  role: 'assistant',
-                  content: accumulated,
-                };
-              }
-              return newMessages;
-            });
+          // Update UI immediately on every chunk - no throttling for real-time streaming
+          setMessages((prev) => {
+            const newMessages = [...prev];
+            const lastIndex = newMessages.length - 1;
+            if (newMessages[lastIndex]?.role === 'assistant') {
+              newMessages[lastIndex] = {
+                role: 'assistant',
+                content: accumulated,
+              };
+            }
+            return newMessages;
           });
 
-          // Auto-scroll as content streams in
-          scrollToBottom(false);
+          // Auto-scroll as content streams in (use requestAnimationFrame for smooth scrolling)
+          requestAnimationFrame(() => {
+            scrollToBottom(false);
+          });
         }
       } catch (err: any) {
         console.error('Stream error:', err);

@@ -13,35 +13,19 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: 'Messages array is required' }), { status: 400 });
     }
 
-    const { textStream } = await streamText({
+    const result = await streamText({
       model: openai('gpt-5-nano-2025-08-07'),
       system: SYSTEM_PROMPT,
       messages,
     });
 
-    const encoder = new TextEncoder();
-
-    const stream = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const delta of textStream) {
-            controller.enqueue(encoder.encode(delta));
-          }
-        } catch (err) {
-          controller.error(err);
-        } finally {
-          controller.close();
-        }
-      },
-    });
-
-    return new Response(stream, {
+    // Use AI SDK's built-in streaming response with proper Vercel configuration
+    return result.toTextStreamResponse({
       headers: {
         'Content-Type': 'text/plain; charset=utf-8',
-        'Cache-Control': 'no-cache, no-transform',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
         'X-Accel-Buffering': 'no',
         'Connection': 'keep-alive',
-        'Transfer-Encoding': 'chunked',
       },
     });
   } catch (err: any) {
