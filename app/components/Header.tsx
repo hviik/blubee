@@ -172,7 +172,7 @@ export default function Header({
               className="md:hidden flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer" 
               style={{ marginLeft: '32px' }}
             >
-              <div className="w-5 h-[15px] relative">
+              <div className="w-[19.737px] h-[15.072px] md:w-5 md:h-[15px] relative">
                 <Image
                   src="/assets/logo-icon.svg"
                   alt="Blubeez Icon"
@@ -182,7 +182,7 @@ export default function Header({
                 />
               </div>
               <div
-                className="text-[0.933rem] sm:text-[1.125rem] font-semibold leading-normal"
+                className="text-[14.933px] md:text-[1.125rem] font-semibold leading-normal"
                 style={{
                   fontFamily: 'var(--font-bricolage-grotesque)',
                   color: COLORS.blubeezBlue,
@@ -193,16 +193,29 @@ export default function Header({
             </button>
           </div>
 
-          {/* User Greeting */}
-          <div className="flex items-center">
+          {/* User Greeting - 14px on mobile, with avatar */}
+          <div className="flex items-center gap-1">
             <div
-              className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] lg:text-[1.125rem] font-normal"
+              className="text-[14px] md:text-[1rem] lg:text-[1.125rem] font-normal"
               style={{
                 fontFamily: 'var(--font-bricolage-grotesque)',
                 color: COLORS.textQuaternary,
               }}
             >
-              Hi! <span className="font-medium">{userName}</span>
+              Hey! {userName}
+            </div>
+            <div className="w-6 h-6 md:w-7 md:h-7 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+              {user?.imageUrl ? (
+                <Image
+                  src={user.imageUrl}
+                  alt={userName}
+                  width={28}
+                  height={28}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-300" />
+              )}
             </div>
           </div>
         </div>

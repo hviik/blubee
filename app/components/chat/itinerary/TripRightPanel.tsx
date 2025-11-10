@@ -49,9 +49,15 @@ export function TripRightPanel({
   const handleLocationSelect = (locationId: string) => {
     if (itinerary) {
       const location = itinerary.locations.find((loc) => loc.id === locationId);
-      if (location) {
-        setMapCenter(location.coordinates);
-        setMapZoom(10);
+      if (location && location.coordinates) {
+        // Check if coordinates are valid
+        if (location.coordinates.lat !== 0 || location.coordinates.lng !== 0) {
+          console.log('Zooming to location:', location.name, location.coordinates);
+          setMapCenter(location.coordinates);
+          setMapZoom(12); // Closer zoom when clicking a specific location
+        } else {
+          console.warn('Location has invalid coordinates:', location.name);
+        }
       }
     }
     if (onLocationSelect) {

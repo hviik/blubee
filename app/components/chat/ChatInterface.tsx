@@ -298,18 +298,18 @@ export default function ChatInterface({
         className="flex-1 min-h-0 overflow-y-auto"
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
-        <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-4 py-4">
+        <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-3 md:px-4 py-3 md:py-4">
           {messages.map((message: Message, index: number) => (
             <div key={index}>
               <div 
-                className="flex gap-4 items-start py-4 px-4 rounded-2xl mb-2"
+                className="flex gap-3 md:gap-4 items-start py-3 md:py-4 px-3 md:px-4 rounded-xl md:rounded-2xl mb-2"
                 style={{
                   backgroundColor: 'rgba(255, 255, 255, 0.6)',
                   backdropFilter: 'blur(10px)',
                 }}
               >
                 <div
-                  className="shrink-0 w-8 h-8 rounded-full overflow-hidden flex items-center justify-center"
+                  className="shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full overflow-hidden flex items-center justify-center"
                   style={{ backgroundColor: message.role === 'user' ? COLORS.borderMedium : 'transparent' }}
                 >
                   {message.role === 'user' ? (
@@ -320,17 +320,17 @@ export default function ChatInterface({
                         className="object-cover w-full h-full rounded-full"
                       />
                     ) : (
-                      <div className="w-6 h-6 rounded-full" style={{ backgroundColor: COLORS.textSecondary }} />
+                      <div className="w-5 h-5 md:w-6 md:h-6 rounded-full" style={{ backgroundColor: COLORS.textSecondary }} />
                     )
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Image src="/assets/logo.svg" alt="Blubeez" width={32} height={23} className="object-contain" />
+                      <Image src="/assets/logo.svg" alt="Blubeez" width={28} height={20} className="object-contain md:w-[32px] md:h-[23px]" />
                     </div>
                   )}
                 </div>
-                <div className="flex-1 min-w-0 pt-1">
+                <div className="flex-1 min-w-0 pt-0.5 md:pt-1">
                   {message.role === 'assistant' ? (
-                    <div className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem]">
+                    <div className="text-[14px] md:text-[0.938rem] lg:text-[1rem]">
                       {/* Show plain text during streaming for performance, markdown when done */}
                       {message.isStreaming && message.content ? (
                         <p
@@ -345,15 +345,15 @@ export default function ChatInterface({
                       ) : (
                         // Show loading dots when message is empty (before first chunk arrives)
                         <div className="flex gap-1">
-                          <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                          <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                          <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                          <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
                         </div>
                       )}
                     </div>
                   ) : (
                     <p
-                      className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] leading-relaxed whitespace-pre-wrap"
+                      className="text-[14px] md:text-[0.938rem] lg:text-[1rem] leading-relaxed whitespace-pre-wrap"
                       style={{ fontFamily: 'var(--font-poppins)', color: COLORS.textSecondary }}
                     >
                       {message.content}
@@ -375,10 +375,10 @@ export default function ChatInterface({
           backdropFilter: 'blur(10px)',
         }}
       >
-        <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-4 py-4">
+        <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-3 md:px-4 py-3 md:py-4">
           <form onSubmit={handleSubmit}>
             <div
-              className="w-full px-[16px] py-[12px] rounded-[16px] border border-[#2c3d5d] flex items-center justify-between gap-2"
+              className="w-full px-3 md:px-[16px] py-2.5 md:py-[12px] rounded-xl md:rounded-[16px] border border-[#2c3d5d] flex items-center justify-between gap-2"
               style={{ backgroundColor: 'rgba(255, 255, 255, 0.4)' }}
             >
               <input
@@ -389,16 +389,16 @@ export default function ChatInterface({
                 onKeyDown={handleKeyDown}
                 placeholder="Ask blu"
                 disabled={isLoading}
-                className="flex-1 bg-transparent text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal outline-none placeholder-neutral-400"
+                className="flex-1 bg-transparent text-[14px] md:text-[0.938rem] lg:text-[1rem] font-normal outline-none placeholder-neutral-400"
                 style={{ fontFamily: 'var(--font-poppins)', color: COLORS.textSecondary }}
               />
               <button
                 type="submit"
                 disabled={isLoading || !inputValue.trim()}
-                className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center w-5 h-5 md:w-6 md:h-6 rounded-full hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Send"
               >
-                <Image src="/assets/send.svg" alt="Send" width={19} height={16} className="object-contain" />
+                <Image src="/assets/send.svg" alt="Send" width={17} height={14} className="object-contain md:w-[19px] md:h-[16px]" />
               </button>
             </div>
           </form>

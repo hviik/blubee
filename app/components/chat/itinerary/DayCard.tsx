@@ -21,86 +21,86 @@ export function DayCard({ day, isFirst, isLast, onExpand }: DayCardProps) {
   };
 
   return (
-    <div className="flex gap-3 w-full">
+    <div className="flex gap-2 md:gap-3 w-full">
       {/* Location Icon & Line */}
-      <div className="flex flex-col items-center" style={{ width: '24px' }}>
-        <div className="relative w-6 h-6 flex-shrink-0">
+      <div className="flex flex-col items-center" style={{ width: '20px' }}>
+        <div className="relative w-5 h-5 md:w-6 md:h-6 flex-shrink-0">
           <Image
             src="/assets/logo-icon.svg"
             alt="Location"
-            width={24}
-            height={24}
-            className="text-[#2f4f93]"
+            width={20}
+            height={20}
+            className="text-[#2f4f93] md:w-6 md:h-6"
           />
         </div>
         {!isLast && (
-          <div className="w-0.5 flex-1 bg-[#d7e7f5] mt-1" style={{ minHeight: '92px' }} />
+          <div className="w-0.5 flex-1 bg-[#d7e7f5] mt-1" style={{ minHeight: '80px' }} />
         )}
       </div>
 
       {/* Day Content */}
-      <div className="flex-1 pb-6">
+      <div className="flex-1 pb-4 md:pb-6">
         {/* Day Header */}
-        <div className="mb-2">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-medium text-[#2f4f93]">DAY {day.dayNumber}</span>
-            <span className="text-sm text-[#7286b0]">- {day.date}</span>
+        <div className="mb-1.5 md:mb-2">
+          <div className="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1">
+            <span className="text-xs md:text-sm font-medium text-[#2f4f93]">DAY {day.dayNumber}</span>
+            <span className="text-xs md:text-sm text-[#7286b0]">- {day.date}</span>
           </div>
-          <h3 className="text-base font-medium text-[#132341] leading-snug">
+          <h3 className="text-sm md:text-base font-medium text-[#132341] leading-snug">
             {day.title}
           </h3>
         </div>
 
         {/* Description */}
         {isExpanded && (
-          <p className="text-sm text-[#7286b0] mb-4 leading-relaxed">
+          <p className="text-xs md:text-sm text-[#7286b0] mb-3 md:mb-4 leading-relaxed">
             {day.description}
           </p>
         )}
 
         {/* Activity Icons */}
         {isExpanded && day.activities && (
-          <div className="flex gap-6 mb-4">
+          <div className="flex gap-4 md:gap-6 mb-3 md:mb-4">
             {day.activities.icon?.hotel && (
-              <div className="flex flex-col items-center gap-2">
+              <div className="flex flex-col items-center gap-1 md:gap-2">
                 <Image
                   src="/assets/bookmark-bag.svg"
                   alt="Hotel"
-                  width={18}
-                  height={18}
-                  className="opacity-70"
+                  width={16}
+                  height={16}
+                  className="opacity-70 md:w-[18px] md:h-[18px]"
                 />
-                <span className="text-xs text-[#7286b0]">
+                <span className="text-[10px] md:text-xs text-[#7286b0]">
                   {day.activities.hotel || 'Hotel stay'}
                 </span>
               </div>
             )}
             
             {day.activities.icon?.travel && (
-              <div className="flex flex-col items-center gap-2">
+              <div className="flex flex-col items-center gap-1 md:gap-2">
                 <Image
                   src="/assets/travel-explore.svg"
                   alt="Travel"
-                  width={18}
-                  height={18}
-                  className="opacity-70"
+                  width={16}
+                  height={16}
+                  className="opacity-70 md:w-[18px] md:h-[18px]"
                 />
-                <span className="text-xs text-[#7286b0]">
+                <span className="text-[10px] md:text-xs text-[#7286b0]">
                   {day.activities.food || 'Travel'}
                 </span>
               </div>
             )}
             
             {day.activities.icon?.sightseeing && (
-              <div className="flex flex-col items-center gap-2">
+              <div className="flex flex-col items-center gap-1 md:gap-2">
                 <Image
                   src="/assets/explore.svg"
                   alt="Sightseeing"
-                  width={18}
-                  height={18}
-                  className="opacity-70"
+                  width={16}
+                  height={16}
+                  className="opacity-70 md:w-[18px] md:h-[18px]"
                 />
-                <span className="text-xs text-[#7286b0]">
+                <span className="text-[10px] md:text-xs text-[#7286b0]">
                   {day.activities.sightseeing || 'Sightseeing'}
                 </span>
               </div>
@@ -111,7 +111,7 @@ export function DayCard({ day, isFirst, isLast, onExpand }: DayCardProps) {
         {/* More Info Button */}
         <button
           onClick={handleToggleExpand}
-          className="flex items-center gap-2 text-sm text-[#7286b0] hover:text-[#2f4f93] transition-colors group"
+          className="flex items-center gap-1.5 md:gap-2 text-xs md:text-sm text-[#7286b0] hover:text-[#2f4f93] transition-colors group"
         >
           <span className="uppercase tracking-wide">
             {isExpanded ? 'Less info' : 'More info'}
@@ -122,7 +122,7 @@ export function DayCard({ day, isFirst, isLast, onExpand }: DayCardProps) {
             }`}
           >
             <svg
-              className="w-4 h-4"
+              className="w-3 h-3 md:w-4 md:h-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

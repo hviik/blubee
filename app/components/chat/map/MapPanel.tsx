@@ -71,8 +71,8 @@ export function MapPanel({
 
       mapInstanceRef.current = map;
     } else {
-      // Update existing map center and zoom
-      mapInstanceRef.current.setCenter(center);
+      // Update existing map center and zoom with smooth animation
+      mapInstanceRef.current.panTo(center);
       mapInstanceRef.current.setZoom(zoom);
     }
 

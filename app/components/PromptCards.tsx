@@ -19,42 +19,41 @@ export default function PromptCards({ onPromptClick }: PromptCardsProps) {
 
   return (
     <div className="w-full flex flex-col gap-2 items-start">
-      {/* Header */}
-      <div className="w-full flex flex-wrap items-center gap-1 md:gap-2">
+      {/* Header - 10px on mobile (375px), scales up on larger screens */}
+      <div className="w-full flex flex-wrap items-center gap-1">
         <div 
-          className="text-[0.625rem] sm:text-[0.688rem] md:text-[0.75rem] lg:text-[0.813rem] font-medium whitespace-nowrap"
+          className="text-[10px] md:text-[0.75rem] lg:text-[0.813rem] font-medium whitespace-nowrap"
           style={{ 
             fontFamily: 'var(--font-poppins)',
-            color: COLORS.textPrimary
+            color: '#181818'
           }}
         >
           Not Sure Where to Start?
         </div>
         <div 
-          className="text-[0.625rem] sm:text-[0.688rem] md:text-[0.75rem] lg:text-[0.813rem] font-medium"
+          className="text-[10px] md:text-[0.75rem] lg:text-[0.813rem] font-medium"
           style={{ 
             fontFamily: 'var(--font-poppins)',
-            color: COLORS.textPrimary
+            color: '#181818'
           }}
         >
           Try one of these sample prompts:
         </div>
       </div>
 
-      {/* Prompt Cards */}
+      {/* Prompt Cards - 12px text, 8px py, 16px px on mobile (375px) */}
       <div className="w-full flex flex-col gap-3 items-start">
         {SAMPLE_PROMPTS.map((prompt, index) => (
           <div
             key={index}
             onClick={() => handlePromptClick(prompt)}
-            className="w-full px-4 py-2 md:py-2 rounded-xl md:rounded-2xl outline outline-1 outline-offset-[-1px] hover:outline-[#2d4e92] transition-colors cursor-pointer"
+            className="w-full px-4 py-2 md:py-3 rounded-[12px] md:rounded-2xl border border-[#cbcbcb] hover:border-[#2d4e92] transition-colors cursor-pointer"
             style={{ 
-              backgroundColor: COLORS.white,
-              outlineColor: COLORS.borderMedium
+              backgroundColor: COLORS.white
             }}
           >
             <div 
-              className="text-[0.75rem] sm:text-[0.813rem] md:text-[0.875rem] lg:text-[0.938rem] font-normal leading-normal"
+              className="text-[12px] md:text-[0.875rem] lg:text-[0.938rem] font-normal leading-normal"
               style={{ 
                 fontFamily: 'var(--font-poppins)',
                 color: COLORS.textSecondary

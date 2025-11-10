@@ -108,7 +108,7 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
 
   return (
     <div className="w-full h-full flex flex-col bg-transparent overflow-hidden">
-      <div className={`${compact ? 'px-3 pt-3 pb-3' : 'px-6 pt-4 pb-2'} shrink-0`}>
+      <div className={`${compact ? 'px-3 pt-3 pb-3' : 'px-4 md:px-6 pt-4 pb-2'} shrink-0`}>
         {!compact && (
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 flex items-center justify-center rounded-full bg-[#e6f0f7]">
@@ -129,28 +129,30 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
           </div>
         )}
 
-        <div
-          className="flex items-center justify-between px-4 py-[10px] rounded-xl border max-w-md"
-          style={{
-            backgroundColor: 'rgba(255,255,255,0.45)',
-            borderColor: '#a8c2e1',
-          }}
-        >
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search"
-            className="flex-1 bg-transparent text-sm outline-none placeholder-gray-400"
-            style={{ fontFamily: 'var(--font-poppins)', color: '#333' }}
-          />
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
-              fill="#6b85b7"
+        {!compact && (
+          <div
+            className="flex items-center justify-between px-4 py-[10px] rounded-xl border max-w-md"
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.45)',
+              borderColor: '#a8c2e1',
+            }}
+          >
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search"
+              className="flex-1 bg-transparent text-sm outline-none placeholder-gray-400"
+              style={{ fontFamily: 'var(--font-poppins)', color: '#333' }}
             />
-          </svg>
-        </div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                fill="#6b85b7"
+              />
+            </svg>
+          </div>
+        )}
       </div>
 
       <div
@@ -161,15 +163,17 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
         }}
       >
         <div
-          className="grid gap-6 md:gap-8 mt-4 justify-center"
+          className="grid gap-4 md:gap-6 lg:gap-8 mt-4 justify-center"
           style={{
-            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+            gridTemplateColumns: compact 
+              ? 'repeat(2, minmax(140px, 1fr))' 
+              : 'repeat(auto-fill, minmax(160px, 220px))',
           }}
         >
           {destinations.map((d) => (
             <div
               key={d.id}
-              className="relative aspect-[4/5] rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform duration-300"
+              className="relative w-full aspect-[3/4] md:aspect-[4/5] rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform duration-300 mx-auto max-w-[180px] md:max-w-[220px]"
               onClick={() => onDestinationClick?.(d.name, d.route)}
             >
               <div className="absolute inset-0">
@@ -187,32 +191,32 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
               </div>
 
               <div
-                className="absolute top-0 left-0 right-0 h-24 p-[18px] flex items-start justify-between"
+                className="absolute top-0 left-0 right-0 h-20 md:h-24 p-3 md:p-[18px] flex items-start justify-between"
                 style={{
                   background:
-                    'linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)',
+                    'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%)',
                 }}
               >
                 <div className="flex flex-col text-white">
                   <p
-                    className="text-[12px] font-medium leading-[14px]"
+                    className="text-[10px] md:text-[12px] font-medium leading-tight"
                     style={{ fontFamily: 'var(--font-poppins)' }}
                   >
                     {d.price}
                   </p>
                   <p
-                    className="text-[9px] font-medium opacity-90"
+                    className="text-[8px] md:text-[9px] font-medium opacity-90"
                     style={{ fontFamily: 'var(--font-poppins)' }}
                   >
                     {d.priceDetail}
                   </p>
                 </div>
                 <svg
-                  width="14"
-                  height="14"
+                  width="12"
+                  height="12"
                   viewBox="0 0 14 14"
                   fill="none"
-                  className="hover:scale-110 transition-transform"
+                  className="hover:scale-110 transition-transform md:w-[14px] md:h-[14px]"
                 >
                   <path
                     d="M1 13L13 1M13 1H1M13 1V13"
@@ -225,14 +229,14 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
               </div>
 
               <div
-                className="absolute bottom-0 left-0 right-0 h-48 p-[18px] flex flex-col items-center justify-end"
+                className="absolute bottom-0 left-0 right-0 h-40 md:h-48 p-3 md:p-[18px] flex flex-col items-center justify-end"
                 style={{
                   background:
-                    'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.05) 100%)',
+                    'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
                 }}
               >
-                <div className="flex flex-col items-center gap-2 w-full mb-2">
-                  <div className="w-8 h-4 relative">
+                <div className="flex flex-col items-center gap-1.5 md:gap-2 w-full mb-1.5 md:mb-2">
+                  <div className="w-7 h-3.5 md:w-8 md:h-4 relative">
                     <Image
                       src={d.flag}
                       alt={`${d.name} flag`}
@@ -241,7 +245,7 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                     />
                   </div>
                   <p
-                    className="text-[12px] font-medium text-center text-white"
+                    className="text-[10px] md:text-[12px] font-medium text-center text-white"
                     style={{ fontFamily: 'var(--font-poppins)' }}
                   >
                     {d.duration}
@@ -249,7 +253,7 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                 </div>
 
                 <h3
-                  className="text-[20px] font-black italic text-center text-white uppercase w-full mb-1"
+                  className="text-[18px] md:text-[24px] font-black italic text-center text-white uppercase w-full mb-0.5 md:mb-1"
                   style={{
                     fontFamily: 'var(--font-poppins)',
                     fontWeight: 900,
@@ -258,22 +262,22 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                   {d.name}
                 </h3>
 
-                <div className="flex items-center gap-1 justify-center w-full">
+                <div className="flex items-center gap-0.5 md:gap-1 justify-center w-full flex-wrap">
                   {d.route.map((loc, i) => (
-                    <div key={i} className="flex items-center gap-1">
+                    <div key={i} className="flex items-center gap-0.5 md:gap-1">
                       <span
-                        className="text-[9px] text-white"
+                        className="text-[8px] md:text-[9px] text-white"
                         style={{ fontFamily: 'var(--font-poppins)' }}
                       >
                         {loc}
                       </span>
                       {i < d.route.length - 1 && (
                         <svg
-                          width="10.5"
-                          height="10.5"
+                          width="9"
+                          height="9"
                           viewBox="0 0 11 11"
                           fill="none"
-                          className="rotate-90"
+                          className="rotate-90 md:w-[10.5px] md:h-[10.5px]"
                         >
                           <path
                             d="M1 1L10 10"

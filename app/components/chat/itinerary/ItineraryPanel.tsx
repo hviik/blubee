@@ -96,29 +96,30 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
   };
 
   return (
-    <div className="flex flex-col h-full bg-white relative">
-      {/* Drag Handle */}
+    <div className="flex flex-col h-full bg-transparent relative">
+      {/* Drag Handle - More visible */}
       <div
         onMouseDown={handleDragStart}
-        className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize hover:bg-blue-100 z-10 flex items-center justify-center"
+        className="absolute top-0 left-0 right-0 h-6 cursor-ns-resize hover:bg-blue-50 z-30 flex items-center justify-center group transition-colors"
+        style={{ marginTop: '-6px' }}
       >
-        <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+        <div className="w-16 h-1.5 bg-gray-400 rounded-full group-hover:bg-blue-400 transition-colors"></div>
       </div>
 
       {/* Header */}
-      <div className="p-4 pt-6 flex-shrink-0">
+      <div className="p-3 md:p-4 pt-5 md:pt-6 flex-shrink-0">
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="flex items-center gap-1 bg-white rounded-full px-3 py-2 shadow-md hover:bg-gray-50 transition-colors"
+          className="flex items-center gap-1 bg-white rounded-full px-2.5 md:px-3 py-1.5 md:py-2 shadow-md hover:bg-gray-50 transition-colors"
         >
-          <span className="text-sm text-[#475f73] font-medium">Generated itinerary</span>
+          <span className="text-xs md:text-sm text-[#475f73] font-medium">Generated itinerary</span>
           <div
             className={`transform transition-transform duration-200 ${
               isCollapsed ? 'rotate-180' : ''
             }`}
           >
             <svg
-              className="w-[18px] h-[18px] text-[#475f73]"
+              className="w-4 h-4 md:w-[18px] md:h-[18px] text-[#475f73]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -138,17 +139,17 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
       {!isCollapsed && (
         <div
           ref={containerRef}
-          className="flex-1 border border-[#d7e7f5] mt-4 overflow-hidden flex flex-col"
-          style={{ height: `${panelHeight}px` }}
+          className="flex-1 border border-[#d7e7f5] mt-2 overflow-hidden flex flex-col rounded-t-xl shadow-lg"
+          style={{ height: `${panelHeight}px`, minHeight: '200px', maxHeight: '85vh' }}
         >
           {/* Location Tabs */}
-          <div className="bg-white border-b border-[#d7e7f5] p-4 flex-shrink-0">
-            <div className="flex items-center gap-1 flex-wrap">
+          <div className="bg-white border-b border-[#d7e7f5] p-2 md:p-3 flex-shrink-0">
+            <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
               {itinerary.locations.map((location, index) => (
                 <div key={location.id} className="flex items-center gap-1">
                   <button
                     onClick={() => handleLocationClick(location.id)}
-                    className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs transition-colors ${
+                    className={`flex items-center gap-1 px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs transition-colors ${
                       activeLocation === location.id
                         ? 'bg-[#475f73] text-[#eff7ff]'
                         : 'bg-[#e8f0f7] text-[#475f73] hover:bg-[#d7e7f5]'
@@ -157,16 +158,16 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
                     <Image
                       src="/assets/logo-icon.svg"
                       alt="Location"
-                      width={12}
-                      height={12}
-                      className={activeLocation === location.id ? 'brightness-0 invert' : ''}
+                      width={10}
+                      height={10}
+                      className={`md:w-3 md:h-3 ${activeLocation === location.id ? 'brightness-0 invert' : ''}`}
                     />
                     <span>{location.name}</span>
                   </button>
                   {index < itinerary.locations.length - 1 && (
-                    <div className="w-6 h-6 flex items-center justify-center">
+                    <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center">
                       <svg
-                        className="w-6 h-6 text-[#475f73] rotate-90"
+                        className="w-3 h-3 md:w-4 md:h-4 text-[#475f73]"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -185,17 +186,29 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
             </div>
           </div>
 
-          {/* Days List */}
-          <div className="flex-1 overflow-y-auto bg-white">
-            <div className="p-4 space-y-0">
-              {filteredDays.map((day, index) => (
-                <DayCard
-                  key={day.dayNumber}
-                  day={day}
-                  isFirst={index === 0}
-                  isLast={index === filteredDays.length - 1}
-                />
-              ))}
+          {/* Days List - Scrollable */}
+          <div 
+            className="flex-1 overflow-y-auto bg-white scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+            style={{
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#cbd5e1 #f1f5f9'
+            }}
+          >
+            <div className="p-2 md:p-4 space-y-0">
+              {filteredDays.length > 0 ? (
+                filteredDays.map((day, index) => (
+                  <DayCard
+                    key={day.dayNumber}
+                    day={day}
+                    isFirst={index === 0}
+                    isLast={index === filteredDays.length - 1}
+                  />
+                ))
+              ) : (
+                <div className="text-center py-6 md:py-8 text-[#7286b0]">
+                  <p className="text-xs md:text-sm">No days found for this location</p>
+                </div>
+              )}
             </div>
           </div>
 
