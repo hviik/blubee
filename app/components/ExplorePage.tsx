@@ -153,41 +153,33 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pb-6 bg-transparent">
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6 md:gap-8 mt-4">
+      <div className="flex-1 overflow-y-auto px-6 pb-6 scrollbar-hide" style={{ background: 'transparent' }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8 mt-4">
           {destinations.map((d) => (
             <div
               key={d.id}
-              className="relative aspect-[4/5] rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform duration-300"
+              className="relative h-[260px] w-full max-w-[220px] mx-auto rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform duration-300"
               onClick={() => onDestinationClick?.(d.name)}
             >
+              {/* Background Image */}
               <div className="absolute inset-0">
                 <Image
                   src={d.image}
                   alt={d.name}
                   fill
-                  className="object-cover brightness-[0.95] contrast-[1.08]"
+                  className="object-cover"
                   style={{
-                    filter: 'blur(3px) saturate(1.08)',
                     transform: 'translateZ(0)',
-                    willChange: 'filter',
                   }}
                   priority
                 />
               </div>
 
+              {/* Top gradient overlay - darker (from Figma) */}
               <div
-                className="absolute inset-0"
+                className="absolute top-0 left-0 right-0 h-24 p-[18px] flex items-start justify-between backdrop-blur-[0px]"
                 style={{
-                  background:
-                    'linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.25) 45%, rgba(0,0,0,0.05) 100%)',
-                }}
-              />
-
-              <div
-                className="absolute top-0 left-0 right-0 h-20 p-4 flex items-start justify-between"
-                style={{
-                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
+                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%)',
                 }}
               >
                 <div className="flex flex-col text-white">
@@ -198,7 +190,7 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                     {d.price}
                   </p>
                   <p
-                    className="text-[9px] font-medium opacity-90"
+                    className="text-[8px] font-medium"
                     style={{ fontFamily: 'var(--font-poppins)' }}
                   >
                     {d.priceDetail}
@@ -221,11 +213,11 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                 </svg>
               </div>
 
+              {/* Bottom gradient overlay - darker (from Figma) */}
               <div
-                className="absolute bottom-0 left-0 right-0 h-48 p-[18px] flex flex-col items-center justify-end"
+                className="absolute bottom-0 left-0 right-0 h-[224px] p-[18px] flex flex-col items-center justify-end backdrop-blur-[2px]"
                 style={{
-                  background:
-                    'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.05) 100%)',
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
                 }}
               >
                 <div className="flex flex-col items-center gap-2 w-full mb-2">
@@ -246,7 +238,7 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                 </div>
 
                 <h3
-                  className="text-[20px] font-black italic text-center text-white uppercase w-full mb-1"
+                  className="text-[24px] font-black italic text-center text-white uppercase w-full mb-1"
                   style={{
                     fontFamily: 'var(--font-poppins)',
                     fontWeight: 900,
@@ -255,11 +247,11 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                   {d.name}
                 </h3>
 
-                <div className="flex items-center gap-1 justify-center w-full">
+                <div className="flex items-center gap-[2px] justify-center w-full overflow-hidden">
                   {d.route.map((loc, i) => (
-                    <div key={i} className="flex items-center gap-1">
+                    <div key={i} className="flex items-center gap-[2px]">
                       <span
-                        className="text-[9px] text-white"
+                        className="text-[10px] text-white overflow-ellipsis overflow-hidden whitespace-nowrap"
                         style={{ fontFamily: 'var(--font-poppins)' }}
                       >
                         {loc}
@@ -270,7 +262,7 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                           height="10.5"
                           viewBox="0 0 11 11"
                           fill="none"
-                          className="rotate-90"
+                          className="rotate-90 flex-shrink-0"
                         >
                           <path
                             d="M1 1L10 10"

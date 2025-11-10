@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { SignedIn, UserButton } from '@clerk/nextjs';
 import { COLORS } from '../constants/colors';
+import HowToUseModal from './HowToUseModal';
 
 interface SidebarProps {
   onExpandChange?: (expanded: boolean) => void;
@@ -15,6 +16,7 @@ interface SidebarProps {
 export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode = false, onExploreClick }: SidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
 
   const toggleExpanded = () => {
     const newState = !isExpanded;
@@ -85,8 +87,10 @@ export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode
           <NavItems isExpanded={isExpanded} onExploreClick={onExploreClick} />
         </div>
 
-        <BottomItems isExpanded={isExpanded} />
+        <BottomItems isExpanded={isExpanded} onHelpClick={() => setIsHelpModalOpen(true)} />
       </div>
+
+      <HowToUseModal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} />
 
       <div
         className={`md:hidden fixed inset-0 z-40 ${isMobileOpen ? '' : 'pointer-events-none'}`}
@@ -124,10 +128,12 @@ export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode
             <div className="flex flex-col gap-12">
               <NavItems isExpanded onExploreClick={onExploreClick} />
             </div>
-            <BottomItems isExpanded />
+            <BottomItems isExpanded onHelpClick={() => setIsHelpModalOpen(true)} />
           </div>
         </aside>
       </div>
+
+      <HowToUseModal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} />
     </SignedIn>
   );
 }
@@ -189,10 +195,25 @@ function NavItems({ isExpanded, onExploreClick }: { isExpanded?: boolean; onExpl
   );
 }
 
-function BottomItems({ isExpanded }: { isExpanded?: boolean }) {
+function BottomItems({ isExpanded, onHelpClick }: { isExpanded?: boolean; onHelpClick?: () => void }) {
   return (
     <div className="flex flex-col gap-4 w-full">
       <div className="flex flex-col gap-6">
+        <button 
+          onClick={onHelpClick}
+          className="flex items-center gap-3 hover:opacity-70 transition-opacity"
+        >
+          <Image src="/assets/help.svg" alt="Help" width={24} height={24} />
+          {isExpanded && (
+            <span
+              className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal whitespace-nowrap"
+              style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.textQuaternary }}
+            >
+              How to use Blubeez?
+            </span>
+          )}
+        </button>
+
         <button className="flex items-center gap-3 hover:opacity-70 transition-opacity">
           <Image src="/assets/settings.svg" alt="Settings" width={24} height={24} />
           {isExpanded && (
