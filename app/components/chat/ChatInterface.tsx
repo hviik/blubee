@@ -85,14 +85,13 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
           throw new Error(err.error || 'Network error');
         }
 
-        // Backend sends Server-Sent Events (SSE) format
+        // Backend sends Server-Sent Events (SSE) format (matching FastAPI pattern)
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
         let accumulated = '';
-        let isStreaming = true;
 
-        // Process SSE stream chunks
+        // Process SSE stream chunks (matching FastAPI client pattern)
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
@@ -105,21 +104,42 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
           buffer = lines.pop() || ''; // Keep incomplete line in buffer
 
           for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
+            if (!line.trim() || !line.startsWith('data: ')) continue;
             
+            const data = line.slice(6); // Remove "data: " prefix
+            
+            // Check for [DONE] marker (matching FastAPI pattern)
+            if (data === '[DONE]') {
+              // Streaming complete - final update with markdown
+              setMessages((prev) => {
+                const newMessages = [...prev];
+                const lastIndex = newMessages.length - 1;
+                if (newMessages[lastIndex]?.role === 'assistant') {
+                  newMessages[lastIndex] = {
+                    role: 'assistant',
+                    content: accumulated,
+                    isStreaming: false,
+                  };
+                }
+                return newMessages;
+              });
+              scrollToBottom(true);
+              continue;
+            }
+
             try {
-              const data = JSON.parse(line.slice(6)); // Remove "data: " prefix
+              const chunk = JSON.parse(data);
               
-              if (data.type === 'start') {
-                // Streaming started
+              // Extract content (matching FastAPI pattern: {"content": "chunk"})
+              if (chunk.content) {
+                // Mark streaming as started
                 if (!hasStartedStreamingRef.current) {
                   hasStartedStreamingRef.current = true;
                   setHasStartedStreaming(true);
                 }
-              } else if (data.type === 'chunk' && data.content) {
+
                 // Add chunk to accumulated text
-                accumulated += data.content;
-                isStreaming = true;
+                accumulated += chunk.content;
 
                 // Update UI immediately - use plain text during streaming for performance
                 setMessages((prev) => {
@@ -139,24 +159,6 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
                 requestAnimationFrame(() => {
                   scrollToBottom(false);
                 });
-              } else if (data.type === 'done') {
-                // Streaming complete - final update
-                isStreaming = false;
-                setMessages((prev) => {
-                  const newMessages = [...prev];
-                  const lastIndex = newMessages.length - 1;
-                  if (newMessages[lastIndex]?.role === 'assistant') {
-                    newMessages[lastIndex] = {
-                      role: 'assistant',
-                      content: accumulated,
-                      isStreaming: false,
-                    };
-                  }
-                  return newMessages;
-                });
-                scrollToBottom(true);
-              } else if (data.type === 'error') {
-                throw new Error(data.error || 'Stream error');
               }
             } catch (e) {
               // Skip invalid JSON lines
@@ -169,25 +171,28 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
         if (buffer.trim()) {
           const line = buffer.trim();
           if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              if (data.type === 'chunk' && data.content) {
-                accumulated += data.content;
-                setMessages((prev) => {
-                  const newMessages = [...prev];
-                  const lastIndex = newMessages.length - 1;
-                  if (newMessages[lastIndex]?.role === 'assistant') {
-                    newMessages[lastIndex] = {
-                      role: 'assistant',
-                      content: accumulated,
-                      isStreaming: false,
-                    };
-                  }
-                  return newMessages;
-                });
+            const data = line.slice(6);
+            if (data !== '[DONE]') {
+              try {
+                const chunk = JSON.parse(data);
+                if (chunk.content) {
+                  accumulated += chunk.content;
+                  setMessages((prev) => {
+                    const newMessages = [...prev];
+                    const lastIndex = newMessages.length - 1;
+                    if (newMessages[lastIndex]?.role === 'assistant') {
+                      newMessages[lastIndex] = {
+                        role: 'assistant',
+                        content: accumulated,
+                        isStreaming: false,
+                      };
+                    }
+                    return newMessages;
+                  });
+                }
+              } catch (e) {
+                // Ignore parse errors
               }
-            } catch (e) {
-              // Ignore parse errors
             }
           }
         }

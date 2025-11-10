@@ -1,5 +1,3 @@
-import { openai } from '@ai-sdk/openai';
-import { streamText } from 'ai';
 import { SYSTEM_PROMPT } from '@/app/config/chat';
 
 export const runtime = 'edge';
@@ -13,32 +11,94 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: 'Messages array is required' }), { status: 400 });
     }
 
-    const result = await streamText({
-      model: openai('gpt-5-nano-2025-08-07'),
-      system: SYSTEM_PROMPT,
-      messages,
+    // Get OpenAI API key from environment
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error('OPENAI_API_KEY is not set');
+    }
+
+    // Prepare messages with system prompt
+    const systemMessage = { role: 'system', content: SYSTEM_PROMPT };
+    const allMessages = [systemMessage, ...messages.filter(m => m.role !== 'system')];
+
+    // Call OpenAI API directly with streaming (matching FastAPI pattern)
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini', // Using gpt-4o-mini like your FastAPI code
+        messages: allMessages,
+        stream: true,
+      }),
     });
 
-    // Use Server-Sent Events (SSE) format for more reliable streaming on Vercel
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`OpenAI API error: ${response.status} - ${error}`);
+    }
+
+    // Create SSE stream that forwards OpenAI's stream (matching FastAPI pattern)
     const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
     
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          // Send initial connection message
-          controller.enqueue(encoder.encode('data: {"type":"start"}\n\n'));
-          
-          // Stream text chunks as they arrive
-          for await (const chunk of result.textStream) {
-            // Format as SSE: data: <content>\n\n
-            const data = JSON.stringify({ type: 'chunk', content: chunk });
-            controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+          const reader = response.body?.getReader();
+          if (!reader) {
+            throw new Error('No response body');
           }
+
+          let buffer = '';
           
-          // Send completion message
-          controller.enqueue(encoder.encode('data: {"type":"done"}\n\n'));
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+
+            // Decode chunk
+            buffer += decoder.decode(value, { stream: true });
+            
+            // Process complete lines
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+            for (const line of lines) {
+              if (!line.trim() || !line.startsWith('data: ')) continue;
+              
+              const data = line.slice(6); // Remove 'data: ' prefix
+              
+              if (data === '[DONE]') {
+                // Send [DONE] to client (matching FastAPI pattern)
+                controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+                continue;
+              }
+
+              try {
+                const chunk = JSON.parse(data);
+                
+                // Extract content from OpenAI's format (matching FastAPI pattern)
+                if (chunk.choices && chunk.choices.length > 0) {
+                  const delta = chunk.choices[0].delta;
+                  if (delta?.content) {
+                    // Forward chunk in same format as FastAPI
+                    const sseData = JSON.stringify({ content: delta.content });
+                    controller.enqueue(encoder.encode(`data: ${sseData}\n\n`));
+                  }
+                }
+              } catch (e) {
+                // Skip invalid JSON
+                continue;
+              }
+            }
+          }
+
+          // Send final [DONE] if not already sent
+          controller.enqueue(encoder.encode('data: [DONE]\n\n'));
         } catch (err) {
-          const error = JSON.stringify({ type: 'error', error: err instanceof Error ? err.message : 'Unknown error' });
+          const error = JSON.stringify({ error: err instanceof Error ? err.message : 'Unknown error' });
           controller.enqueue(encoder.encode(`data: ${error}\n\n`));
         } finally {
           controller.close();
@@ -49,11 +109,8 @@ export async function POST(req: Request) {
     return new Response(stream, {
       headers: {
         'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'X-Accel-Buffering': 'no',
+        'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST',
       },
     });
   } catch (err: any) {
