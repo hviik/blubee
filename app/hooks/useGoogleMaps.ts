@@ -1,7 +1,3 @@
-/**
- * Custom hook to load Google Maps JavaScript API
- */
-
 import { useEffect, useState } from 'react';
 
 declare global {

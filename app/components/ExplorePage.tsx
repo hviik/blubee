@@ -15,6 +15,7 @@ interface Destination {
   image: string;
   duration: string;
   price: string;
+  priceDetail: string;
   route: string[];
 }
 
@@ -26,6 +27,7 @@ const destinations: Destination[] = [
     image: '/assets/destinations/vietnam.png',
     duration: '5 Days, 4 Nights',
     price: '₹ 99,779',
+    priceDetail: 'Per person',
     route: ['Hanoi', 'Ha Long Bay', 'Ho Chi Minh City'],
   },
   {
@@ -35,6 +37,7 @@ const destinations: Destination[] = [
     image: '/assets/destinations/malaysia.png',
     duration: '5 Days, 4 Nights',
     price: '₹ 99,779',
+    priceDetail: 'Per person',
     route: ['Hanoi', 'Ha Long Bay', 'Ho Chi Minh City'],
   },
   {
@@ -44,6 +47,7 @@ const destinations: Destination[] = [
     image: '/assets/destinations/peru.png',
     duration: '5 Days, 4 Nights',
     price: '₹ 99,779',
+    priceDetail: 'Per person',
     route: ['Hanoi', 'Ha Long Bay', 'Ho Chi Minh City'],
   },
   {
@@ -53,6 +57,7 @@ const destinations: Destination[] = [
     image: '/assets/destinations/philippines.png',
     duration: '5 Days, 4 Nights',
     price: '₹ 99,779',
+    priceDetail: 'Per person',
     route: ['Hanoi', 'Ha Long Bay', 'Ho Chi Minh City'],
   },
   {
@@ -62,6 +67,7 @@ const destinations: Destination[] = [
     image: '/assets/destinations/brazil.png',
     duration: '5 Days, 4 Nights',
     price: '₹ 99,779',
+    priceDetail: 'Per person',
     route: ['Hanoi', 'Ha Long Bay', 'Ho Chi Minh City'],
   },
   {
@@ -71,6 +77,7 @@ const destinations: Destination[] = [
     image: '/assets/destinations/india.png',
     duration: '5 Days, 4 Nights',
     price: '₹ 99,779',
+    priceDetail: 'Per person',
     route: ['Hanoi', 'Ha Long Bay', 'Ho Chi Minh City'],
   },
   {
@@ -80,6 +87,7 @@ const destinations: Destination[] = [
     image: '/assets/destinations/maldives.png',
     duration: '5 Days, 4 Nights',
     price: '₹ 99,779',
+    priceDetail: 'Per person',
     route: ['Hanoi', 'Ha Long Bay', 'Ho Chi Minh City'],
   },
   {
@@ -89,168 +97,160 @@ const destinations: Destination[] = [
     image: '/assets/destinations/laos.png',
     duration: '5 Days, 4 Nights',
     price: '₹ 99,779',
+    priceDetail: 'Per person',
     route: ['Hanoi', 'Ha Long Bay', 'Ho Chi Minh City'],
   },
 ];
 
 export default function ExplorePage({ onClose }: ExplorePageProps) {
-  const [selectedTab, setSelectedTab] = useState<'trending' | 'mostViewed' | 'mostBooked'>('trending');
+  const [searchQuery, setSearchQuery] = useState('');
 
   return (
-    <div className="w-full h-full flex flex-col bg-white overflow-hidden">
-      {/* Header with Tabs - Matching Figma padding */}
-      <div className="w-full px-4 md:px-6 lg:px-8 pt-6 pb-4 border-b" style={{ borderColor: '#E6F0F7' }}>
-        <h1 
-          className="text-[24px] md:text-[28px] lg:text-[32px] font-semibold mb-4"
-          style={{
-            fontFamily: 'var(--font-bricolage-grotesque)',
-            color: COLORS.blubeezNavy,
+    <div className="w-full h-full flex flex-col overflow-hidden">
+      {/* Header with Search */}
+      <div className="w-full px-4 md:px-6 lg:px-8 pt-4 pb-6">
+        {/* Title with Icon */}
+        <div className="flex items-center gap-3 mb-6 border-b pb-4" style={{ borderColor: '#cee2f2' }}>
+          <div className="w-12 h-12 flex items-center justify-center">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+              <circle cx="24" cy="24" r="24" fill="#E6F0F7" />
+              <path d="M24 14L28 22H20L24 14Z" fill={COLORS.blubeezBlue} />
+              <path d="M24 34L20 26H28L24 34Z" fill={COLORS.blubeezBlue} />
+            </svg>
+          </div>
+          <h1 
+            className="text-[32px] md:text-[36px] lg:text-[40px] font-medium"
+            style={{
+              fontFamily: 'var(--font-bricolage-grotesque)',
+              color: '#475f73',
+            }}
+          >
+            Explore
+          </h1>
+        </div>
+        
+        {/* Search Bar */}
+        <div 
+          className="flex items-center justify-between px-4 py-3 rounded-2xl border max-w-md"
+          style={{ 
+            backgroundColor: 'rgba(255,255,255,0.1)',
+            borderColor: '#6b85b7'
           }}
         >
-          Explore Destinations
-        </h1>
-        
-        {/* Tabs */}
-        <div className="flex gap-6">
-          <button
-            onClick={() => setSelectedTab('trending')}
-            className={`pb-3 px-1 text-[14px] md:text-[16px] font-medium transition-all relative ${
-              selectedTab === 'trending' ? 'text-[#2C5282]' : 'text-gray-500'
-            }`}
-            style={{
-              fontFamily: 'var(--font-poppins)',
-            }}
-          >
-            Trending
-            {selectedTab === 'trending' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[2px]" style={{ backgroundColor: COLORS.blubeezBlue }} />
-            )}
-          </button>
-          
-          <button
-            onClick={() => setSelectedTab('mostViewed')}
-            className={`pb-3 px-1 text-[14px] md:text-[16px] font-medium transition-all relative ${
-              selectedTab === 'mostViewed' ? 'text-[#2C5282]' : 'text-gray-500'
-            }`}
-            style={{
-              fontFamily: 'var(--font-poppins)',
-            }}
-          >
-            Most Viewed
-            {selectedTab === 'mostViewed' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[2px]" style={{ backgroundColor: COLORS.blubeezBlue }} />
-            )}
-          </button>
-          
-          <button
-            onClick={() => setSelectedTab('mostBooked')}
-            className={`pb-3 px-1 text-[14px] md:text-[16px] font-medium transition-all relative ${
-              selectedTab === 'mostBooked' ? 'text-[#2C5282]' : 'text-gray-500'
-            }`}
-            style={{
-              fontFamily: 'var(--font-poppins)',
-            }}
-          >
-            Most Booked
-            {selectedTab === 'mostBooked' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[2px]" style={{ backgroundColor: COLORS.blubeezBlue }} />
-            )}
-          </button>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search"
+            className="flex-1 bg-transparent text-sm outline-none placeholder-neutral-400"
+            style={{ fontFamily: 'var(--font-poppins)' }}
+          />
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="#6b85b7"/>
+          </svg>
         </div>
       </div>
 
-      {/* Destinations Grid - Matching Figma padding and layout */}
-      <div className="flex-1 overflow-y-auto px-4 md:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 lg:gap-6">
+      {/* Destinations Grid - Transparent Background */}
+      <div className="flex-1 overflow-y-auto px-4 md:px-6 lg:px-8 pb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
           {destinations.map((destination) => (
             <div
               key={destination.id}
-              className="bg-white rounded-[16px] overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-              style={{ border: '1px solid #E6F0F7' }}
+              className="relative h-[320px] w-full rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform duration-300"
             >
-              {/* Image Container */}
-              <div className="relative w-full h-[180px] md:h-[200px] overflow-hidden">
-                <Image
-                  src={destination.image}
-                  alt={destination.name}
-                  fill
-                  className="object-cover"
-                />
-                {/* Flag Overlay */}
-                <div className="absolute top-3 right-3 w-8 h-8 rounded-full overflow-hidden shadow-sm border-2 border-white">
-                  <Image
-                    src={destination.flag}
-                    alt={`${destination.name} flag`}
-                    width={32}
-                    height={32}
-                    className="object-cover"
-                  />
+              {/* Background Image */}
+              <Image
+                src={destination.image}
+                alt={destination.name}
+                fill
+                className="object-cover"
+              />
+
+              {/* Top Gradient Overlay - Price & Arrow */}
+              <div 
+                className="absolute top-0 left-0 right-0 h-24 p-[18px] flex items-start justify-between"
+                style={{
+                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%)',
+                }}
+              >
+                {/* Price */}
+                <div className="flex flex-col text-white">
+                  <p 
+                    className="text-[12px] font-medium leading-[14px]"
+                    style={{ fontFamily: 'var(--font-poppins)' }}
+                  >
+                    {destination.price}
+                  </p>
+                  <p 
+                    className="text-[8px] font-medium"
+                    style={{ fontFamily: 'var(--font-poppins)' }}
+                  >
+                    {destination.priceDetail}
+                  </p>
                 </div>
+
+                {/* Arrow Icon */}
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M1 13L13 1M13 1H1M13 1V13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </div>
 
-              {/* Card Content */}
-              <div className="p-4">
-                {/* Destination Name */}
-                <h3
-                  className="text-[18px] md:text-[20px] font-semibold mb-2"
-                  style={{
-                    fontFamily: 'var(--font-bricolage-grotesque)',
-                    color: COLORS.blubeezNavy,
+              {/* Bottom Gradient Overlay - Content */}
+              <div 
+                className="absolute bottom-0 left-0 right-0 h-56 p-[18px] flex flex-col items-center justify-end"
+                style={{
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
+                  backdropFilter: 'blur(2px)',
+                }}
+              >
+                {/* Flag & Duration */}
+                <div className="flex flex-col items-center gap-2 w-full mb-2">
+                  <div className="w-8 h-4 relative">
+                    <Image
+                      src={destination.flag}
+                      alt={`${destination.name} flag`}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <p 
+                    className="text-[12px] font-medium text-center text-white"
+                    style={{ fontFamily: 'var(--font-poppins)' }}
+                  >
+                    {destination.duration}
+                  </p>
+                </div>
+
+                {/* Country Name - Bold Italic White */}
+                <h3 
+                  className="text-[24px] font-black italic text-center text-white uppercase w-full mb-1"
+                  style={{ 
+                    fontFamily: 'var(--font-poppins)',
+                    fontWeight: 900,
                   }}
                 >
                   {destination.name}
                 </h3>
 
-                {/* Duration and Price */}
-                <div className="flex justify-between items-center mb-3">
-                  <span
-                    className="text-[12px] md:text-[13px] text-gray-600"
-                    style={{
-                      fontFamily: 'var(--font-poppins)',
-                    }}
-                  >
-                    {destination.duration}
-                  </span>
-                  <span
-                    className="text-[14px] md:text-[15px] font-semibold"
-                    style={{
-                      fontFamily: 'var(--font-poppins)',
-                      color: COLORS.blubeezBlue,
-                    }}
-                  >
-                    {destination.price}
-                  </span>
-                </div>
-
                 {/* Route */}
-                <div className="flex items-center gap-2 text-[11px] md:text-[12px] text-gray-500"
-                  style={{
-                    fontFamily: 'var(--font-poppins)',
-                  }}
-                >
+                <div className="flex items-center gap-1 justify-center w-full">
                   {destination.route.map((location, index) => (
-                    <span key={index} className="flex items-center gap-2">
-                      {location}
+                    <div key={index} className="flex items-center gap-1">
+                      <span 
+                        className="text-[10px] text-white"
+                        style={{ fontFamily: 'var(--font-poppins)' }}
+                      >
+                        {location}
+                      </span>
                       {index < destination.route.length - 1 && (
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
-                          <path d="M6 3L11 8L6 13" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <svg width="10.5" height="10.5" viewBox="0 0 11 11" fill="none" className="rotate-90">
+                          <path d="M1 1L10 10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
                         </svg>
                       )}
-                    </span>
+                    </div>
                   ))}
                 </div>
-
-                {/* Book Now Button */}
-                <button
-                  className="mt-4 w-full py-2.5 rounded-[8px] text-[14px] font-medium transition-colors hover:opacity-90"
-                  style={{
-                    backgroundColor: COLORS.blubeezBlue,
-                    color: 'white',
-                    fontFamily: 'var(--font-poppins)',
-                  }}
-                >
-                  Book Now
-                </button>
               </div>
             </div>
           ))}

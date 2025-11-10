@@ -269,10 +269,11 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
 
   return (
     <div
-      className="w-full h-full flex flex-col backdrop-blur-[5px] bg-gradient-to-b from-[rgba(255,255,255,0.4)] to-[rgba(255,255,255,0.8)] border-r border-[#cee2f2]"
+      className="w-full h-full flex flex-col border-r border-[#cee2f2]"
       style={{
         WebkitTransform: 'translateZ(0)',
         transform: 'translateZ(0)',
+        background: 'transparent',
       }}
     >
       <div
@@ -283,7 +284,13 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
         <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-4 py-4">
           {messages.map((message: Message, index: number) => (
             <div key={index}>
-              <div className="flex gap-4 items-start py-4">
+              <div 
+                className="flex gap-4 items-start py-4 px-4 rounded-2xl mb-2"
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                  backdropFilter: 'blur(10px)',
+                }}
+              >
                 <div
                   className="shrink-0 w-8 h-8 rounded-full overflow-hidden flex items-center justify-center"
                   style={{ backgroundColor: message.role === 'user' ? COLORS.borderMedium : 'transparent' }}
@@ -337,9 +344,6 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
                   )}
                 </div>
               </div>
-              {index < messages.length - 1 && (
-                <div className="w-full h-px" style={{ backgroundColor: COLORS.borderLight }} />
-              )}
             </div>
           ))}
           <div ref={messagesEndRef} />
@@ -350,13 +354,15 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
         style={{
           borderColor: COLORS.borderLight,
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          backgroundColor: 'rgba(255, 255, 255, 0.7)',
+          backdropFilter: 'blur(10px)',
         }}
       >
         <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-4 py-4">
           <form onSubmit={handleSubmit}>
             <div
               className="w-full px-[16px] py-[12px] rounded-[16px] border border-[#2c3d5d] flex items-center justify-between gap-2"
-              style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+              style={{ backgroundColor: 'rgba(255, 255, 255, 0.4)' }}
             >
               <input
                 ref={inputRef}
