@@ -19,13 +19,41 @@ export async function POST(req: Request) {
       messages,
     });
 
-    // Use AI SDK's built-in streaming response with proper Vercel configuration
-    return result.toTextStreamResponse({
+    // Use Server-Sent Events (SSE) format for more reliable streaming on Vercel
+    const encoder = new TextEncoder();
+    
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          // Send initial connection message
+          controller.enqueue(encoder.encode('data: {"type":"start"}\n\n'));
+          
+          // Stream text chunks as they arrive
+          for await (const chunk of result.textStream) {
+            // Format as SSE: data: <content>\n\n
+            const data = JSON.stringify({ type: 'chunk', content: chunk });
+            controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+          }
+          
+          // Send completion message
+          controller.enqueue(encoder.encode('data: {"type":"done"}\n\n'));
+        } catch (err) {
+          const error = JSON.stringify({ type: 'error', error: err instanceof Error ? err.message : 'Unknown error' });
+          controller.enqueue(encoder.encode(`data: ${error}\n\n`));
+        } finally {
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(stream, {
       headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
+        'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'X-Accel-Buffering': 'no',
         'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST',
       },
     });
   } catch (err: any) {

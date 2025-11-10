@@ -9,6 +9,7 @@ import MarkdownMessage from './MarkdownMessage';
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  isStreaming?: boolean; // Flag to indicate if message is still streaming
 }
 
 interface ChatInterfaceProps {
@@ -69,7 +70,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
       prevMessageCount.current = updated.length;
 
       // Add empty assistant message that will be filled as streaming happens
-      setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
+      setMessages((prev) => [...prev, { role: 'assistant', content: '', isStreaming: true }]);
       scrollToBottom(true);
 
       try {
@@ -84,47 +85,111 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
           throw new Error(err.error || 'Network error');
         }
 
-        // Backend sends plain text chunks directly (not SSE format)
+        // Backend sends Server-Sent Events (SSE) format
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
+        let buffer = '';
         let accumulated = '';
+        let isStreaming = true;
 
-        // Process stream chunks immediately as they arrive
+        // Process SSE stream chunks
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
 
-          // Decode the chunk immediately
-          const chunk = decoder.decode(value, { stream: true });
+          // Decode chunk and add to buffer
+          buffer += decoder.decode(value, { stream: true });
           
-          if (!chunk) continue;
-          
-          // Accumulate the text
-          accumulated += chunk;
-          
-          // Mark streaming as started once we get first chunk
-          if (!hasStartedStreamingRef.current && chunk.trim()) {
-            hasStartedStreamingRef.current = true;
-            setHasStartedStreaming(true);
-          }
+          // Process complete SSE messages (format: "data: {...}\n\n")
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || ''; // Keep incomplete line in buffer
 
-          // Update UI immediately on every chunk - no throttling for real-time streaming
-          setMessages((prev) => {
-            const newMessages = [...prev];
-            const lastIndex = newMessages.length - 1;
-            if (newMessages[lastIndex]?.role === 'assistant') {
-              newMessages[lastIndex] = {
-                role: 'assistant',
-                content: accumulated,
-              };
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            
+            try {
+              const data = JSON.parse(line.slice(6)); // Remove "data: " prefix
+              
+              if (data.type === 'start') {
+                // Streaming started
+                if (!hasStartedStreamingRef.current) {
+                  hasStartedStreamingRef.current = true;
+                  setHasStartedStreaming(true);
+                }
+              } else if (data.type === 'chunk' && data.content) {
+                // Add chunk to accumulated text
+                accumulated += data.content;
+                isStreaming = true;
+
+                // Update UI immediately - use plain text during streaming for performance
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  const lastIndex = newMessages.length - 1;
+                  if (newMessages[lastIndex]?.role === 'assistant') {
+                    newMessages[lastIndex] = {
+                      role: 'assistant',
+                      content: accumulated,
+                      isStreaming: true, // Flag to indicate streaming
+                    };
+                  }
+                  return newMessages;
+                });
+
+                // Auto-scroll smoothly
+                requestAnimationFrame(() => {
+                  scrollToBottom(false);
+                });
+              } else if (data.type === 'done') {
+                // Streaming complete - final update
+                isStreaming = false;
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  const lastIndex = newMessages.length - 1;
+                  if (newMessages[lastIndex]?.role === 'assistant') {
+                    newMessages[lastIndex] = {
+                      role: 'assistant',
+                      content: accumulated,
+                      isStreaming: false,
+                    };
+                  }
+                  return newMessages;
+                });
+                scrollToBottom(true);
+              } else if (data.type === 'error') {
+                throw new Error(data.error || 'Stream error');
+              }
+            } catch (e) {
+              // Skip invalid JSON lines
+              continue;
             }
-            return newMessages;
-          });
+          }
+        }
 
-          // Auto-scroll as content streams in (use requestAnimationFrame for smooth scrolling)
-          requestAnimationFrame(() => {
-            scrollToBottom(false);
-          });
+        // Process any remaining buffer
+        if (buffer.trim()) {
+          const line = buffer.trim();
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.type === 'chunk' && data.content) {
+                accumulated += data.content;
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  const lastIndex = newMessages.length - 1;
+                  if (newMessages[lastIndex]?.role === 'assistant') {
+                    newMessages[lastIndex] = {
+                      role: 'assistant',
+                      content: accumulated,
+                      isStreaming: false,
+                    };
+                  }
+                  return newMessages;
+                });
+              }
+            } catch (e) {
+              // Ignore parse errors
+            }
+          }
         }
       } catch (err: any) {
         console.error('Stream error:', err);
@@ -210,7 +275,18 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
                 <div className="flex-1 min-w-0 pt-1">
                   {message.role === 'assistant' ? (
                     <div className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem]">
-                      <MarkdownMessage content={message.content} />
+                      {/* Show plain text during streaming for performance, markdown when done */}
+                      {message.isStreaming ? (
+                        <p
+                          className="leading-relaxed whitespace-pre-wrap"
+                          style={{ fontFamily: 'var(--font-poppins)', color: COLORS.textSecondary }}
+                        >
+                          {message.content}
+                          <span className="animate-pulse">▊</span>
+                        </p>
+                      ) : (
+                        <MarkdownMessage content={message.content} />
+                      )}
                     </div>
                   ) : (
                     <p
