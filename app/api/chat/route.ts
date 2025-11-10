@@ -1,6 +1,6 @@
 import { openai } from '@ai-sdk/openai';
 import { streamText } from 'ai';
-import { SYSTEM_PROMPT } from '@/app/workers/chat';
+import { SYSTEM_PROMPT } from '@/app/config/chat';
 
 /**
  * Use Edge runtime for faster streaming.
@@ -28,8 +28,14 @@ export async function POST(req: Request) {
       messages,
     });
 
-    // Send the response as a streaming text stream
-    return result.toTextStreamResponse();
+    // Return the streaming response with proper headers
+    return result.toTextStreamResponse({
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'no-cache, no-transform',
+        'X-Accel-Buffering': 'no',
+      },
+    });
 
   } catch (err: any) {
     console.error('Chat API error:', err);

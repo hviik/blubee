@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
-import { COLORS } from '../constants/colors';
+import { COLORS } from '../../constants/colors';
 import MarkdownMessage from './MarkdownMessage';
 
 interface Message {
@@ -70,25 +70,32 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ messages: [...updated] }),
         });
+        
         if (!response.ok || !response.body) {
           const err = await response.json().catch(() => ({}));
           throw new Error(err.error || 'Network error');
         }
+        
+        // Use the Response directly with a text reader
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
-        let acc = '';
+        let accumulated = '';
+        
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          acc += chunk;
+          
+          // Decode the chunk
+          const text = decoder.decode(value, { stream: true });
+          accumulated += text;
+          
+          // Update messages state with accumulated text
           setMessages((prev) => {
-            const newMsgs = [...prev];
-            const lastMsg = newMsgs[newMsgs.length - 1];
-            if (lastMsg?.role === 'assistant') {
-              newMsgs[newMsgs.length - 1] = { ...lastMsg, content: acc };
+            const copy = [...prev];
+            if (copy[copy.length - 1]?.role === 'assistant') {
+              copy[copy.length - 1] = { role: 'assistant', content: accumulated };
             }
-            return newMsgs;
+            return copy;
           });
         }
       } catch (err: any) {

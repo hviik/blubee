@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import ChatInterface from './ChatInterface';
-import { TripRightPanel } from './map/TripRightPanel';
+import { TripRightPanel } from './itinerary/TripRightPanel';
 import { Itinerary } from '@/app/types/itinerary';
 import { processMessage, hasItineraryData } from '@/app/utils/messageProcessor';
 

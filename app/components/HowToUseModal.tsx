@@ -11,24 +11,24 @@ interface HowToUseModalProps {
 
 const STEPS = [
   {
-    icon: '/assets/stat-0.svg',
-    title: 'Discover places to visit',
-    description: 'describe what kind of vacation do you want to take with the details you are looking for'
+    icon: '/assets/chat.svg',
+    title: 'Start a Conversation',
+    description: 'Tell Blu what kind of trip you want — your destination, budget, duration, and interests like beaches, food, or adventure.'
   },
   {
-    icon: '/assets/stat-0.svg',
-    title: 'Discover places to visit',
-    description: 'describe what kind of vacation do you want to take with the details you are looking for'
+    icon: '/assets/itinerary.svg',
+    title: 'Get a Custom Itinerary',
+    description: 'Blu instantly crafts a personalized day-by-day travel plan with activities, routes, and recommendations tailored to your inputs.'
   },
   {
-    icon: '/assets/stat-1.svg',
-    title: 'Discover places to visit',
-    description: 'describe what kind of vacation do you want to take with the details you are looking for'
+    icon: '/assets/discover.svg',
+    title: 'Explore and Refine',
+    description: 'Ask Blu to add, remove, or modify places. You can explore suggestions like “hidden beaches” or “best cafes nearby.”'
   },
   {
-    icon: '/assets/stat-1.svg',
-    title: 'Discover places to visit',
-    description: 'describe what kind of vacation do you want to take with the details you are looking for'
+    icon: '/assets/save.svg',
+    title: 'Save or Share Your Trip',
+    description: 'Finalize your itinerary, save it for later, or share it with your travel buddies — all in one place.'
   }
 ];
 
@@ -37,7 +37,6 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
   const [shouldRender, setShouldRender] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
 
-  // Detect screen size
   useEffect(() => {
     const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
     checkDesktop();
@@ -48,14 +47,12 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
   useEffect(() => {
     if (isOpen) {
       setShouldRender(true);
-      // Small delay to ensure CSS transition is applied
       const timer = setTimeout(() => {
         setIsAnimating(true);
       }, 10);
       return () => clearTimeout(timer);
     } else {
       setIsAnimating(false);
-      // Wait for animation to finish before unmounting
       const timer = setTimeout(() => {
         setShouldRender(false);
       }, 500);
@@ -83,7 +80,6 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className={`fixed inset-0 z-40 backdrop-blur-[2px] transition-all duration-500 ease-in-out ${
           isAnimating ? 'opacity-100' : 'opacity-0'
@@ -92,7 +88,6 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
         onClick={onClose}
       />
 
-      {/* Modal - Bottom right on desktop, bottom center on mobile */}
       <div 
         className={`fixed z-50 rounded-2xl flex flex-col shadow-2xl max-h-[calc(100vh-2rem)]
           w-[343px] px-4 pt-5 pb-8 gap-4
@@ -102,11 +97,10 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
           left: isDesktop ? 'auto' : '50%',
           right: isDesktop ? '1rem' : 'auto',
           transform: isDesktop ? 'none' : 'translateX(-50%)',
-          bottom: isAnimating ? (isDesktop ? '1rem' : '1rem') : '-500px',
+          bottom: isAnimating ? '1rem' : '-500px',
           transition: 'all 0.5s ease-out',
         }}
       >
-        {/* Close Button */}
         <div className="flex items-center justify-end w-full">
           <button 
             onClick={onClose}
@@ -116,11 +110,8 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
           </button>
         </div>
 
-        {/* Content */}
         <div className="flex flex-col gap-6 md:gap-14 w-full">
-          {/* Header */}
           <div className="flex flex-col gap-2 items-center text-center w-full">
-            {/* Title - Different colors for mobile/desktop */}
             <p
               className="text-[1.875rem] sm:text-[2rem] md:text-[2.25rem] lg:text-[2.5rem] font-normal"
               style={{
@@ -134,7 +125,6 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
                 How to use blubeez?
               </span>
             </p>
-            {/* Subtitle - Different text and colors for mobile/desktop */}
             <p
               className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] lg:text-[1.063rem] font-medium"
               style={{
@@ -142,22 +132,20 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
               }}
             >
               <span className="md:hidden" style={{ color: COLORS.textModalSubtitle }}>
-                Sign up to explore, connect, and be part of our growing community.
+                Plan smarter, travel better — your trip starts with a chat.
               </span>
               <span className="hidden md:inline" style={{ color: COLORS.textModalSubtitleDesktop }}>
-                & create your perfect itinerary by just chatting with us
+                Chat with Blu to create your perfect itinerary in minutes.
               </span>
             </p>
           </div>
 
-          {/* Steps Grid */}
           <div className="flex flex-col gap-6 md:gap-8 w-full">
-            {/* Row 1 */}
             <div className="grid grid-cols-2 gap-4 md:gap-8 w-full">
               {STEPS.slice(0, 2).map((step, index) => (
                 <div key={index} className="flex flex-col gap-1">
-                  <div className="w-4 h-4 relative">
-                    <Image src={step.icon} alt="" width={16} height={16} />
+                  <div className="w-5 h-5 relative mb-1">
+                    <Image src={step.icon} alt="" width={20} height={20} />
                   </div>
                   <p
                     className="text-[1.125rem] sm:text-[1.25rem] md:text-[1.5rem] lg:text-[1.625rem] font-normal"
@@ -185,12 +173,11 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
               ))}
             </div>
 
-            {/* Row 2 */}
             <div className="grid grid-cols-2 gap-4 md:gap-8 w-full">
               {STEPS.slice(2, 4).map((step, index) => (
                 <div key={index} className="flex flex-col gap-1">
-                  <div className="w-4 h-4 relative">
-                    <Image src={step.icon} alt="" width={16} height={16} />
+                  <div className="w-5 h-5 relative mb-1">
+                    <Image src={step.icon} alt="" width={20} height={20} />
                   </div>
                   <p
                     className="text-[1.125rem] sm:text-[1.25rem] md:text-[1.5rem] lg:text-[1.625rem] font-normal"

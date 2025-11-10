@@ -10,7 +10,7 @@ import PromptCards from './components/PromptCards';
 import SearchInput from './components/SearchInput';
 import Footer from './components/Footer';
 import HowToUseModal from './components/HowToUseModal';
-import ChatWithMap from './components/ChatWithMap';
+import ChatWithMap from './components/chat/ChatWithMap';
 import AuthPromptModal from './components/AuthPromptModal';
 
 export default function BlubeezHome() {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Itinerary, Place } from '@/app/types/itinerary';
-import { MapPanel } from './MapPanel';
+import { MapPanel } from '../map/MapPanel';
 import { ItineraryPanel } from './ItineraryPanel';
 import { useGoogleMaps } from '@/app/hooks/useGoogleMaps';
 
