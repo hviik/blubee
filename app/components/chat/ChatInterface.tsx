@@ -16,9 +16,17 @@ interface ChatInterfaceProps {
   initialMessages?: Message[];
   onSendMessage?: (message: string) => void;
   onMessagesChange?: (messages: Message[]) => void;
+  triggerMessage?: string | null;
+  onMessageTriggered?: () => void;
 }
 
-export default function ChatInterface({ initialMessages = [], onSendMessage, onMessagesChange }: ChatInterfaceProps) {
+export default function ChatInterface({ 
+  initialMessages = [], 
+  onSendMessage, 
+  onMessagesChange,
+  triggerMessage,
+  onMessageTriggered 
+}: ChatInterfaceProps) {
   const { user } = useUser();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [inputValue, setInputValue] = useState('');
@@ -224,6 +232,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
     [isLoading, onSendMessage, scrollToBottom, user]
   );
 
+  // Handle initial messages
   useEffect(() => {
     if (!hasInitialized.current && initialMessages.length > 0) {
       hasInitialized.current = true;
@@ -231,6 +240,14 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
       if (first.role === 'user') sendMessageToAPI(first.content, []);
     }
   }, [initialMessages, sendMessageToAPI]);
+
+  // Handle triggered messages from external components (like explore page)
+  useEffect(() => {
+    if (triggerMessage && !isLoading) {
+      sendMessageToAPI(triggerMessage, messages);
+      onMessageTriggered?.();
+    }
+  }, [triggerMessage]);
 
   // Handle "/" key to focus input
   useEffect(() => {

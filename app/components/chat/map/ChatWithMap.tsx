@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import ChatInterface from '../ChatInterface';
 import { TripRightPanel } from '../itinerary/TripRightPanel';
+import ExplorePage from '../../ExplorePage';
 import { Itinerary } from '@/app/types/itinerary';
 import { processMessage, hasItineraryData } from '@/app/utils/messageProcessor';
 
@@ -19,6 +20,7 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [showMap, setShowMap] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [triggerMessage, setTriggerMessage] = useState<string | null>(null);
   const lastProcessedContent = useRef('');
 
   useEffect(() => {
@@ -78,31 +80,49 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
     setMessages(msgs);
   }, []);
 
+  const handleDestinationClick = useCallback((countryName: string) => {
+    // Trigger a message with the country name
+    const message = `Plan me a trip to ${countryName}`;
+    setTriggerMessage(message);
+  }, []);
+
   return (
-    <div className="relative flex w-full h-full overflow-hidden bg-white">
+    <div className="relative flex w-full h-full overflow-hidden">
       {/* Chat Section */}
       <div
         className={`flex flex-col transition-all duration-500 ease-in-out ${
-          showMap ? 'md:w-[60%] w-full' : 'w-full'
+          showMap ? 'md:w-[60%] w-full' : 'md:w-[65%] w-full'
         }`}
-        style={{ paddingTop: '1px' }} // Subtle padding below navbar border for visual consistency
+        style={{ paddingTop: '1px' }}
       >
         <ChatInterface
           initialMessages={
             initialMessage ? [{ role: 'user', content: initialMessage }] : []
           }
           onMessagesChange={handleMessagesUpdate}
+          triggerMessage={triggerMessage}
+          onMessageTriggered={() => setTriggerMessage(null)}
         />
       </div>
 
-      {/* Map & Itinerary Panel */}
+      {/* Right Panel - Explore or Itinerary */}
       <div
-        className={`absolute right-0 top-0 h-full bg-white border-l border-[#d9e3f0] shadow-lg transition-transform duration-500 ease-in-out
-          ${showMap ? 'translate-x-0 md:w-[40%]' : 'translate-x-full md:translate-x-0 md:w-0'}`}
-        style={{ paddingTop: '1px' }} // Subtle padding below navbar border for visual consistency
+        className={`absolute right-0 top-0 h-full transition-all duration-500 ease-in-out
+          ${showMap ? 'md:w-[40%]' : 'md:w-[35%]'} w-0 md:block hidden`}
       >
-        {showMap && itinerary && (
-          <TripRightPanel itinerary={itinerary} places={[]} />
+        {showMap && itinerary ? (
+          // Show itinerary when available
+          <div className="h-full bg-white border-l border-[#d9e3f0] shadow-lg">
+            <TripRightPanel itinerary={itinerary} places={[]} />
+          </div>
+        ) : (
+          // Show explore page by default
+          <div className="h-full" style={{ paddingTop: '1px' }}>
+            <ExplorePage 
+              compact={true}
+              onDestinationClick={handleDestinationClick}
+            />
+          </div>
         )}
       </div>
     </div>
