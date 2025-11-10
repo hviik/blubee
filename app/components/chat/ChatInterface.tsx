@@ -297,11 +297,10 @@ export default function ChatInterface({
 
   return (
     <div
-      className="w-full h-full flex flex-col border-r border-[#cee2f2]"
+      className="w-full h-full flex flex-col md:border-r border-[#cee2f2] bg-white"
       style={{
         WebkitTransform: 'translateZ(0)',
         transform: 'translateZ(0)',
-        background: 'transparent',
       }}
     >
       <div
@@ -313,11 +312,7 @@ export default function ChatInterface({
           {messages.map((message: Message, index: number) => (
             <div key={index}>
               <div 
-                className="flex gap-3 md:gap-4 items-start py-3 md:py-4 px-3 md:px-4 rounded-xl md:rounded-2xl mb-2"
-                style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.6)',
-                  backdropFilter: 'blur(10px)',
-                }}
+                className="flex gap-3 md:gap-4 items-start py-3 md:py-4 px-3 md:px-4 rounded-xl md:rounded-2xl mb-2 bg-white md:bg-white/60 md:backdrop-blur-md"
               >
                 <div
                   className="shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full overflow-hidden flex items-center justify-center"
@@ -378,19 +373,16 @@ export default function ChatInterface({
         </div>
       </div>
       <div
-        className="border-t"
+        className="border-t bg-white md:bg-white/70 md:backdrop-blur-md"
         style={{
           borderColor: COLORS.borderLight,
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-          backgroundColor: 'rgba(255, 255, 255, 0.7)',
-          backdropFilter: 'blur(10px)',
         }}
       >
         <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-3 md:px-4 py-3 md:py-4">
           <form onSubmit={handleSubmit}>
             <div
-              className="w-full px-3 md:px-[16px] py-2.5 md:py-[12px] rounded-xl md:rounded-[16px] border border-[#2c3d5d] flex items-center justify-between gap-2"
-              style={{ backgroundColor: 'rgba(255, 255, 255, 0.4)' }}
+              className="w-full px-3 md:px-[16px] py-2.5 md:py-[12px] rounded-xl md:rounded-[16px] border border-[#2c3d5d] flex items-center justify-between gap-2 bg-[#f5f7fa] md:bg-white/40"
             >
               <input
                 ref={inputRef}
