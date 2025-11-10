@@ -45,7 +45,7 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
   }, [messages]);
 
   const geocodeItineraryLocations = async (itinerary: Itinerary): Promise<Itinerary> => {
-    const { geocodeLocation } = await import('@/app/utils/geocoding');
+    const { geocodeLocation } = await import('./geocoding');
     
     // Geocode main locations - only geocode if coordinates are invalid (0, 0)
     const updatedLocations = await Promise.all(

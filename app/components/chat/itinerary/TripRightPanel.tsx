@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Itinerary, Place } from '@/app/types/itinerary';
 import { MapPanel } from '../map/MapPanel';
 import { ItineraryPanel } from './ItineraryPanel';
-import { useGoogleMaps } from '@/app/hooks/useGoogleMaps';
+import { useGoogleMaps } from '../map/useGoogleMaps';
 
 interface TripRightPanelProps {
   itinerary: Itinerary | null;
@@ -18,7 +18,11 @@ export function TripRightPanel({
   onLocationSelect,
 }: TripRightPanelProps) {
   const { isLoaded, loadError } = useGoogleMaps();
-  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | undefined>();
+  // Default to Southeast Asia center
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ 
+    lat: 15.8700, 
+    lng: 100.9925 
+  });
   const [mapZoom, setMapZoom] = useState<number>(6);
 
   // Update map center when itinerary changes
@@ -83,7 +87,7 @@ export function TripRightPanel({
     <div className="w-full h-full flex flex-col bg-white relative" data-itinerary-container>
       {/* Map Section - Flexible, takes remaining space */}
       <div className="flex-1 relative min-h-0">
-        {isLoaded && mapCenter && (
+        {isLoaded && (
           <MapPanel
             locations={itinerary?.locations || []}
             places={places}
