@@ -75,10 +75,16 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
       scrollToBottom(true);
 
       try {
+        // Get user's name from Clerk
+        const userName = user?.firstName || user?.fullName?.split(' ')[0] || null;
+        
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: updated }),
+          body: JSON.stringify({ 
+            messages: updated,
+            userName: userName // Pass user's name to the API
+          }),
         });
 
         if (!response.ok || !response.body) {
@@ -215,7 +221,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
         hasStartedStreamingRef.current = false;
       }
     },
-    [isLoading, onSendMessage, scrollToBottom]
+    [isLoading, onSendMessage, scrollToBottom, user]
   );
 
   useEffect(() => {

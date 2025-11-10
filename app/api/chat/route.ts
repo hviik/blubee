@@ -5,7 +5,7 @@ export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
+    const { messages, userName } = await req.json();
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return new Response(JSON.stringify({ error: 'Messages array is required' }), { status: 400 });
@@ -17,8 +17,14 @@ export async function POST(req: Request) {
       throw new Error('OPENAI_API_KEY is not set');
     }
 
-    // Prepare messages with system prompt
-    const systemMessage = { role: 'system', content: SYSTEM_PROMPT };
+    // Prepare messages with personalized system prompt
+    let systemPrompt = SYSTEM_PROMPT;
+    if (userName) {
+      // Add user's name to system prompt so AI knows how to address them
+      systemPrompt += `\n\nIMPORTANT: The user's name is ${userName}. Address them by their name naturally in your responses, especially in greetings and when appropriate throughout the conversation.`;
+    }
+    
+    const systemMessage = { role: 'system', content: systemPrompt };
     const allMessages = [systemMessage, ...messages.filter(m => m.role !== 'system')];
 
     // Call OpenAI API directly with streaming (matching FastAPI pattern)
