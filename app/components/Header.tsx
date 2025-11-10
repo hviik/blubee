@@ -193,7 +193,7 @@ export default function Header({
             </button>
           </div>
 
-          {/* User Greeting - No avatar on mobile, show on desktop */}
+          {/* User Greeting - 14px on mobile, with Clerk avatar */}
           <div className="flex items-center gap-1 md:gap-2">
             <div
               className="text-[14px] md:text-[1rem] lg:text-[1.125rem] font-normal"
@@ -204,17 +204,15 @@ export default function Header({
             >
               Hey! {userName}
             </div>
-            <div className="hidden md:block">
-              <UserButton
-                afterSignOutUrl="/"
-                appearance={{
-                  elements: {
-                    rootBox: 'w-7 h-7',
-                    avatarBox: 'w-7 h-7',
-                  },
-                }}
-              />
-            </div>
+            <UserButton
+              afterSignOutUrl="/"
+              appearance={{
+                elements: {
+                  rootBox: 'w-6 h-6 md:w-7 md:h-7',
+                  avatarBox: 'w-6 h-6 md:w-7 md:h-7',
+                },
+              }}
+            />
           </div>
         </div>
       </SignedIn>
