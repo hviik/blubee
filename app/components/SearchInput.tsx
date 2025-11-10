@@ -105,7 +105,7 @@ export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false, 
               textUnderlinePosition: 'from-font',
             }}
           >
-            Blue Beez Tips
+            Blubeez Tips
           </p>
         </button>
       </div>

@@ -35,7 +35,7 @@ export default function HeroSection() {
               color: COLORS.blubeezBlue
             }}
           >
-            {" "}blue beez
+            {" "}blubeez
           </div>
         </div>
         <div 

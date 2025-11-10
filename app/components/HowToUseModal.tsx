@@ -119,10 +119,10 @@ export default function HowToUseModal({ isOpen, onClose }: HowToUseModalProps) {
               }}
             >
               <span className="md:hidden" style={{ color: COLORS.textModalTitle }}>
-                How to use blue beez?
+                How to use blubeez?
               </span>
               <span className="hidden md:inline" style={{ color: COLORS.textModalTitleDesktop }}>
-                How to use blue beez?
+                How to use blubeez?
               </span>
             </p>
             <p

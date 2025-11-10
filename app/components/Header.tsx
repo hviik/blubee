@@ -64,7 +64,7 @@ export default function Header({
                   color: COLORS.blubeezBlue,
                 }}
               >
-                blue beez
+                blubeez
               </div>
             </button>
           </div>
@@ -163,7 +163,7 @@ export default function Header({
                   color: COLORS.blubeezBlue,
                 }}
               >
-                blue beez
+                blubeez
               </div>
             </button>
 
@@ -188,7 +188,7 @@ export default function Header({
                   color: COLORS.blubeezBlue,
                 }}
               >
-                blue beez
+                blubeez
               </div>
             </button>
           </div>
