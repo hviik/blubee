@@ -40,7 +40,7 @@ export default function Footer({ onHelpClick, onExploreClick }: FooterProps) {
             color: COLORS.textSecondary
           }}
         >
-          By messaging blubeez, you agree to our Terms and have read our Privacy Policy. See Cookie Preferences.
+          By messaging blue beez, you agree to our Terms and have read our Privacy Policy. See Cookie Preferences.
         </div>
       </div>
 
@@ -60,7 +60,7 @@ export default function Footer({ onHelpClick, onExploreClick }: FooterProps) {
               color: COLORS.textTertiary
             }}
           >
-            How to use blubeez?
+            How to use blue beez?
           </div>
           <Image src="/assets/help.svg" alt="Help" width={20} height={20} />
         </button>

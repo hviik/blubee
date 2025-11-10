@@ -209,7 +209,7 @@ function BottomItems({ isExpanded, onHelpClick }: { isExpanded?: boolean; onHelp
               className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal whitespace-nowrap"
               style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.textQuaternary }}
             >
-              How to use Blubeez?
+              How to use Blue Beez?
             </span>
           )}
         </button>
