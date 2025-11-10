@@ -22,6 +22,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [hasStartedStreaming, setHasStartedStreaming] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hasInitialized = useRef(false);
@@ -53,50 +54,78 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
     prevMessageCount.current = messages.length;
   }, [messages, scrollToBottom]);
 
+  const extractTextFromData = (data: string) => {
+    const trimmed = data.trim();
+    if (!trimmed) return '';
+    if (trimmed === '[DONE]') return '[DONE]';
+    if (trimmed.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed.choices) {
+          const c = parsed.choices[0];
+          if (c?.delta?.content) return c.delta.content;
+          if (c?.text) return c.text;
+          if (c?.message?.content?.parts && Array.isArray(c.message.content.parts)) {
+            return c.message.content.parts.join('');
+          }
+        }
+        if (parsed.text) return parsed.text;
+      } catch (e) {
+        return trimmed;
+      }
+    }
+    return trimmed;
+  };
+
   const sendMessageToAPI = useCallback(
     async (messageText: string, currentMessages: Message[]) => {
       if (!messageText.trim() || isLoading) return;
       setIsLoading(true);
+      setHasStartedStreaming(false);
       onSendMessage?.(messageText);
-      
+
       const userMessage: Message = { role: 'user', content: messageText };
       const updated = [...currentMessages, userMessage];
       setMessages(updated);
       prevMessageCount.current = updated.length;
-      
+
       setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
       scrollToBottom(true);
-      
+
       try {
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ messages: updated }),
         });
-        
+
         if (!response.ok || !response.body) {
           const err = await response.json().catch(() => ({}));
           throw new Error(err.error || 'Network error');
         }
-  
+
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
-        let accumulated = '';
-  
+
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
-  
+
           buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
+          const lines = buffer.split(/\r?\n/);
           buffer = lines.pop() || '';
-  
-          for (const line of lines) {
-            if (!line.trim() || !line.startsWith('data:')) continue;
-            const chunk = line.replace(/^data:\s*/, '');
-            if (chunk === '[DONE]') continue;
-            accumulated += chunk;
+
+          for (const rawLine of lines) {
+            if (!rawLine) continue;
+            const line = rawLine.trim();
+            if (!line.startsWith('data:')) continue;
+            const data = line.replace(/^data:\s*/, '');
+            if (data === '[DONE]') continue;
+            const token = extractTextFromData(data);
+            if (!token) continue;
+
+            if (!hasStartedStreaming) setHasStartedStreaming(true);
 
             setMessages((prev) => {
               const newMessages = [...prev];
@@ -104,7 +133,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
               if (newMessages[lastIndex]?.role === 'assistant') {
                 newMessages[lastIndex] = {
                   role: 'assistant',
-                  content: accumulated,
+                  content: newMessages[lastIndex].content + token,
                 };
               }
               return newMessages;
@@ -112,12 +141,49 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
             scrollToBottom(false);
           }
         }
+
+        if (buffer) {
+          const leftover = buffer.trim();
+          if (leftover.startsWith('data:')) {
+            const data = leftover.replace(/^data:\s*/, '');
+            if (data !== '[DONE]') {
+              const token = extractTextFromData(data);
+              if (token) {
+                if (!hasStartedStreaming) setHasStartedStreaming(true);
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  const lastIndex = newMessages.length - 1;
+                  if (newMessages[lastIndex]?.role === 'assistant') {
+                    newMessages[lastIndex] = {
+                      role: 'assistant',
+                      content: newMessages[lastIndex].content + token,
+                    };
+                  }
+                  return newMessages;
+                });
+              }
+            }
+          } else {
+            const token = extractTextFromData(buffer);
+            if (token && token !== '[DONE]') {
+              if (!hasStartedStreaming) setHasStartedStreaming(true);
+              setMessages((prev) => {
+                const newMessages = [...prev];
+                const lastIndex = newMessages.length - 1;
+                if (newMessages[lastIndex]?.role === 'assistant') {
+                  newMessages[lastIndex] = {
+                    role: 'assistant',
+                    content: newMessages[lastIndex].content + token,
+                  };
+                }
+                return newMessages;
+              });
+            }
+          }
+        }
       } catch (err: any) {
-        console.error('Stream error:', err);
         setMessages((prev) => {
-          const filtered = prev.filter((m, idx) =>
-            idx < prev.length - 1 || m.content !== ''
-          );
+          const filtered = prev.filter((m, idx) => idx < prev.length - 1 || m.content !== '');
           return [
             ...filtered,
             {
@@ -128,9 +194,10 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
         });
       } finally {
         setIsLoading(false);
+        setHasStartedStreaming(false);
       }
     },
-    [isLoading, onSendMessage, scrollToBottom]
+    [isLoading, onSendMessage, scrollToBottom, hasStartedStreaming]
   );
 
   useEffect(() => {
@@ -213,7 +280,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
               )}
             </div>
           ))}
-          {isLoading && messages[messages.length - 1]?.content === '' && (
+          {isLoading && !hasStartedStreaming && messages[messages.length - 1]?.content === '' && (
             <div>
               <div className="flex gap-4 items-start py-4">
                 <div className="shrink-0 w-8 h-8 flex items-center justify-center">
