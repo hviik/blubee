@@ -1,12 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import React from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { COLORS } from '../constants/colors';
 
 interface ExplorePageProps {
-  onClose?: () => void;
   compact?: boolean;
   onDestinationClick?: (countryName: string) => void;
 }
@@ -105,95 +103,22 @@ const destinations: Destination[] = [
   },
 ];
 
-export default function ExplorePage({ onClose, compact = false, onDestinationClick }: ExplorePageProps) {
+export default function ExplorePage({ compact = false, onDestinationClick }: ExplorePageProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [selectedCard, setSelectedCard] = useState<string | null>(null);
-  const [userCurrency, setUserCurrency] = useState<string>('INR');
-  const [exchangeRate, setExchangeRate] = useState<number>(1);
-
-  // Detect user's location and currency from IP
-  React.useEffect(() => {
-    const detectLocationAndCurrency = async () => {
-      try {
-        // Get user's IP location
-        const ipResponse = await fetch('https://ipapi.co/json/');
-        const ipData = await ipResponse.json();
-        const userCountry = ipData.country_code;
-
-        // Currency mapping based on country
-        const currencyMap: Record<string, string> = {
-          US: 'USD',
-          GB: 'GBP',
-          EU: 'EUR',
-          IN: 'INR',
-          AU: 'AUD',
-          CA: 'CAD',
-          SG: 'SGD',
-          MY: 'MYR',
-          TH: 'THB',
-          // Add more as needed
-        };
-
-        const detectedCurrency = currencyMap[userCountry] || 'USD';
-        setUserCurrency(detectedCurrency);
-
-        // Fetch exchange rate from INR to user's currency
-        if (detectedCurrency !== 'INR') {
-          const rateResponse = await fetch(`https://api.exchangerate-api.com/v4/latest/INR`);
-          const rateData = await rateResponse.json();
-          const rate = rateData.rates[detectedCurrency] || 1;
-          setExchangeRate(rate);
-        }
-      } catch (error) {
-        console.error('Failed to detect location/currency:', error);
-        // Default to USD if detection fails
-        setUserCurrency('USD');
-        setExchangeRate(0.012); // Approximate INR to USD
-      }
-    };
-
-    detectLocationAndCurrency();
-  }, []);
-
-  const convertPrice = (inrPrice: string): string => {
-    const numericPrice = parseFloat(inrPrice.replace(/[₹,]/g, ''));
-    const converted = Math.round(numericPrice * exchangeRate);
-    
-    const currencySymbols: Record<string, string> = {
-      USD: '$',
-      GBP: '£',
-      EUR: '€',
-      INR: '₹',
-      AUD: 'A$',
-      CAD: 'C$',
-      SGD: 'S$',
-      MYR: 'RM',
-      THB: '฿',
-    };
-
-    const symbol = currencySymbols[userCurrency] || userCurrency;
-    return `${symbol} ${converted.toLocaleString()}`;
-  };
-
-  const handleDestinationClick = (countryName: string) => {
-    if (onDestinationClick) onDestinationClick(countryName);
-  };
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden">
-      <div className={`w-full ${compact ? 'px-3 pt-3 pb-4' : 'px-4 md:px-6 lg:px-8 pt-4 pb-6'}`}>
+    <div className="w-full h-full flex flex-col bg-transparent">
+      <div className={`w-full ${compact ? 'px-3 pt-3 pb-3' : 'px-6 pt-4 pb-2'}`}>
         {!compact && (
-          <div className="flex items-center gap-3 mb-6 border-b pb-4" style={{ borderColor: '#cee2f2' }}>
-            <div className="w-12 h-12 flex items-center justify-center">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                <circle cx="24" cy="24" r="24" fill="#E6F0F7" />
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 flex items-center justify-center rounded-full bg-[#e6f0f7]">
+              <svg width="28" height="28" viewBox="0 0 48 48" fill="none">
                 <path d="M24 14L28 22H20L24 14Z" fill={COLORS.blubeezBlue} />
                 <path d="M24 34L20 26H28L24 34Z" fill={COLORS.blubeezBlue} />
               </svg>
             </div>
             <h1
-              className="text-[32px] md:text-[36px] lg:text-[40px] font-medium"
+              className="text-[28px] md:text-[32px] font-semibold"
               style={{
                 fontFamily: 'var(--font-bricolage-grotesque)',
                 color: '#475f73',
@@ -204,224 +129,166 @@ export default function ExplorePage({ onClose, compact = false, onDestinationCli
           </div>
         )}
 
-        {compact && (
-          <div className="mb-4">
-            <p
-              className="text-sm font-medium text-gray-600 mb-1"
-              style={{ fontFamily: 'var(--font-poppins)' }}
-            >
-              For you
-            </p>
-          </div>
-        )}
-
-        {!compact && (
-          <div
-            className="flex items-center justify-between px-4 py-3 rounded-2xl border max-w-md"
-            style={{
-              backgroundColor: 'rgba(255,255,255,0.1)',
-              borderColor: '#6b85b7',
-            }}
-          >
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search"
-              className="flex-1 bg-transparent text-sm outline-none placeholder-neutral-400"
-              style={{ fontFamily: 'var(--font-poppins)' }}
-            />
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
-                fill="#6b85b7"
-              />
-            </svg>
-          </div>
-        )}
-      </div>
-
-        <div 
-          className={`flex-1 overflow-y-auto ${compact ? 'px-3 pb-4' : 'px-4 md:px-6 lg:px-8 pb-8'}`}
-          onScroll={(e) => {
-            const scrollTop = e.currentTarget.scrollTop;
-            setIsScrolled(scrollTop > 50);
+        <div
+          className="flex items-center justify-between px-4 py-[10px] rounded-xl border max-w-md"
+          style={{
+            backgroundColor: 'rgba(255,255,255,0.4)',
+            borderColor: '#a8c2e1',
           }}
         >
-          <div
-            className={`grid ${compact
-              ? 'grid-cols-2 gap-3'
-              : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8'
-              }`}
-          >
-            {destinations.map((destination) => {
-              const isSelected = selectedCard === destination.id;
-              const shouldBeGlass = isScrolled && !isSelected;
-              
-              return (
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search"
+            className="flex-1 bg-transparent text-sm outline-none placeholder-gray-400"
+            style={{ fontFamily: 'var(--font-poppins)', color: '#333' }}
+          />
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+              fill="#6b85b7"
+            />
+          </svg>
+        </div>
+      </div>
+
+      <div
+        className={`flex-1 overflow-y-auto px-6 pb-6 scrollbar-hide`}
+        style={{ background: 'transparent' }}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8 mt-4">
+          {destinations.map((d) => (
+            <div
+              key={d.id}
+              className="relative h-[280px] w-full rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform duration-300"
+              onClick={() => onDestinationClick?.(d.name)}
+            >
+              <div className="absolute inset-0">
+                <Image
+                  src={d.image}
+                  alt={d.name}
+                  fill
+                  className="object-cover brightness-[0.92] contrast-[1.1]"
+                  style={{
+                    filter: 'blur(4px) saturate(1.05)',
+                    transform: 'translateZ(0)',
+                    willChange: 'filter',
+                  }}
+                  priority
+                />
+              </div>
+
               <div
-                key={destination.id}
-                onClick={() => setSelectedCard(isSelected ? null : destination.id)}
-                className={`relative ${compact ? 'h-[180px]' : 'h-[280px]'} w-full rounded-2xl overflow-hidden cursor-pointer transition-all duration-500 ${
-                  isSelected ? 'scale-[1.05] z-10' : 'hover:scale-[1.02]'
-                }`}
+                className="absolute inset-0"
+                style={{
+                  background:
+                    'linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.25) 45%, rgba(0,0,0,0.05) 100%)',
+                }}
+              />
+
+              <div
+                className="absolute top-0 left-0 right-0 h-20 p-4 flex items-start justify-between"
+                style={{
+                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
+                }}
               >
-                {/* Background Image */}
-                <div className={`absolute inset-0 transition-all duration-500 ${
-                  shouldBeGlass ? 'opacity-40' : 'opacity-100'
-                }`}>
-                  <Image
-                    src={destination.image}
-                    alt={destination.name}
-                    fill
-                    className="object-cover scale-[1.05] brightness-[0.9] contrast-[1.05]"
-                    style={{
-                      filter: shouldBeGlass ? 'blur(20px) saturate(0.8)' : 'blur(14px) saturate(1.05)',
-                      transform: 'translateZ(0)',
-                      willChange: 'filter',
-                      transition: 'filter 0.5s ease-in-out',
-                    }}
-                    priority
+                <div className="flex flex-col text-white">
+                  <p
+                    className="text-[12px] font-medium leading-[14px]"
+                    style={{ fontFamily: 'var(--font-poppins)' }}
+                  >
+                    {d.price}
+                  </p>
+                  <p
+                    className="text-[9px] font-medium opacity-90"
+                    style={{ fontFamily: 'var(--font-poppins)' }}
+                  >
+                    {d.priceDetail}
+                  </p>
+                </div>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  className="hover:scale-110 transition-transform"
+                >
+                  <path
+                    d="M1 13L13 1M13 1H1M13 1V13"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
+                </svg>
+              </div>
+
+              <div
+                className="absolute bottom-0 left-0 right-0 h-48 p-[18px] flex flex-col items-center justify-end"
+                style={{
+                  background:
+                    'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.05) 100%)',
+                }}
+              >
+                <div className="flex flex-col items-center gap-2 w-full mb-2">
+                  <div className="w-8 h-4 relative">
+                    <Image
+                      src={d.flag}
+                      alt={`${d.name} flag`}
+                      fill
+                      className="object-cover rounded-sm"
+                    />
+                  </div>
+                  <p
+                    className="text-[12px] font-medium text-center text-white"
+                    style={{ fontFamily: 'var(--font-poppins)' }}
+                  >
+                    {d.duration}
+                  </p>
                 </div>
 
-                {/* Glass Effect Overlay when scrolled */}
-                {shouldBeGlass && (
-                  <div
-                    className="absolute inset-0 transition-opacity duration-500"
-                    style={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                      backdropFilter: 'blur(12px)',
-                    }}
-                  />
-                )}
-
-                {/* Gradient overlay */}
-                <div
-                  className={`absolute inset-0 transition-opacity duration-500 ${
-                    shouldBeGlass ? 'opacity-60' : 'opacity-100'
-                  }`}
+                <h3
+                  className="text-[20px] font-black italic text-center text-white uppercase w-full mb-1"
                   style={{
-                    background:
-                      'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 40%, rgba(0,0,0,0.1) 100%)',
-                    backdropFilter: 'blur(2px)',
-                  }}
-                />
-
-                {/* Top overlay - Price & arrow */}
-                <div
-                  className={`absolute top-0 left-0 right-0 h-24 p-[18px] flex items-start justify-between transition-opacity duration-500 ${
-                    shouldBeGlass ? 'opacity-70' : 'opacity-100'
-                  }`}
-                  style={{
-                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
+                    fontFamily: 'var(--font-poppins)',
+                    fontWeight: 900,
                   }}
                 >
-                  <div className="flex flex-col text-white">
-                    <p
-                      className={`${compact ? 'text-[11px]' : 'text-[12px]'} font-medium leading-[14px]`}
-                      style={{ fontFamily: 'var(--font-poppins)' }}
-                    >
-                      {convertPrice(destination.price)}
-                    </p>
-                    <p
-                      className="text-[8px] font-medium"
-                      style={{ fontFamily: 'var(--font-poppins)' }}
-                    >
-                      {destination.priceDetail}
-                    </p>
-                  </div>
+                  {d.name}
+                </h3>
 
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDestinationClick(destination.name);
-                  }}
-                  className="hover:scale-110 transition-transform"
-                  aria-label={`Plan trip to ${destination.name}`}
-                >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path
-                      d="M1 13L13 1M13 1H1M13 1V13"
-                      stroke="white"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-              </div>
-
-                {/* Bottom overlay - Flag, Duration, Route */}
-                <div
-                  className={`absolute bottom-0 left-0 right-0 ${compact ? 'h-40' : 'h-48'} ${compact ? 'p-[12px]' : 'p-[18px]'} flex flex-col items-center justify-end transition-opacity duration-500 ${
-                    shouldBeGlass ? 'opacity-70' : 'opacity-100'
-                  }`}
-                  style={{
-                    background:
-                      'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)',
-                    backdropFilter: 'blur(2px)',
-                  }}
-                >
-                  <div className={`flex flex-col items-center ${compact ? 'gap-1' : 'gap-2'} w-full ${compact ? 'mb-1' : 'mb-2'}`}>
-                    <div className={`${compact ? 'w-6 h-3' : 'w-8 h-4'} relative`}>
-                      <Image
-                        src={destination.flag}
-                        alt={`${destination.name} flag`}
-                        fill
-                        className="object-cover rounded-sm"
-                      />
-                    </div>
-                    <p
-                      className={`${compact ? 'text-[10px]' : 'text-[12px]'} font-medium text-center text-white`}
-                      style={{ fontFamily: 'var(--font-poppins)' }}
-                    >
-                      {destination.duration}
-                    </p>
-                  </div>
-
-                  <h3
-                    className={`${compact ? 'text-[16px]' : 'text-[20px]'} font-black italic text-center text-white uppercase w-full mb-1`}
-                    style={{
-                      fontFamily: 'var(--font-poppins)',
-                      fontWeight: 900,
-                    }}
-                  >
-                    {destination.name}
-                  </h3>
-
-                  <div className="flex items-center gap-1 justify-center w-full">
-                    {destination.route.map((location, index) => (
-                      <div key={index} className="flex items-center gap-1">
-                        <span
-                          className={`${compact ? 'text-[8px]' : 'text-[9px]'} text-white`}
-                          style={{ fontFamily: 'var(--font-poppins)' }}
+                <div className="flex items-center gap-1 justify-center w-full">
+                  {d.route.map((loc, i) => (
+                    <div key={i} className="flex items-center gap-1">
+                      <span
+                        className="text-[9px] text-white"
+                        style={{ fontFamily: 'var(--font-poppins)' }}
+                      >
+                        {loc}
+                      </span>
+                      {i < d.route.length - 1 && (
+                        <svg
+                          width="10.5"
+                          height="10.5"
+                          viewBox="0 0 11 11"
+                          fill="none"
+                          className="rotate-90"
                         >
-                          {location}
-                        </span>
-                        {index < destination.route.length - 1 && (
-                          <svg
-                            width={compact ? '8' : '10.5'}
-                            height={compact ? '8' : '10.5'}
-                            viewBox="0 0 11 11"
-                            fill="none"
-                            className="rotate-90"
-                          >
-                            <path
-                              d="M1 1L10 10"
-                              stroke="white"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                          <path
+                            d="M1 1L10 10"
+                            stroke="white"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-            );
-          })}
+          ))}
         </div>
       </div>
     </div>
