@@ -64,7 +64,6 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
       setMessages(updated);
       prevMessageCount.current = updated.length;
       
-      // Placeholder assistant message
       setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
       scrollToBottom(true);
       
@@ -91,15 +90,14 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
   
           buffer += decoder.decode(value, { stream: true });
           const lines = buffer.split('\n');
-          buffer = lines.pop() || ''; // keep incomplete line
+          buffer = lines.pop() || '';
   
           for (const line of lines) {
             if (!line.trim() || !line.startsWith('data:')) continue;
             const chunk = line.replace(/^data:\s*/, '');
             if (chunk === '[DONE]') continue;
             accumulated += chunk;
-  
-            // Update assistant message progressively
+
             setMessages((prev) => {
               const newMessages = [...prev];
               const lastIndex = newMessages.length - 1;
@@ -134,7 +132,6 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
     },
     [isLoading, onSendMessage, scrollToBottom]
   );
-  
 
   useEffect(() => {
     if (!hasInitialized.current && initialMessages.length > 0) {
