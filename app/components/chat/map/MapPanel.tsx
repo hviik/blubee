@@ -55,6 +55,7 @@ export function MapPanel({
       const map = new google.maps.Map(mapRef.current, {
         center,
         zoom,
+        mapTypeId: google.maps.MapTypeId.ROADMAP, // Explicitly set to show roads and terrain
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
@@ -116,14 +117,45 @@ export function MapPanel({
         markersRef.current.push({ location, marker });
       });
 
-    // Fit bounds to show all valid locations
+    // Fit bounds to show all valid locations (only if multiple locations)
     const validLocations = locations.filter(loc => loc.coordinates && loc.coordinates.lat !== 0 && loc.coordinates.lng !== 0);
-    if (validLocations.length > 0) {
+    if (validLocations.length > 1) {
       const bounds = new google.maps.LatLngBounds();
       validLocations.forEach((location) => {
         bounds.extend(location.coordinates);
       });
-      map.fitBounds(bounds);
+      
+      // Check if bounds are too large (locations very far apart)
+      const ne = bounds.getNorthEast();
+      const sw = bounds.getSouthWest();
+      const latDiff = Math.abs(ne.lat() - sw.lat());
+      const lngDiff = Math.abs(ne.lng() - sw.lng());
+      
+      // If locations are very far apart (>10 degrees), just center on first with reasonable zoom
+      if (latDiff > 10 || lngDiff > 10) {
+        map.setCenter(validLocations[0].coordinates);
+        map.setZoom(8); // Reasonable zoom for large area
+      } else {
+        // Add padding to bounds for better view
+        map.fitBounds(bounds, {
+          top: 50,
+          right: 50,
+          bottom: 50,
+          left: 50,
+        });
+        
+        // Set minimum zoom to prevent too much zoom out
+        const listener = google.maps.event.addListener(map, 'bounds_changed', () => {
+          if (map.getZoom() && map.getZoom()! < 6) {
+            map.setZoom(6);
+          }
+          google.maps.event.removeListener(listener);
+        });
+      }
+    } else if (validLocations.length === 1) {
+      // For single location, use the zoom from props (should be 12)
+      map.setCenter(validLocations[0].coordinates);
+      map.setZoom(zoom || 12);
     }
   }, [center, zoom, locations]);
 

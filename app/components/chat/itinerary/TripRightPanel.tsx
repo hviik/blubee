@@ -24,9 +24,21 @@ export function TripRightPanel({
   // Update map center when itinerary changes
   useEffect(() => {
     if (itinerary && itinerary.locations.length > 0) {
-      // Center on first location
-      setMapCenter(itinerary.locations[0].coordinates);
-      setMapZoom(itinerary.locations.length === 1 ? 10 : 6);
+      const validLocations = itinerary.locations.filter(
+        loc => loc.coordinates && loc.coordinates.lat !== 0 && loc.coordinates.lng !== 0
+      );
+      
+      if (validLocations.length > 0) {
+        // If multiple locations, let fitBounds handle it, otherwise center on first
+        if (validLocations.length === 1) {
+          setMapCenter(validLocations[0].coordinates);
+          setMapZoom(12); // Better zoom for single location
+        } else {
+          // For multiple locations, center on first but use better default zoom
+          setMapCenter(validLocations[0].coordinates);
+          setMapZoom(8); // Better default zoom for multiple locations (was 6, too zoomed out)
+        }
+      }
     }
   }, [itinerary]);
 
