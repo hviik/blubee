@@ -100,7 +100,7 @@ export default function BlubeezHome() {
   }, [isSignedIn, isAuthModalOpen]);
 
   return (
-    <div className="w-full h-screen md:min-h-screen bg-white overflow-x-hidden overflow-y-auto relative">
+    <div className="w-full min-h-screen bg-white overflow-x-hidden relative">
       <BackgroundEffects />
       <Sidebar
         onExpandChange={setIsSidebarExpanded}
@@ -145,13 +145,13 @@ export default function BlubeezHome() {
       ) : (
         <div className="
             w-full mx-auto px-4 md:px-0 md:max-w-[675px] relative z-10 flex flex-col items-center
-            pt-[112px] md:pt-[clamp(4.5rem,9vh,6rem)] pb-0 md:pb-[clamp(3rem,6vh,4.5rem)]
-            min-h-[100dvh] md:min-h-0 justify-between md:justify-center md:gap-[clamp(5rem,11vh,7.5rem)]
+            pt-[112px] md:pt-[clamp(4.5rem,9vh,6rem)] pb-2 md:pb-[clamp(3rem,6vh,4.5rem)]
+            h-screen md:h-auto md:min-h-0 justify-between md:justify-center md:gap-[clamp(5rem,11vh,7.5rem)]
           ">
           <HeroSection />
-          <div className="w-full flex flex-col items-end justify-end gap-4 mb-0 md:mb-0">
+          <div className="w-full flex flex-col items-end justify-end gap-4 mb-2 md:mb-0">
             <PromptCards onPromptClick={handlePromptClick} />
-            <div className="w-full bg-white rounded-t-2xl shadow-[0px_-10px_10px_0px_rgba(0,0,0,0.05)] p-2 md:p-0 md:bg-transparent md:shadow-none md:rounded-none">
+            <div className="w-full bg-white rounded-t-2xl shadow-[0px_-10px_10px_0px_rgba(0,0,0,0.05)] p-2 md:p-0 md:bg-transparent md:shadow-none">
               <SearchInput
                 onHelpClick={handleOpenModal}
                 isMobileSidebarOpen={isMobileSidebarOpen}
