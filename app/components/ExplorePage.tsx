@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import { COLORS } from '../constants/colors';
 
@@ -39,7 +39,7 @@ const destinations: Destination[] = [
     duration: '5 Days, 4 Nights',
     price: '₹ 99,779',
     priceDetail: 'Per person',
-    route: ['Hanoi', 'Ha Long Bay', 'Ho Chi Minh City'],
+    route: ['Kuala Lumpur', 'Penang', 'Langkawi'],
   },
   {
     id: '3',
@@ -49,7 +49,7 @@ const destinations: Destination[] = [
     duration: '5 Days, 4 Nights',
     price: '₹ 99,779',
     priceDetail: 'Per person',
-    route: ['Hanoi', 'Ha Long Bay', 'Ho Chi Minh City'],
+    route: ['Lima', 'Cusco', 'Machu Picchu'],
   },
   {
     id: '4',
@@ -59,7 +59,7 @@ const destinations: Destination[] = [
     duration: '5 Days, 4 Nights',
     price: '₹ 99,779',
     priceDetail: 'Per person',
-    route: ['Hanoi', 'Ha Long Bay', 'Ho Chi Minh City'],
+    route: ['Manila', 'Cebu', 'Palawan'],
   },
   {
     id: '5',
@@ -69,7 +69,7 @@ const destinations: Destination[] = [
     duration: '5 Days, 4 Nights',
     price: '₹ 99,779',
     priceDetail: 'Per person',
-    route: ['Hanoi', 'Ha Long Bay', 'Ho Chi Minh City'],
+    route: ['Rio de Janeiro', 'São Paulo', 'Iguazu Falls'],
   },
   {
     id: '6',
@@ -79,7 +79,7 @@ const destinations: Destination[] = [
     duration: '5 Days, 4 Nights',
     price: '₹ 99,779',
     priceDetail: 'Per person',
-    route: ['Hanoi', 'Ha Long Bay', 'Ho Chi Minh City'],
+    route: ['Delhi', 'Agra', 'Jaipur'],
   },
   {
     id: '7',
@@ -89,7 +89,7 @@ const destinations: Destination[] = [
     duration: '5 Days, 4 Nights',
     price: '₹ 99,779',
     priceDetail: 'Per person',
-    route: ['Hanoi', 'Ha Long Bay', 'Ho Chi Minh City'],
+    route: ['Male', 'Ari Atoll', 'Vaavu'],
   },
   {
     id: '8',
@@ -99,7 +99,7 @@ const destinations: Destination[] = [
     duration: '5 Days, 4 Nights',
     price: '₹ 99,779',
     priceDetail: 'Per person',
-    route: ['Hanoi', 'Ha Long Bay', 'Ho Chi Minh City'],
+    route: ['Luang Prabang', 'Vang Vieng', 'Vientiane'],
   },
 ];
 
@@ -132,7 +132,7 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
         <div
           className="flex items-center justify-between px-4 py-[10px] rounded-xl border max-w-md"
           style={{
-            backgroundColor: 'rgba(255,255,255,0.4)',
+            backgroundColor: 'rgba(255,255,255,0.45)',
             borderColor: '#a8c2e1',
           }}
         >
@@ -153,15 +153,12 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
         </div>
       </div>
 
-      <div
-        className={`flex-1 overflow-y-auto px-6 pb-6 scrollbar-hide`}
-        style={{ background: 'transparent' }}
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8 mt-4">
+      <div className="flex-1 overflow-y-auto px-6 pb-6 bg-transparent">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6 md:gap-8 mt-4">
           {destinations.map((d) => (
             <div
               key={d.id}
-              className="relative h-[280px] w-full rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform duration-300"
+              className="relative aspect-[4/5] rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform duration-300"
               onClick={() => onDestinationClick?.(d.name)}
             >
               <div className="absolute inset-0">
@@ -169,9 +166,9 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                   src={d.image}
                   alt={d.name}
                   fill
-                  className="object-cover brightness-[0.92] contrast-[1.1]"
+                  className="object-cover brightness-[0.95] contrast-[1.08]"
                   style={{
-                    filter: 'blur(4px) saturate(1.05)',
+                    filter: 'blur(3px) saturate(1.08)',
                     transform: 'translateZ(0)',
                     willChange: 'filter',
                   }}
