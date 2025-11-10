@@ -118,7 +118,8 @@ function extractItinerary(content: string): Itinerary | null {
   const dayPattern = /Day\s+(\d+):\s*([^\n]+)/gi;
   const dayMatches = [...content.matchAll(dayPattern)];
   
-  if (dayMatches.length < 2) return null;
+  // Allow single day itineraries
+  if (dayMatches.length < 1) return null;
   
   const days: ItineraryDay[] = [];
   const locationSet = new Set<string>();

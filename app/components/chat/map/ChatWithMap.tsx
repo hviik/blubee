@@ -45,9 +45,15 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
   const geocodeItineraryLocations = async (itinerary: Itinerary): Promise<Itinerary> => {
     const { geocodeLocation } = await import('@/app/utils/geocoding');
     
-    // Geocode main locations
+    // Geocode main locations - only geocode if coordinates are invalid (0, 0)
     const updatedLocations = await Promise.all(
       itinerary.locations.map(async (loc) => {
+        // If coordinates are already set and valid, use them
+        if (loc.coordinates && loc.coordinates.lat !== 0 && loc.coordinates.lng !== 0) {
+          return loc;
+        }
+        
+        // Otherwise, geocode the location
         const result = await geocodeLocation(loc.name);
         if (result) {
           return {
@@ -55,6 +61,9 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
             coordinates: { lat: result.lat, lng: result.lng },
           };
         }
+        
+        // If geocoding fails, return location with default coordinates (will show error)
+        console.warn(`Failed to geocode location: ${loc.name}`);
         return loc;
       })
     );

@@ -36,63 +36,91 @@ export function MapPanel({
 
   // Initialize Google Map
   useEffect(() => {
-    if (!mapRef.current || mapInstanceRef.current) return;
+    if (!mapRef.current) return;
 
     // Wait for Google Maps to load
-    if (typeof google === 'undefined') {
+    if (typeof google === 'undefined' || !google.maps) {
       console.error('Google Maps not loaded');
       return;
     }
 
-    const map = new google.maps.Map(mapRef.current, {
-      center,
-      zoom,
-      mapTypeControl: false,
-      streetViewControl: false,
-      fullscreenControl: false,
-      zoomControl: true,
-      styles: [
-        {
-          featureType: 'poi',
-          elementType: 'labels',
-          stylers: [{ visibility: 'off' }],
-        },
-      ],
+    // Don't initialize if center coordinates are invalid (0, 0)
+    if (!center || (center.lat === 0 && center.lng === 0)) {
+      console.warn('Invalid map center coordinates');
+      return;
+    }
+
+    // Initialize map if it doesn't exist
+    if (!mapInstanceRef.current) {
+      const map = new google.maps.Map(mapRef.current, {
+        center,
+        zoom,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+        zoomControl: true,
+        styles: [
+          {
+            featureType: 'poi',
+            elementType: 'labels',
+            stylers: [{ visibility: 'off' }],
+          },
+        ],
+      });
+
+      mapInstanceRef.current = map;
+    } else {
+      // Update existing map center and zoom
+      mapInstanceRef.current.setCenter(center);
+      mapInstanceRef.current.setZoom(zoom);
+    }
+
+    const map = mapInstanceRef.current;
+
+    // Clear existing location markers (markers without places)
+    const existingMarkers = markersRef.current.filter(m => !m.place && m.location);
+    existingMarkers.forEach(({ marker }) => {
+      if (marker) marker.setMap(null);
     });
+    // Remove from array
+    markersRef.current = markersRef.current.filter(m => m.place || !m.location);
 
-    mapInstanceRef.current = map;
+    // Add location markers for trip destinations (only valid coordinates)
+    locations
+      .filter(location => location.coordinates && location.coordinates.lat !== 0 && location.coordinates.lng !== 0)
+      .forEach((location) => {
+        const marker = new google.maps.Marker({
+          position: location.coordinates,
+          map,
+          title: location.name,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 8,
+            fillColor: '#2f4f93',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 2,
+          },
+        });
 
-    // Add location markers for trip destinations
-    locations.forEach((location) => {
-      const marker = new google.maps.Marker({
-        position: location.coordinates,
-        map,
-        title: location.name,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: '#2f4f93',
-          fillOpacity: 1,
-          strokeColor: '#ffffff',
-          strokeWeight: 2,
-        },
+        const infoWindow = new google.maps.InfoWindow({
+          content: `<div style="padding: 8px; font-family: Poppins, sans-serif;">
+            <strong>${location.name}</strong>
+          </div>`,
+        });
+
+        marker.addListener('click', () => {
+          infoWindow.open(map, marker);
+        });
+
+        markersRef.current.push({ location, marker });
       });
 
-      const infoWindow = new google.maps.InfoWindow({
-        content: `<div style="padding: 8px; font-family: Poppins, sans-serif;">
-          <strong>${location.name}</strong>
-        </div>`,
-      });
-
-      marker.addListener('click', () => {
-        infoWindow.open(map, marker);
-      });
-    });
-
-    // Fit bounds to show all locations
-    if (locations.length > 0) {
+    // Fit bounds to show all valid locations
+    const validLocations = locations.filter(loc => loc.coordinates && loc.coordinates.lat !== 0 && loc.coordinates.lng !== 0);
+    if (validLocations.length > 0) {
       const bounds = new google.maps.LatLngBounds();
-      locations.forEach((location) => {
+      validLocations.forEach((location) => {
         bounds.extend(location.coordinates);
       });
       map.fitBounds(bounds);

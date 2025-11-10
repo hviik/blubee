@@ -76,7 +76,8 @@ export interface PlaceFilters {
 
 // Map marker type
 export interface MapMarker {
-  place: Place;
+  place?: Place; // Optional for location markers
+  location?: TripLocation; // Optional for location markers
   marker: google.maps.Marker | null;
 }
 

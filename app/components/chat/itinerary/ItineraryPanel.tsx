@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Itinerary } from '@/app/types/itinerary';
 import { DayCard } from './DayCard';
@@ -17,6 +17,7 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
   const [activeLocation, setActiveLocation] = useState<string | null>(
     itinerary?.locations?.[0]?.id || null
   );
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   // --- Hooks must always be declared before any early returns ---
 
@@ -24,14 +25,16 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
     (e: MouseEvent) => {
       if (!isDragging) return;
 
-      const container = document.querySelector('[data-itinerary-container]');
+      // Get the parent container that has data-itinerary-container
+      const container = document.querySelector('[data-itinerary-container]') as HTMLElement;
       if (!container) return;
 
       const rect = container.getBoundingClientRect();
       const newHeight = rect.bottom - e.clientY;
 
-      const minHeight = 200;
-      const maxHeight = rect.height * 0.8;
+      // Allow expanding all the way up (min 100px) or all the way down (max 95% of container)
+      const minHeight = 100;
+      const maxHeight = rect.height * 0.95;
       const clampedHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
 
       setPanelHeight(clampedHeight);
@@ -134,8 +137,9 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
       {/* Itinerary Content */}
       {!isCollapsed && (
         <div
+          ref={containerRef}
           className="flex-1 border border-[#d7e7f5] mt-4 overflow-hidden flex flex-col"
-          style={{ maxHeight: isCollapsed ? 0 : `${panelHeight}px` }}
+          style={{ height: `${panelHeight}px` }}
         >
           {/* Location Tabs */}
           <div className="bg-white border-b border-[#d7e7f5] p-4 flex-shrink-0">

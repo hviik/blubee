@@ -69,14 +69,16 @@ export function TripRightPanel({
 
   return (
     <div className="w-full h-full flex flex-col bg-white relative" data-itinerary-container>
-      {/* Map Section - Flexible */}
-      <div className="flex-1 relative">
-        <MapPanel
-          locations={itinerary?.locations || []}
-          places={places}
-          center={mapCenter}
-          zoom={mapZoom}
-        />
+      {/* Map Section - Flexible, takes remaining space */}
+      <div className="flex-1 relative min-h-0">
+        {isLoaded && mapCenter && (
+          <MapPanel
+            locations={itinerary?.locations || []}
+            places={places}
+            center={mapCenter}
+            zoom={mapZoom}
+          />
+        )}
       </div>
 
       {/* Itinerary Section - Absolute positioned at bottom */}
