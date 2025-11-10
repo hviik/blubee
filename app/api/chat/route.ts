@@ -19,9 +19,13 @@ export async function POST(req: Request) {
 
     // Prepare messages with personalized system prompt
     let systemPrompt = SYSTEM_PROMPT;
-    if (userName) {
+    
+    // Only add user's name after the first message (so blu introduces itself first)
+    const isFirstMessage = messages.length === 1;
+    
+    if (userName && !isFirstMessage) {
       // Add user's name to system prompt so AI knows how to address them
-      systemPrompt += `\n\nIMPORTANT: The user's name is ${userName}. Address them by their name naturally in your responses, especially in greetings and when appropriate throughout the conversation.`;
+      systemPrompt += `\n\nIMPORTANT: The user's name is ${userName}. Address them by their name naturally in your responses when appropriate throughout the conversation.`;
     }
     
     const systemMessage = { role: 'system', content: systemPrompt };
