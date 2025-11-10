@@ -281,7 +281,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
                   {message.role === 'assistant' ? (
                     <div className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem]">
                       {/* Show plain text during streaming for performance, markdown when done */}
-                      {message.isStreaming ? (
+                      {message.isStreaming && message.content ? (
                         <p
                           className="leading-relaxed whitespace-pre-wrap"
                           style={{ fontFamily: 'var(--font-poppins)', color: COLORS.textSecondary }}
@@ -289,8 +289,15 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
                           {message.content}
                           <span className="animate-pulse">▊</span>
                         </p>
-                      ) : (
+                      ) : message.content ? (
                         <MarkdownMessage content={message.content} />
+                      ) : (
+                        // Show loading dots when message is empty (before first chunk arrives)
+                        <div className="flex gap-1">
+                          <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
                       )}
                     </div>
                   ) : (
@@ -308,22 +315,6 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
               )}
             </div>
           ))}
-          {isLoading && !hasStartedStreaming && messages[messages.length - 1]?.content === '' && (
-            <div>
-              <div className="flex gap-4 items-start py-4">
-                <div className="shrink-0 w-8 h-8 flex items-center justify-center">
-                  <Image src="/assets/logo.svg" alt="Blubeez" width={32} height={23} className="object-contain" />
-                </div>
-                <div className="flex-1 pt-1">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
           <div ref={messagesEndRef} />
         </div>
       </div>
