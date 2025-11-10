@@ -133,10 +133,10 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
   }, []);
 
   return (
-    <div className="relative flex w-full h-full overflow-hidden bg-white">
+    <div className="relative flex w-full h-full overflow-hidden">
       {/* Chat Section */}
       <div
-        className={`flex flex-col transition-all duration-500 ease-in-out bg-white ${
+        className={`flex flex-col transition-all duration-500 ease-in-out ${
           showMap ? 'md:w-[60%] w-full' : 'md:w-[65%] w-full'
         }`}
         style={{ paddingTop: '1px' }}

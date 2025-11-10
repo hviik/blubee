@@ -101,8 +101,7 @@ export default function BlubeezHome() {
 
   return (
     <div className="w-full h-screen md:min-h-screen bg-white overflow-x-hidden overflow-y-auto relative">
-      {/* Only show background effects when not in chat mode on mobile */}
-      {(!isChatActive && !isExploreActive) && <BackgroundEffects />}
+      <BackgroundEffects />
       <Sidebar
         onExpandChange={setIsSidebarExpanded}
         onMobileOpenChange={setIsMobileSidebarOpen}
@@ -129,7 +128,7 @@ export default function BlubeezHome() {
         </div>
       ) : isChatActive ? (
         <div 
-          className="fixed inset-x-0 z-10 transition-all duration-300 ease-in-out bg-white overflow-hidden"
+          className="fixed inset-x-0 z-10 transition-all duration-300 ease-in-out"
           style={{
             top: isDesktop ? '80px' : '64px',
             height: isDesktop ? 'calc(var(--vh, 1vh) * 100 - 80px)' : 'calc(var(--vh, 1vh) * 100 - 64px)',
@@ -137,7 +136,7 @@ export default function BlubeezHome() {
             maxHeight: isDesktop ? 'calc(100vh - 80px)' : 'calc(100vh - 64px)',
           }}
         >
-          <div className="w-full h-full bg-white">
+          <div className="w-full h-full">
             <ChatWithMap
               initialMessage={initialMessage || undefined}
             />
