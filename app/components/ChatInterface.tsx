@@ -22,13 +22,11 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hasInitialized = useRef(false);
   const prevMessageCount = useRef(0);
 
-  // Notify parent if messages change
   useEffect(() => {
     if (onMessagesChange) onMessagesChange(messages);
   }, [messages, onMessagesChange]);
@@ -55,46 +53,35 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
     prevMessageCount.current = messages.length;
   }, [messages]);
 
-  // --- FIXED STREAMING IMPLEMENTATION ---
   const sendMessageToAPI = useCallback(
     async (messageText: string, currentMessages: Message[]) => {
       if (!messageText.trim() || isLoading) return;
-
       setIsLoading(true);
       onSendMessage?.(messageText);
-
       const userMessage: Message = { role: 'user', content: messageText };
       const updated = [...currentMessages, userMessage];
       setMessages(updated);
       prevMessageCount.current = updated.length;
-
-      // Create empty assistant message immediately
       setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
       scrollToBottom(true);
-
       try {
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ messages: [...updated] }),
         });
-
         if (!response.ok || !response.body) {
           const err = await response.json().catch(() => ({}));
           throw new Error(err.error || 'Network error');
         }
-
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let acc = '';
-
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
-
           const chunk = decoder.decode(value, { stream: true });
           acc += chunk;
-
           setMessages((prev) => {
             const newMsgs = [...prev];
             const lastMsg = newMsgs[newMsgs.length - 1];
@@ -112,8 +99,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
             ...filtered,
             {
               role: 'assistant',
-              content:
-                'Sorry, something went wrong while generating a response. Please try again.',
+              content: 'Sorry, something went wrong while generating a response. Please try again.',
             },
           ];
         });
@@ -123,7 +109,6 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
     },
     [isLoading, onSendMessage]
   );
-  // --- END FIXED IMPLEMENTATION ---
 
   useEffect(() => {
     if (!hasInitialized.current && initialMessages.length > 0) {
@@ -156,7 +141,6 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
         transform: 'translateZ(0)',
       }}
     >
-      {/* Messages container */}
       <div
         ref={containerRef}
         className="flex-1 min-h-0 overflow-y-auto"
@@ -186,7 +170,6 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
                     </div>
                   )}
                 </div>
-
                 <div className="flex-1 min-w-0 pt-1">
                   {message.role === 'assistant' ? (
                     <div className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem]">
@@ -202,14 +185,12 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
                   )}
                 </div>
               </div>
-
               {index < messages.length - 1 && (
                 <div className="w-full h-px" style={{ backgroundColor: COLORS.borderLight }} />
               )}
             </div>
           ))}
-
-          {isLoading && (
+          {isLoading && !messages.some((m) => m.role === 'assistant' && m.content === '') && (
             <div>
               <div className="flex gap-4 items-start py-4">
                 <div className="shrink-0 w-8 h-8 flex items-center justify-center">
@@ -225,11 +206,9 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
               </div>
             </div>
           )}
-
           <div ref={messagesEndRef} />
         </div>
       </div>
-
       <div
         className="border-t"
         style={{
