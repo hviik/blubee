@@ -18,7 +18,7 @@ export default function HeroSection() {
 
       {/* Intro Text - 24px on mobile (375px), scales up on larger screens */}
       <div className="w-full flex flex-col items-center">
-        <div className="flex items-center whitespace-nowrap">
+        <div className="flex items-center gap-1 md:gap-2 whitespace-nowrap">
           <div 
             className="text-[24px] md:text-[2rem] lg:text-[2.25rem] font-normal"
             style={{ 
@@ -35,7 +35,7 @@ export default function HeroSection() {
               color: COLORS.blubeezBlue
             }}
           >
-            {" "}blubeez
+            blubeez
           </div>
         </div>
         <div 
