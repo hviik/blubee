@@ -9,9 +9,10 @@ interface SidebarProps {
   onExpandChange?: (expanded: boolean) => void;
   onMobileOpenChange?: (open: boolean) => void;
   isChatMode?: boolean;
+  onExploreClick?: () => void;
 }
 
-export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode = false }: SidebarProps) {
+export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode = false, onExploreClick }: SidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -81,7 +82,7 @@ export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode
               <Image src={isExpanded ? '/assets/close.svg' : '/assets/dehaze.svg'} alt="Menu" width={24} height={24} />
             </button>
           </div>
-          <NavItems isExpanded={isExpanded} />
+          <NavItems isExpanded={isExpanded} onExploreClick={onExploreClick} />
         </div>
 
         <BottomItems isExpanded={isExpanded} />
@@ -121,7 +122,7 @@ export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode
 
           <div className="h-full flex flex-col justify-between p-4 pt-12">
             <div className="flex flex-col gap-12">
-              <NavItems isExpanded />
+              <NavItems isExpanded onExploreClick={onExploreClick} />
             </div>
             <BottomItems isExpanded />
           </div>
@@ -131,10 +132,13 @@ export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode
   );
 }
 
-function NavItems({ isExpanded }: { isExpanded?: boolean }) {
+function NavItems({ isExpanded, onExploreClick }: { isExpanded?: boolean; onExploreClick?: () => void }) {
   return (
     <div className="flex flex-col gap-6 w-full">
-      <button className="flex items-center gap-3 hover:opacity-70 transition-opacity">
+      <button 
+        onClick={onExploreClick}
+        className="flex items-center gap-3 hover:opacity-70 transition-opacity"
+      >
         <Image src="/assets/travel-explore.svg" alt="Explore" width={24} height={24} />
         {isExpanded && (
           <span

@@ -5,14 +5,16 @@ import { COLORS } from '../constants/colors';
 
 interface FooterProps {
   onHelpClick: () => void;
+  onExploreClick?: () => void;
 }
 
-export default function Footer({ onHelpClick }: FooterProps) {
+export default function Footer({ onHelpClick, onExploreClick }: FooterProps) {
   return (
     <div className="hidden md:flex w-full max-w-[1329px] mx-auto px-4 absolute bottom-[clamp(1rem,2.5vh,1.75rem)] left-1/2 -translate-x-1/2 z-10 justify-between items-center">
       {/* Left - Explore Button */}
       <div className="flex-1 flex justify-start">
-        <div 
+        <button
+          onClick={onExploreClick}
           className="px-4 py-1.5 rounded-[32px] outline outline-1 outline-offset-[-1px] flex items-center gap-2.5 cursor-pointer hover:outline-[#2d4e92] transition-colors"
           style={{ outlineColor: COLORS.borderLight }}
         >
@@ -26,7 +28,7 @@ export default function Footer({ onHelpClick }: FooterProps) {
             Explore
           </div>
           <Image src="/assets/travel-explore.svg" alt="Explore" width={20} height={20} />
-        </div>
+        </button>
       </div>
 
       {/* Center - Terms Text */}

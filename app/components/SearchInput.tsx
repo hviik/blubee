@@ -8,9 +8,10 @@ interface SearchInputProps {
   onHelpClick: () => void;
   isMobileSidebarOpen?: boolean;
   onSendMessage?: (message: string) => void;
+  onExploreClick?: () => void;
 }
 
-export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false, onSendMessage }: SearchInputProps) {
+export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false, onSendMessage, onExploreClick }: SearchInputProps) {
   const [inputValue, setInputValue] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -71,7 +72,10 @@ export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false, 
           isMobileSidebarOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
       >
-        <div className="flex gap-2 items-center cursor-pointer">
+        <button 
+          onClick={onExploreClick}
+          className="flex gap-2 items-center cursor-pointer"
+        >
           <div className="w-[18px] h-[18px] relative flex items-center justify-center">
             <Image src="/assets/travel-explore.svg" alt="Explore" width={18} height={18} />
           </div>
@@ -85,7 +89,7 @@ export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false, 
           >
             Explore Iteneraries
           </p>
-        </div>
+        </button>
         <button 
           onClick={onHelpClick}
           className="flex gap-2.5 items-center cursor-pointer"

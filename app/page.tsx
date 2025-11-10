@@ -12,6 +12,7 @@ import Footer from './components/Footer';
 import HowToUseModal from './components/HowToUseModal';
 import ChatWithMap from './components/chat/map/ChatWithMap';
 import AuthPromptModal from './components/AuthPromptModal';
+import ExplorePage from './components/ExplorePage';
 
 export default function BlubeezHome() {
   const { isSignedIn } = useUser();
@@ -20,6 +21,7 @@ export default function BlubeezHome() {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isChatActive, setIsChatActive] = useState(false);
+  const [isExploreActive, setIsExploreActive] = useState(false);
   const [initialMessage, setInitialMessage] = useState<string | null>(null);
   const [isDesktop, setIsDesktop] = useState(false);
   
@@ -103,14 +105,28 @@ export default function BlubeezHome() {
       <Sidebar
         onExpandChange={setIsSidebarExpanded}
         onMobileOpenChange={setIsMobileSidebarOpen}
-        isChatMode={isChatActive}
+        isChatMode={isChatActive || isExploreActive}
+        onExploreClick={() => setIsExploreActive(true)}
       />
       <Header 
         sidebarExpanded={isSidebarExpanded}
-        isChatMode={isChatActive}
+        isChatMode={isChatActive || isExploreActive}
       />
 
-      {isChatActive ? (
+      {isExploreActive ? (
+        // Explore Page
+        <div 
+          className="fixed inset-x-0 z-10 transition-all duration-300 ease-in-out"
+          style={{
+            top: isDesktop ? '80px' : '64px',
+            height: isDesktop ? 'calc(var(--vh, 1vh) * 100 - 80px)' : 'calc(var(--vh, 1vh) * 100 - 64px)',
+            paddingLeft: isDesktop ? `${sidebarWidth}px` : '0px',
+            maxHeight: isDesktop ? 'calc(100vh - 80px)' : 'calc(100vh - 64px)',
+          }}
+        >
+          <ExplorePage onClose={() => setIsExploreActive(false)} />
+        </div>
+      ) : isChatActive ? (
         // Chat Interface - responsive positioning with sidebar
         // Using both --vh fallback and dvh for cross-browser support
         <div 
@@ -143,12 +159,18 @@ export default function BlubeezHome() {
               onHelpClick={handleOpenModal}
               isMobileSidebarOpen={isMobileSidebarOpen}
               onSendMessage={handleSendMessage}
+              onExploreClick={() => setIsExploreActive(true)}
             />
           </div>
         </div>
       )}
 
-      {!isChatActive && <Footer onHelpClick={handleOpenModal} />}
+      {!isChatActive && !isExploreActive && (
+        <Footer 
+          onHelpClick={handleOpenModal}
+          onExploreClick={() => setIsExploreActive(true)}
+        />
+      )}
 
       <HowToUseModal isOpen={isModalOpen} onClose={handleCloseModal} />
       <AuthPromptModal isOpen={isAuthModalOpen} onClose={handleCloseAuthModal} />

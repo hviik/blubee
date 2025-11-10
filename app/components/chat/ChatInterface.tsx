@@ -26,6 +26,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
   const [hasStartedStreaming, setHasStartedStreaming] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const hasInitialized = useRef(false);
   const prevMessageCount = useRef(0);
   const hasStartedStreamingRef = useRef(false);
@@ -225,6 +226,26 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
     }
   }, [initialMessages, sendMessageToAPI]);
 
+  // Handle "/" key to focus input
+  useEffect(() => {
+    const handleSlashKey = (e: KeyboardEvent) => {
+      // Only trigger if not typing in an input/textarea
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      // Check if "/" key is pressed
+      if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleSlashKey);
+    return () => window.removeEventListener('keydown', handleSlashKey);
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim() || isLoading) return;
@@ -332,6 +353,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
               style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
             >
               <input
+                ref={inputRef}
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
