@@ -20,12 +20,6 @@ interface ChatInterfaceProps {
 export default function ChatInterface({ initialMessages = [], onSendMessage, onMessagesChange }: ChatInterfaceProps) {
   const { user } = useUser();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
-
-  useEffect(() => {
-    if (onMessagesChange) {
-      onMessagesChange(messages);
-    }
-  }, [messages, onMessagesChange]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -33,6 +27,11 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hasInitialized = useRef(false);
   const prevMessageCount = useRef(0);
+
+  // Notify parent if messages change
+  useEffect(() => {
+    if (onMessagesChange) onMessagesChange(messages);
+  }, [messages, onMessagesChange]);
 
   const isNearBottom = () => {
     const el = containerRef.current;
@@ -56,6 +55,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
     prevMessageCount.current = messages.length;
   }, [messages]);
 
+  // --- FIXED STREAMING IMPLEMENTATION ---
   const sendMessageToAPI = useCallback(
     async (messageText: string, currentMessages: Message[]) => {
       if (!messageText.trim() || isLoading) return;
@@ -68,60 +68,54 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
       setMessages(updated);
       prevMessageCount.current = updated.length;
 
+      // Create empty assistant message immediately
+      setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
+      scrollToBottom(true);
+
       try {
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: updated }),
+          body: JSON.stringify({ messages: [...updated] }),
         });
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-          throw new Error(errorData.error || 'Failed to send message');
+        if (!response.ok || !response.body) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.error || 'Network error');
         }
 
-        setMessages((prev) => {
-          const assistantMessage: Message = { role: 'assistant', content: '' };
-          const next = [...prev, assistantMessage];
-          queueMicrotask(() => {
-            prevMessageCount.current = next.length;
-          });
-          return next;
-        });
-        
-        scrollToBottom(true);
-
-        const reader = response.body?.getReader();
+        const reader = response.body.getReader();
         const decoder = new TextDecoder();
+        let acc = '';
 
-        if (reader) {
-          let acc = '';
-          try {
-            while (true) {
-              const { value, done } = await reader.read();
-              if (done) break;
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
 
-              const chunk = decoder.decode(value, { stream: true });
-              acc += chunk;
+          const chunk = decoder.decode(value, { stream: true });
+          acc += chunk;
 
-              setMessages((prev) => {
-                const copy = [...prev];
-                const lastMsg = copy[copy.length - 1];
-                if (lastMsg && lastMsg.role === 'assistant') {
-                  copy[copy.length - 1] = { ...lastMsg, content: acc };
-                }
-                return copy;
-              });
+          setMessages((prev) => {
+            const newMsgs = [...prev];
+            const lastMsg = newMsgs[newMsgs.length - 1];
+            if (lastMsg?.role === 'assistant') {
+              newMsgs[newMsgs.length - 1] = { ...lastMsg, content: acc };
             }
-          } catch (streamErr) {
-            console.error('Stream read error:', streamErr);
-          }
+            return newMsgs;
+          });
         }
-      } catch (err) {
-        console.error('Error sending message:', err);
+      } catch (err: any) {
+        console.error('Stream error:', err);
         setMessages((prev) => {
-          const filtered = prev.filter((m) => m.role !== 'assistant' || m.content);
-          return [...filtered, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }];
+          const filtered = prev.filter((m) => m.role !== 'assistant');
+          return [
+            ...filtered,
+            {
+              role: 'assistant',
+              content:
+                'Sorry, something went wrong while generating a response. Please try again.',
+            },
+          ];
         });
       } finally {
         setIsLoading(false);
@@ -129,6 +123,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
     },
     [isLoading, onSendMessage]
   );
+  // --- END FIXED IMPLEMENTATION ---
 
   useEffect(() => {
     if (!hasInitialized.current && initialMessages.length > 0) {
@@ -154,22 +149,18 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
   };
 
   return (
-    <div 
+    <div
       className="w-full h-full flex flex-col backdrop-blur-[5px] bg-gradient-to-b from-[rgba(255,255,255,0.4)] to-[rgba(255,255,255,0.8)] border-r border-[#cee2f2]"
       style={{
-        // Chrome: ensure proper rendering with transform
         WebkitTransform: 'translateZ(0)',
         transform: 'translateZ(0)',
       }}
     >
-      {/* Messages container must have min-h-0 to allow overflow-y in flex layouts */}
-      <div 
-        ref={containerRef} 
+      {/* Messages container */}
+      <div
+        ref={containerRef}
         className="flex-1 min-h-0 overflow-y-auto"
-        style={{
-          // Chrome: improve scrolling performance
-          WebkitOverflowScrolling: 'touch',
-        }}
+        style={{ WebkitOverflowScrolling: 'touch' }}
       >
         <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-4 py-4">
           {messages.map((message, index) => (
@@ -239,11 +230,11 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
         </div>
       </div>
 
-      <div 
-        className="border-t" 
-        style={{ 
+      <div
+        className="border-t"
+        style={{
           borderColor: COLORS.borderLight,
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)'
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         }}
       >
         <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-4 py-4">
