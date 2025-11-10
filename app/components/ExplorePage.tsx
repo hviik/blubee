@@ -107,8 +107,8 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
   const [searchQuery, setSearchQuery] = useState('');
 
   return (
-    <div className="w-full h-full flex flex-col bg-transparent">
-      <div className={`w-full ${compact ? 'px-3 pt-3 pb-3' : 'px-6 pt-4 pb-2'}`}>
+    <div className="w-full h-full flex flex-col bg-transparent overflow-hidden">
+      <div className={`${compact ? 'px-3 pt-3 pb-3' : 'px-6 pt-4 pb-2'} shrink-0`}>
         {!compact && (
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 flex items-center justify-center rounded-full bg-[#e6f0f7]">
@@ -153,33 +153,44 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pb-6 scrollbar-hide" style={{ background: 'transparent' }}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8 mt-4">
+      <div
+        className="flex-1 overflow-y-auto px-4 md:px-6 pb-6 bg-transparent"
+        style={{
+          minWidth: '0',
+          flexShrink: 1,
+        }}
+      >
+        <div
+          className="grid gap-6 md:gap-8 mt-4 justify-center"
+          style={{
+            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+          }}
+        >
           {destinations.map((d) => (
             <div
               key={d.id}
-              className="relative h-[260px] w-full max-w-[220px] mx-auto rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform duration-300"
+              className="relative aspect-[4/5] rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform duration-300"
               onClick={() => onDestinationClick?.(d.name)}
             >
-              {/* Background Image */}
               <div className="absolute inset-0">
                 <Image
                   src={d.image}
                   alt={d.name}
                   fill
-                  className="object-cover"
+                  className="object-cover brightness-[0.95] contrast-[1.08]"
                   style={{
                     transform: 'translateZ(0)',
+                    willChange: 'filter',
                   }}
                   priority
                 />
               </div>
 
-              {/* Top gradient overlay - darker (from Figma) */}
               <div
-                className="absolute top-0 left-0 right-0 h-24 p-[18px] flex items-start justify-between backdrop-blur-[0px]"
+                className="absolute top-0 left-0 right-0 h-24 p-[18px] flex items-start justify-between"
                 style={{
-                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%)',
+                  background:
+                    'linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)',
                 }}
               >
                 <div className="flex flex-col text-white">
@@ -190,7 +201,7 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                     {d.price}
                   </p>
                   <p
-                    className="text-[8px] font-medium"
+                    className="text-[9px] font-medium opacity-90"
                     style={{ fontFamily: 'var(--font-poppins)' }}
                   >
                     {d.priceDetail}
@@ -213,11 +224,11 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                 </svg>
               </div>
 
-              {/* Bottom gradient overlay - darker (from Figma) */}
               <div
-                className="absolute bottom-0 left-0 right-0 h-[224px] p-[18px] flex flex-col items-center justify-end backdrop-blur-[2px]"
+                className="absolute bottom-0 left-0 right-0 h-48 p-[18px] flex flex-col items-center justify-end"
                 style={{
-                  background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
+                  background:
+                    'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.05) 100%)',
                 }}
               >
                 <div className="flex flex-col items-center gap-2 w-full mb-2">
@@ -238,7 +249,7 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                 </div>
 
                 <h3
-                  className="text-[24px] font-black italic text-center text-white uppercase w-full mb-1"
+                  className="text-[20px] font-black italic text-center text-white uppercase w-full mb-1"
                   style={{
                     fontFamily: 'var(--font-poppins)',
                     fontWeight: 900,
@@ -247,11 +258,11 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                   {d.name}
                 </h3>
 
-                <div className="flex items-center gap-[2px] justify-center w-full overflow-hidden">
+                <div className="flex items-center gap-1 justify-center w-full">
                   {d.route.map((loc, i) => (
-                    <div key={i} className="flex items-center gap-[2px]">
+                    <div key={i} className="flex items-center gap-1">
                       <span
-                        className="text-[10px] text-white overflow-ellipsis overflow-hidden whitespace-nowrap"
+                        className="text-[9px] text-white"
                         style={{ fontFamily: 'var(--font-poppins)' }}
                       >
                         {loc}
@@ -262,7 +273,7 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                           height="10.5"
                           viewBox="0 0 11 11"
                           fill="none"
-                          className="rotate-90 flex-shrink-0"
+                          className="rotate-90"
                         >
                           <path
                             d="M1 1L10 10"
