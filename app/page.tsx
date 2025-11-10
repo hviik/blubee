@@ -127,16 +127,12 @@ export default function BlubeezHome() {
           <ExplorePage />
         </div>
       ) : isChatActive ? (
-        // Chat Interface - responsive positioning with sidebar
-        // Using both --vh fallback and dvh for cross-browser support
         <div 
           className="fixed inset-x-0 z-10 transition-all duration-300 ease-in-out"
           style={{
             top: isDesktop ? '80px' : '64px',
-            // Fallback using CSS variable (works in all browsers including older Chrome)
             height: isDesktop ? 'calc(var(--vh, 1vh) * 100 - 80px)' : 'calc(var(--vh, 1vh) * 100 - 64px)',
             paddingLeft: isDesktop ? `${sidebarWidth}px` : '0px',
-            // Chrome-specific: ensure proper containment
             maxHeight: isDesktop ? 'calc(100vh - 80px)' : 'calc(100vh - 64px)',
           }}
         >
