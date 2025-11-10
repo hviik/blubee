@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { flushSync } from 'react-dom';
 import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
 import { COLORS } from '../../constants/colors';
@@ -27,6 +28,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hasInitialized = useRef(false);
   const prevMessageCount = useRef(0);
+  const hasStartedStreamingRef = useRef(false);
 
   useEffect(() => {
     if (onMessagesChange) onMessagesChange(messages);
@@ -54,34 +56,12 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
     prevMessageCount.current = messages.length;
   }, [messages, scrollToBottom]);
 
-  const extractTextFromData = (data: string) => {
-    const trimmed = data.trim();
-    if (!trimmed) return '';
-    if (trimmed === '[DONE]') return '[DONE]';
-    if (trimmed.startsWith('{')) {
-      try {
-        const parsed = JSON.parse(trimmed);
-        if (parsed.choices) {
-          const c = parsed.choices[0];
-          if (c?.delta?.content) return c.delta.content;
-          if (c?.text) return c.text;
-          if (c?.message?.content?.parts && Array.isArray(c.message.content.parts)) {
-            return c.message.content.parts.join('');
-          }
-        }
-        if (parsed.text) return parsed.text;
-      } catch (e) {
-        return trimmed;
-      }
-    }
-    return trimmed;
-  };
-
   const sendMessageToAPI = useCallback(
     async (messageText: string, currentMessages: Message[]) => {
       if (!messageText.trim() || isLoading) return;
       setIsLoading(true);
       setHasStartedStreaming(false);
+      hasStartedStreamingRef.current = false;
       onSendMessage?.(messageText);
 
       const userMessage: Message = { role: 'user', content: messageText };
@@ -89,6 +69,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
       setMessages(updated);
       prevMessageCount.current = updated.length;
 
+      // Add empty assistant message that will be filled as streaming happens
       setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
       scrollToBottom(true);
 
@@ -104,84 +85,49 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
           throw new Error(err.error || 'Network error');
         }
 
+        // Backend sends plain text chunks directly (not SSE format)
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
-        let buffer = '';
+        let accumulated = '';
 
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
 
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split(/\r?\n/);
-          buffer = lines.pop() || '';
+          // Decode the chunk (each chunk is plain text from the backend)
+          const chunk = decoder.decode(value, { stream: true });
+          
+          // Accumulate the text
+          accumulated += chunk;
+          
+          // Mark streaming as started once we get first chunk
+          if (!hasStartedStreamingRef.current && chunk.trim()) {
+            hasStartedStreamingRef.current = true;
+            flushSync(() => {
+              setHasStartedStreaming(true);
+            });
+          }
 
-          for (const rawLine of lines) {
-            if (!rawLine) continue;
-            const line = rawLine.trim();
-            if (!line.startsWith('data:')) continue;
-            const data = line.replace(/^data:\s*/, '');
-            if (data === '[DONE]') continue;
-            const token = extractTextFromData(data);
-            if (!token) continue;
-
-            if (!hasStartedStreaming) setHasStartedStreaming(true);
-
+          // Update UI immediately with accumulated content - use flushSync to prevent batching
+          flushSync(() => {
             setMessages((prev) => {
               const newMessages = [...prev];
               const lastIndex = newMessages.length - 1;
               if (newMessages[lastIndex]?.role === 'assistant') {
                 newMessages[lastIndex] = {
                   role: 'assistant',
-                  content: newMessages[lastIndex].content + token,
+                  content: accumulated,
                 };
               }
               return newMessages;
             });
-            scrollToBottom(false);
-          }
-        }
+          });
 
-        if (buffer) {
-          const leftover = buffer.trim();
-          if (leftover.startsWith('data:')) {
-            const data = leftover.replace(/^data:\s*/, '');
-            if (data !== '[DONE]') {
-              const token = extractTextFromData(data);
-              if (token) {
-                if (!hasStartedStreaming) setHasStartedStreaming(true);
-                setMessages((prev) => {
-                  const newMessages = [...prev];
-                  const lastIndex = newMessages.length - 1;
-                  if (newMessages[lastIndex]?.role === 'assistant') {
-                    newMessages[lastIndex] = {
-                      role: 'assistant',
-                      content: newMessages[lastIndex].content + token,
-                    };
-                  }
-                  return newMessages;
-                });
-              }
-            }
-          } else {
-            const token = extractTextFromData(buffer);
-            if (token && token !== '[DONE]') {
-              if (!hasStartedStreaming) setHasStartedStreaming(true);
-              setMessages((prev) => {
-                const newMessages = [...prev];
-                const lastIndex = newMessages.length - 1;
-                if (newMessages[lastIndex]?.role === 'assistant') {
-                  newMessages[lastIndex] = {
-                    role: 'assistant',
-                    content: newMessages[lastIndex].content + token,
-                  };
-                }
-                return newMessages;
-              });
-            }
-          }
+          // Auto-scroll as content streams in
+          scrollToBottom(false);
         }
       } catch (err: any) {
+        console.error('Stream error:', err);
         setMessages((prev) => {
           const filtered = prev.filter((m, idx) => idx < prev.length - 1 || m.content !== '');
           return [
@@ -195,9 +141,10 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
       } finally {
         setIsLoading(false);
         setHasStartedStreaming(false);
+        hasStartedStreamingRef.current = false;
       }
     },
-    [isLoading, onSendMessage, scrollToBottom, hasStartedStreaming]
+    [isLoading, onSendMessage, scrollToBottom]
   );
 
   useEffect(() => {
