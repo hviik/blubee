@@ -39,10 +39,10 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
     return dist < threshold;
   };
 
-  const scrollToBottom = (smooth: boolean) => {
+  const scrollToBottom = useCallback((smooth: boolean) => {
     if (!isNearBottom()) return;
     messagesEndRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto' });
-  };
+  }, []);
 
   useEffect(() => {
     if (messages.length > prevMessageCount.current) {
@@ -51,24 +51,28 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
       return () => clearTimeout(t);
     }
     prevMessageCount.current = messages.length;
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
   const sendMessageToAPI = useCallback(
     async (messageText: string, currentMessages: Message[]) => {
       if (!messageText.trim() || isLoading) return;
       setIsLoading(true);
       onSendMessage?.(messageText);
+      
       const userMessage: Message = { role: 'user', content: messageText };
       const updated = [...currentMessages, userMessage];
       setMessages(updated);
       prevMessageCount.current = updated.length;
+      
+      // Add empty assistant message that will be filled as streaming happens
       setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
       scrollToBottom(true);
+      
       try {
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: [...updated] }),
+          body: JSON.stringify({ messages: updated }),
         });
         
         if (!response.ok || !response.body) {
@@ -76,7 +80,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
           throw new Error(err.error || 'Network error');
         }
         
-        // Use the Response directly with a text reader
+        // Read the stream chunk by chunk
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let accumulated = '';
@@ -85,23 +89,33 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
           const { value, done } = await reader.read();
           if (done) break;
           
-          // Decode the chunk
-          const text = decoder.decode(value, { stream: true });
-          accumulated += text;
+          // Decode chunk and accumulate
+          const chunk = decoder.decode(value, { stream: true });
+          accumulated += chunk;
           
-          // Update messages state with accumulated text
+          // Update the last message with accumulated content
           setMessages((prev) => {
-            const copy = [...prev];
-            if (copy[copy.length - 1]?.role === 'assistant') {
-              copy[copy.length - 1] = { role: 'assistant', content: accumulated };
+            const newMessages = [...prev];
+            const lastIndex = newMessages.length - 1;
+            if (newMessages[lastIndex]?.role === 'assistant') {
+              newMessages[lastIndex] = {
+                role: 'assistant',
+                content: accumulated
+              };
             }
-            return copy;
+            return newMessages;
           });
+          
+          // Scroll as content streams in
+          scrollToBottom(false);
         }
+        
       } catch (err: any) {
         console.error('Stream error:', err);
         setMessages((prev) => {
-          const filtered = prev.filter((m) => m.role !== 'assistant');
+          const filtered = prev.filter((m, idx) => 
+            idx < prev.length - 1 || m.content !== ''
+          );
           return [
             ...filtered,
             {
@@ -114,7 +128,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
         setIsLoading(false);
       }
     },
-    [isLoading, onSendMessage]
+    [isLoading, onSendMessage, scrollToBottom]
   );
 
   useEffect(() => {
@@ -154,7 +168,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
         <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-4 py-4">
-          {messages.map((message, index) => (
+          {messages.map((message: Message, index: number) => (
             <div key={index}>
               <div className="flex gap-4 items-start py-4">
                 <div
@@ -197,7 +211,7 @@ export default function ChatInterface({ initialMessages = [], onSendMessage, onM
               )}
             </div>
           ))}
-          {isLoading && !messages.some((m) => m.role === 'assistant' && m.content === '') && (
+          {isLoading && messages[messages.length - 1]?.content === '' && (
             <div>
               <div className="flex gap-4 items-start py-4">
                 <div className="shrink-0 w-8 h-8 flex items-center justify-center">
