@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { SignInButton, SignUpButton, SignedIn, SignedOut, useUser, UserButton } from '@clerk/nextjs';
+import { SignInButton, SignUpButton, SignedIn, SignedOut, useUser } from '@clerk/nextjs';
 import { COLORS } from '../constants/colors';
 
 interface HeaderProps {
@@ -193,26 +193,15 @@ export default function Header({
             </button>
           </div>
 
-          {/* User Greeting - 14px on mobile, with Clerk avatar */}
-          <div className="flex items-center gap-1 md:gap-2">
-            <div
-              className="text-[14px] md:text-[1rem] lg:text-[1.125rem] font-normal"
-              style={{
-                fontFamily: 'var(--font-bricolage-grotesque)',
-                color: COLORS.textQuaternary,
-              }}
-            >
-              Hey! {userName}
-            </div>
-            <UserButton
-              afterSignOutUrl="/"
-              appearance={{
-                elements: {
-                  rootBox: 'w-6 h-6 md:w-7 md:h-7',
-                  avatarBox: 'w-6 h-6 md:w-7 md:h-7',
-                },
-              }}
-            />
+          {/* User Greeting */}
+          <div
+            className="text-[14px] md:text-[1rem] lg:text-[1.125rem] font-normal"
+            style={{
+              fontFamily: 'var(--font-bricolage-grotesque)',
+              color: COLORS.textQuaternary,
+            }}
+          >
+            Hey! {userName}
           </div>
         </div>
       </SignedIn>
