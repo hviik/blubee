@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { COLORS } from '../constants/colors';
+import { detectUserCurrency, getExchangeRate, CurrencyInfo } from '../utils/currencyDetection';
 
 interface ExplorePageProps {
   compact?: boolean;
@@ -15,7 +16,7 @@ interface Destination {
   flag: string;
   image: string;
   duration: string;
-  price: string;
+  priceINR: number; // Base price in INR (as number for easy conversion)
   priceDetail: string;
   route: string[];
 }
@@ -27,7 +28,7 @@ const destinations: Destination[] = [
     flag: '/assets/flags/vietnam.png',
     image: '/assets/destinations/vietnam.png',
     duration: '5 Days, 4 Nights',
-    price: '₹ 74,500',
+    priceINR: 74500,
     priceDetail: 'Per person',
     route: ['Hanoi', 'Ha Long Bay', 'Ho Chi Minh City'],
   },
@@ -37,7 +38,7 @@ const destinations: Destination[] = [
     flag: '/assets/flags/malaysia.png',
     image: '/assets/destinations/malaysia.png',
     duration: '5 Days, 4 Nights',
-    price: '₹ 68,900',
+    priceINR: 68900,
     priceDetail: 'Per person',
     route: ['Kuala Lumpur', 'Penang', 'Langkawi'],
   },
@@ -47,7 +48,7 @@ const destinations: Destination[] = [
     flag: '/assets/flags/peru.png',
     image: '/assets/destinations/peru.png',
     duration: '5 Days, 4 Nights',
-    price: '₹ 2,15,000',
+    priceINR: 215000,
     priceDetail: 'Per person',
     route: ['Lima', 'Cusco', 'Machu Picchu'],
   },
@@ -57,7 +58,7 @@ const destinations: Destination[] = [
     flag: '/assets/flags/philippines.png',
     image: '/assets/destinations/philippines.png',
     duration: '5 Days, 4 Nights',
-    price: '₹ 82,400',
+    priceINR: 82400,
     priceDetail: 'Per person',
     route: ['Manila', 'Cebu', 'Palawan'],
   },
@@ -67,7 +68,7 @@ const destinations: Destination[] = [
     flag: '/assets/flags/brazil.png',
     image: '/assets/destinations/brazil.png',
     duration: '5 Days, 4 Nights',
-    price: '₹ 2,45,000',
+    priceINR: 245000,
     priceDetail: 'Per person',
     route: ['Rio de Janeiro', 'São Paulo', 'Iguazu Falls'],
   },
@@ -77,7 +78,7 @@ const destinations: Destination[] = [
     flag: '/assets/flags/india.png',
     image: '/assets/destinations/india.png',
     duration: '5 Days, 4 Nights',
-    price: '₹ 38,500',
+    priceINR: 38500,
     priceDetail: 'Per person',
     route: ['Delhi', 'Agra', 'Jaipur'],
   },
@@ -87,7 +88,7 @@ const destinations: Destination[] = [
     flag: '/assets/flags/maldives.png',
     image: '/assets/destinations/maldives.png',
     duration: '5 Days, 4 Nights',
-    price: '₹ 1,12,000',
+    priceINR: 112000,
     priceDetail: 'Per person',
     route: ['Male', 'Ari Atoll', 'Vaavu'],
   },
@@ -97,7 +98,7 @@ const destinations: Destination[] = [
     flag: '/assets/flags/laos.png',
     image: '/assets/destinations/laos.png',
     duration: '5 Days, 4 Nights',
-    price: '₹ 71,200',
+    priceINR: 71200,
     priceDetail: 'Per person',
     route: ['Luang Prabang', 'Vang Vieng', 'Vientiane'],
   },
@@ -105,69 +106,46 @@ const destinations: Destination[] = [
 
 export default function ExplorePage({ compact = false, onDestinationClick }: ExplorePageProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [userCurrency, setUserCurrency] = useState<string>('INR');
+  const [currencyInfo, setCurrencyInfo] = useState<CurrencyInfo | null>(null);
   const [exchangeRate, setExchangeRate] = useState<number>(1);
-  const [currencySymbol, setCurrencySymbol] = useState<string>('₹');
 
-  // Detect user's location and currency on mount
+  // Detect user's currency on mount
   useEffect(() => {
-    const detectCurrency = async () => {
-      try {
-        // Get user's country from IP
-        const response = await fetch('https://ipapi.co/json/');
-        const data = await response.json();
-        const userCountry = data.currency;
-        
-        if (userCountry && userCountry !== 'INR') {
-          setUserCurrency(userCountry);
-          
-          // Fetch exchange rate
-          const rateResponse = await fetch(
-            `https://api.exchangerate-api.com/v4/latest/INR`
-          );
-          const rateData = await rateResponse.json();
-          
-          if (rateData.rates[userCountry]) {
-            setExchangeRate(rateData.rates[userCountry]);
-            
-            // Set currency symbol
-            const symbols: Record<string, string> = {
-              USD: '$',
-              EUR: '€',
-              GBP: '£',
-              JPY: '¥',
-              AUD: 'A$',
-              CAD: 'C$',
-              CHF: 'Fr',
-              CNY: '¥',
-              INR: '₹',
-            };
-            setCurrencySymbol(symbols[userCountry] || userCountry);
-          }
-        }
-      } catch (error) {
-        console.error('Failed to detect currency:', error);
-        // Keep default INR
+    const initCurrency = async () => {
+      const currency = await detectUserCurrency();
+      setCurrencyInfo(currency);
+      
+      // Get exchange rate if not INR
+      if (currency.code !== 'INR') {
+        const rate = await getExchangeRate('INR', currency.code);
+        setExchangeRate(rate);
       }
     };
 
-    detectCurrency();
+    initCurrency();
   }, []);
 
-  const convertPrice = (inrPrice: string): string => {
-    // Extract numeric value from INR price (e.g., "₹ 74,500" -> 74500)
-    const numericValue = parseInt(inrPrice.replace(/[^\d]/g, ''));
-    
-    if (isNaN(numericValue)) return inrPrice;
-    
-    if (userCurrency === 'INR') {
-      return inrPrice;
+  /**
+   * Convert INR price to user's local currency with proper formatting
+   * @param priceINR - Price in Indian Rupees (base currency)
+   * @returns Formatted price string with local currency symbol
+   */
+  const convertAndFormatPrice = (priceINR: number): string => {
+    // Show loading state if currency info not yet loaded
+    if (!currencyInfo) {
+      return `₹ ${priceINR.toLocaleString()}`;
     }
     
-    const converted = Math.round(numericValue * exchangeRate);
+    // If user's currency is INR, no conversion needed
+    if (currencyInfo.code === 'INR') {
+      return `${currencyInfo.symbol} ${priceINR.toLocaleString()}`;
+    }
     
-    // Format with commas and currency symbol
-    return `${currencySymbol} ${converted.toLocaleString()}`;
+    // Convert to user's local currency
+    const convertedAmount = Math.round(priceINR * exchangeRate);
+    
+    // Format with proper currency symbol and thousands separators
+    return `${currencyInfo.symbol} ${convertedAmount.toLocaleString()}`;
   };
 
   return (
@@ -266,7 +244,7 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                     className="text-[10px] md:text-[12px] font-medium leading-tight"
                     style={{ fontFamily: 'var(--font-poppins)' }}
                   >
-                    {convertPrice(d.price)}
+                    {convertAndFormatPrice(d.priceINR)}
                   </p>
                   <p
                     className="text-[8px] md:text-[9px] font-medium opacity-90"

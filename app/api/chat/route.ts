@@ -5,7 +5,7 @@ export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
-    const { messages, userName } = await req.json();
+    const { messages, userName, currency } = await req.json();
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return new Response(JSON.stringify({ error: 'Messages array is required' }), { status: 400 });
@@ -26,6 +26,11 @@ export async function POST(req: Request) {
     if (userName && !isFirstMessage) {
       // Add user's name to system prompt so AI knows how to address them
       systemPrompt += `\n\nIMPORTANT: The user's name is ${userName}. Address them by their name naturally in your responses when appropriate throughout the conversation.`;
+    }
+    
+    // Add currency information to system prompt
+    if (currency && currency.code) {
+      systemPrompt += `\n\nIMPORTANT CURRENCY CONTEXT: The user's local currency is ${currency.name} (${currency.code}, symbol: ${currency.symbol}). ALWAYS use ${currency.code} when mentioning prices, costs, or budgets throughout this entire conversation. For example, if discussing trip costs, say "${currency.symbol}1,000" or "${currency.code} 1,000", NOT any other currency. Remember this currency preference for ALL responses in this conversation.`;
     }
     
     const systemMessage = { role: 'system', content: systemPrompt };

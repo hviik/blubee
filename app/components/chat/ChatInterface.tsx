@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
 import { COLORS } from '../../constants/colors';
 import MarkdownMessage from './MarkdownMessage';
+import { detectUserCurrency, CurrencyInfo } from '@/app/utils/currencyDetection';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -32,12 +33,21 @@ export default function ChatInterface({
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [hasStartedStreaming, setHasStartedStreaming] = useState(false);
+  const [userCurrency, setUserCurrency] = useState<CurrencyInfo | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const hasInitialized = useRef(false);
   const prevMessageCount = useRef(0);
   const hasStartedStreamingRef = useRef(false);
+
+  // Detect user's currency on mount
+  useEffect(() => {
+    detectUserCurrency().then((currency) => {
+      setUserCurrency(currency);
+      console.log('Detected user currency:', currency);
+    });
+  }, []);
 
   useEffect(() => {
     if (onMessagesChange) onMessagesChange(messages);
@@ -91,7 +101,8 @@ export default function ChatInterface({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             messages: updated,
-            userName: userName // Pass user's name to the API
+            userName: userName, // Pass user's name to the API
+            currency: userCurrency // Pass user's currency to the API
           }),
         });
 
@@ -229,7 +240,7 @@ export default function ChatInterface({
         hasStartedStreamingRef.current = false;
       }
     },
-    [isLoading, onSendMessage, scrollToBottom, user]
+    [isLoading, onSendMessage, scrollToBottom, user, userCurrency]
   );
 
   // Handle initial messages
