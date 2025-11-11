@@ -163,9 +163,9 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
         />
         
         {showMap && itinerary && (
-          <div className="md:hidden fixed left-4 right-4 z-30 flex justify-start gap-3"
+          <div className="md:hidden fixed left-4 right-4 z-30 flex justify-between gap-3"
             style={{ 
-              bottom: 'calc(140px + env(safe-area-inset-bottom, 0px))',
+              bottom: 'calc(90px + env(safe-area-inset-bottom, 0px))',
               pointerEvents: 'none'
             }}
           >

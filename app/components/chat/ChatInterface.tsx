@@ -295,7 +295,7 @@ export default function ChatInterface({
         className="flex-1 min-h-0 overflow-y-auto"
         style={{ 
           WebkitOverflowScrolling: 'touch',
-          paddingBottom: 'calc(140px + env(safe-area-inset-bottom, 0px))'
+          paddingBottom: '90px'
         }}
       >
         <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-3 md:px-4 py-3 md:py-4 md:pb-0">
@@ -365,12 +365,13 @@ export default function ChatInterface({
         </div>
       </div>
       <div
-        className="border-t"
+        className="border-t fixed bottom-0 left-0 right-0 md:relative"
         style={{
           borderColor: COLORS.borderLight,
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-          backgroundColor: 'rgba(255, 255, 255, 0.7)',
+          paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 8px)',
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(10px)',
+          zIndex: 40,
         }}
       >
         <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-3 md:px-4 py-3 md:py-4">
