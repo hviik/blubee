@@ -25,12 +25,36 @@ export default function BlubeezHome() {
   const [initialMessage, setInitialMessage] = useState<string | null>(null);
   const [isDesktop, setIsDesktop] = useState(false);
   const [heroToCardsGap, setHeroToCardsGap] = useState(120);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   
   useEffect(() => {
     const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
     checkDesktop();
     window.addEventListener('resize', checkDesktop);
     return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        const viewportHeight = window.visualViewport?.height || window.innerHeight;
+        const windowHeight = window.innerHeight;
+        const keyboardHeight = windowHeight - viewportHeight;
+        
+        if (keyboardHeight > 100) {
+          setIsKeyboardVisible(true);
+        } else {
+          setIsKeyboardVisible(false);
+        }
+      }
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+      return () => window.visualViewport?.removeEventListener('resize', handleResize);
+    }
   }, []);
 
   useEffect(() => {
