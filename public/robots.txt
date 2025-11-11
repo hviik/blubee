@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://blubeez.ai
+
+# Sitemaps
+Sitemap: https://blubeez.ai/sitemap.xml
