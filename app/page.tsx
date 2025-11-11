@@ -24,7 +24,7 @@ export default function BlubeezHome() {
   const [isExploreActive, setIsExploreActive] = useState(false);
   const [initialMessage, setInitialMessage] = useState<string | null>(null);
   const [isDesktop, setIsDesktop] = useState(false);
-  const [mobileGap, setMobileGap] = useState(20);
+  const [heroToCardsGap, setHeroToCardsGap] = useState(120);
   
   useEffect(() => {
     const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
@@ -46,18 +46,20 @@ export default function BlubeezHome() {
           const searchHeight = searchInput.getBoundingClientRect().height;
           const viewportHeight = window.innerHeight;
           
-          const topPadding = 112;
-          const totalContentHeight = topPadding + heroHeight + promptHeight + searchHeight + 120 + 16;
+          const headerHeight = 64;
+          const topPadding = 32;
+          const bottomSafeArea = 16;
+          const totalContentHeight = headerHeight + topPadding + heroHeight + 120 + promptHeight + searchHeight + bottomSafeArea;
           
           if (totalContentHeight > viewportHeight) {
             const overflow = totalContentHeight - viewportHeight;
-            const newGap = Math.max(16, 120 - overflow);
-            setMobileGap(newGap);
+            const newGap = Math.max(20, 120 - overflow);
+            setHeroToCardsGap(newGap);
           } else {
-            setMobileGap(120);
+            setHeroToCardsGap(120);
           }
         } else {
-          setMobileGap(120);
+          setHeroToCardsGap(120);
         }
       };
       calculateGap();
@@ -203,14 +205,14 @@ export default function BlubeezHome() {
       ) : (
         <div className="
             w-full mx-auto px-4 md:px-0 md:max-w-[675px] relative z-10 flex flex-col items-center
-            pt-[112px] md:pt-[clamp(4.5rem,9vh,6rem)] pb-2 md:pb-[clamp(3rem,6vh,4.5rem)]
-            h-screen md:h-auto md:min-h-0 justify-between md:justify-center md:gap-[clamp(5rem,11vh,7.5rem)]
+            pt-8 md:pt-[clamp(4.5rem,9vh,6rem)] pb-4 md:pb-[clamp(3rem,6vh,4.5rem)]
+            h-screen md:h-auto md:min-h-0 justify-start md:justify-center
           ">
           <HeroSection />
           <div 
-            className="w-full flex flex-col items-end justify-end gap-4 mb-2 md:mb-0 pb-[env(safe-area-inset-bottom,0px)]"
+            className="w-full flex flex-col items-end justify-end gap-4 mt-auto pb-[env(safe-area-inset-bottom,16px)]"
             style={{
-              marginTop: !isDesktop ? `${mobileGap}px` : undefined
+              marginTop: !isDesktop ? `${heroToCardsGap}px` : 'clamp(5rem,11vh,7.5rem)'
             }}
           >
             <PromptCards onPromptClick={handlePromptClick} />
