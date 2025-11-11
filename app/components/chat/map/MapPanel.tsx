@@ -79,8 +79,11 @@ export function MapPanel({
       mapInstanceRef.current = map;
     } else {
       // Update existing map center and zoom with smooth animation
-      mapInstanceRef.current.panTo(center);
-      mapInstanceRef.current.setZoom(zoom);
+      if (mapInstanceRef.current) {
+        // panTo provides smooth animation by default
+        mapInstanceRef.current.panTo(center);
+        mapInstanceRef.current.setZoom(zoom);
+      }
     }
 
     const map = mapInstanceRef.current;

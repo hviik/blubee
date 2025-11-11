@@ -14,10 +14,27 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [panelHeight, setPanelHeight] = useState<number>(377);
   const [isDragging, setIsDragging] = useState(false);
+  
+  // Filter out route segments to get unique destination locations
+  const uniqueLocations = itinerary?.locations?.filter((location) => {
+    const name = location.name.toLowerCase();
+    return !name.includes(' to ') && !name.includes(' -> ') && !name.includes('return to');
+  }) || [];
+  
   const [activeLocation, setActiveLocation] = useState<string | null>(
-    itinerary?.locations?.[0]?.id || null
+    uniqueLocations?.[0]?.id || null
   );
   const containerRef = useRef<HTMLDivElement | null>(null);
+  
+  // Update active location when itinerary changes
+  useEffect(() => {
+    if (uniqueLocations.length > 0 && !activeLocation) {
+      const firstLocationId = uniqueLocations[0].id;
+      setActiveLocation(firstLocationId);
+      // Trigger location select to center map on first location
+      onLocationSelect?.(firstLocationId);
+    }
+  }, [itinerary, uniqueLocations.length, activeLocation, onLocationSelect]);
 
   // --- Hooks must always be declared before any early returns ---
 
@@ -86,8 +103,13 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
 
   const filteredDays = itinerary.days.filter((day) => {
     if (!activeLocation) return true;
-    const location = itinerary.locations.find((loc) => loc.id === activeLocation);
-    return location && day.location === location.name;
+    const location = uniqueLocations.find((loc) => loc.id === activeLocation);
+    if (!location) return false;
+    // Check if day location matches the selected location name
+    // Handle cases where day.location might be "Manila" or "Manila to Cebu"
+    const dayLocation = day.location.toLowerCase();
+    const locationName = location.name.toLowerCase();
+    return dayLocation.includes(locationName) || dayLocation === locationName;
   });
 
   const handleDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -100,14 +122,14 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
       {/* Drag Handle - Properly aligned and visible */}
       <div
         onMouseDown={handleDragStart}
-        className="absolute -top-5 left-0 right-0 h-8 cursor-ns-resize hover:bg-blue-50/50 z-30 flex items-center justify-center group transition-all duration-200 rounded-t-lg"
+        className="absolute -top-2 left-0 right-0 h-6 cursor-ns-resize hover:bg-blue-50/50 z-30 flex items-center justify-center group transition-all duration-200 rounded-t-lg"
         style={{ 
           touchAction: 'none',
           WebkitUserSelect: 'none',
           userSelect: 'none'
         }}
       >
-        <div className="w-20 h-2 bg-gray-300 rounded-full group-hover:bg-blue-500 group-hover:scale-110 transition-all duration-200 shadow-sm"></div>
+        <div className="w-20 h-1.5 bg-gray-300 rounded-full group-hover:bg-blue-500 group-hover:scale-110 transition-all duration-200 shadow-sm"></div>
       </div>
 
       {/* Header */}
@@ -149,7 +171,7 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
           {/* Location Tabs */}
           <div className="bg-white border-b border-[#d7e7f5] p-2 md:p-3 flex-shrink-0">
             <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
-              {itinerary.locations.map((location, index) => (
+              {uniqueLocations.map((location, index) => (
                 <div key={location.id} className="flex items-center gap-1">
                   <button
                     onClick={() => handleLocationClick(location.id)}
@@ -168,7 +190,7 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
                     />
                     <span>{location.name}</span>
                   </button>
-                  {index < itinerary.locations.length - 1 && (
+                  {index < uniqueLocations.length - 1 && (
                     <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center">
                       <svg
                         className="w-3 h-3 md:w-4 md:h-4 text-[#475f73]"
