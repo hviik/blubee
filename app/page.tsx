@@ -203,20 +203,17 @@ export default function BlubeezHome() {
           </div>
         </div>
       ) : (
-        <div 
-          className="
+        <div className="
             w-full mx-auto px-4 md:px-0 md:max-w-[675px] relative z-10 flex flex-col items-center
-            md:pt-[clamp(4.5rem,9vh,6rem)] md:pb-[clamp(3rem,6vh,4.5rem)]
+            pt-[112px] md:pt-[clamp(4.5rem,9vh,6rem)] pb-2 md:pb-[clamp(3rem,6vh,4.5rem)]
             h-screen md:h-auto md:min-h-0 justify-between md:justify-center md:gap-[clamp(5rem,11vh,7.5rem)]
-          "
-          style={{
-            paddingTop: !isDesktop ? `${112 - (120 - mobileGap)}px` : undefined,
-            paddingBottom: !isDesktop ? '8px' : undefined
-          }}
-        >
+          ">
           <HeroSection />
           <div 
             className="w-full flex flex-col items-end justify-end gap-4 mb-2 md:mb-0 pb-[env(safe-area-inset-bottom,0px)]"
+            style={{
+              marginTop: !isDesktop ? `${mobileGap}px` : undefined
+            }}
           >
             <PromptCards onPromptClick={handlePromptClick} />
             <div className="w-full bg-white rounded-t-2xl shadow-[0px_-10px_10px_0px_rgba(0,0,0,0.05)] p-2 md:p-0 md:bg-transparent md:shadow-none">
