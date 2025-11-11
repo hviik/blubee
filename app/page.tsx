@@ -47,7 +47,7 @@ export default function BlubeezHome() {
           const viewportHeight = window.innerHeight;
           
           const headerHeight = 64;
-          const topPadding = 48;
+          const topPadding = 64;
           const bottomSafeArea = 16;
           const totalContentHeight = headerHeight + topPadding + heroHeight + 120 + promptHeight + searchHeight + bottomSafeArea;
           
@@ -205,7 +205,7 @@ export default function BlubeezHome() {
       ) : (
         <div className="
             w-full mx-auto px-4 md:px-0 md:max-w-[675px] relative z-10 flex flex-col items-center
-            pt-12 md:pt-[clamp(4.5rem,9vh,6rem)] pb-4 md:pb-[clamp(3rem,6vh,4.5rem)]
+            pt-16 md:pt-[clamp(4.5rem,9vh,6rem)] pb-4 md:pb-[clamp(3rem,6vh,4.5rem)]
             h-screen md:h-auto md:min-h-0 justify-start md:justify-center
           ">
           <HeroSection />
