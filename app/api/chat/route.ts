@@ -45,8 +45,12 @@ export async function POST(req: Request) {
     
     const isFirstMessage = messages.length === 1;
     
-    if (userName && !isFirstMessage) {
-      systemPrompt += `\n\nIMPORTANT: The user's name is ${userName}. Address them by their name naturally in your responses when appropriate throughout the conversation.`;
+    if (userName) {
+      if (isFirstMessage) {
+        systemPrompt += `\n\nCRITICAL FOR FIRST MESSAGE ONLY: The user's name is ${userName}. You MUST start your response with a warm greeting using their name, like "Welcome, ${userName}!" or "Hi ${userName}!" Then ask about their travel dreams.`;
+      } else {
+        systemPrompt += `\n\nIMPORTANT: The user's name is ${userName}. Address them by their name naturally in your responses when appropriate throughout the conversation.`;
+      }
     }
     
     if (currency && currency.code) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { COLORS } from '../constants/colors';
 
@@ -13,16 +13,29 @@ interface SearchInputProps {
 
 export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false, onSendMessage, onExploreClick }: SearchInputProps) {
   const [inputValue, setInputValue] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      const scrollHeight = textareaRef.current.scrollHeight;
+      const maxHeight = 120;
+      textareaRef.current.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
+    }
+  }, [inputValue]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim() && onSendMessage) {
       onSendMessage(inputValue.trim());
       setInputValue('');
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
@@ -33,13 +46,13 @@ export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false, 
     <>
       <form onSubmit={handleSubmit} className="w-full">
         <div 
-          className="w-full px-4 py-3 md:py-3 rounded-[16px] border border-[#9cabb6] flex items-center justify-between gap-2"
+          className="w-full px-4 py-3 md:py-3 rounded-[16px] border border-[#9cabb6] flex items-end justify-between gap-2"
           style={{ 
             backgroundColor: 'rgba(255, 255, 255, 0.1)'
           }}
         >
-          <input
-            type="text"
+          <textarea
+            ref={textareaRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -48,13 +61,18 @@ export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false, 
             autoCorrect="off"
             autoCapitalize="off"
             spellCheck={false}
-            className="flex-1 bg-transparent text-neutral-400 text-[16px] md:text-[1rem] lg:text-[1.125rem] font-normal outline-none placeholder-neutral-400 leading-normal"
-            style={{ fontFamily: 'var(--font-poppins)' }}
+            rows={1}
+            className="flex-1 bg-transparent text-neutral-400 text-[16px] md:text-[1rem] lg:text-[1.125rem] font-normal outline-none placeholder-neutral-400 leading-normal resize-none overflow-y-auto"
+            style={{ 
+              fontFamily: 'var(--font-poppins)',
+              minHeight: '24px',
+              maxHeight: '120px'
+            }}
           />
           <button
             type="submit"
             disabled={!inputValue.trim()}
-            className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
             aria-label="Send"
           >
             <Image 

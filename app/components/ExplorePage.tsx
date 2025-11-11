@@ -197,14 +197,14 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
           className="grid gap-4 md:gap-6 lg:gap-8 mt-4 justify-center"
           style={{
             gridTemplateColumns: compact 
-              ? 'repeat(2, minmax(140px, 1fr))' 
+              ? 'repeat(2, 1fr)' 
               : 'repeat(auto-fill, minmax(160px, 220px))',
           }}
         >
           {destinations.map((d) => (
             <div
               key={d.id}
-              className="relative w-full aspect-[3/4] md:aspect-[4/5] rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform duration-300 mx-auto max-w-[180px] md:max-w-[220px]"
+              className="relative w-full aspect-[3/4] md:aspect-[4/5] rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform duration-300"
               onClick={() => onDestinationClick?.(d.name, d.route)}
             >
               <div className="absolute inset-0">
@@ -218,7 +218,7 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                     willChange: 'filter',
                   }}
                   unoptimized
-                  sizes="(max-width: 768px) 180px, 220px"
+                  sizes="(max-width: 768px) 45vw, 220px"
                 />
               </div>
 

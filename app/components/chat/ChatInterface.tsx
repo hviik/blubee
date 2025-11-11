@@ -36,7 +36,7 @@ export default function ChatInterface({
   const [userCurrency, setUserCurrency] = useState<CurrencyInfo | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const hasInitialized = useRef(false);
   const prevMessageCount = useRef(0);
   const hasStartedStreamingRef = useRef(false);
@@ -266,15 +266,27 @@ export default function ChatInterface({
     return () => window.removeEventListener('keydown', handleSlashKey);
   }, []);
 
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+      const scrollHeight = inputRef.current.scrollHeight;
+      const maxHeight = 120;
+      inputRef.current.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
+    }
+  }, [inputValue]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim() || isLoading) return;
     const text = inputValue;
     setInputValue('');
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+    }
     await sendMessageToAPI(text, messages);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
@@ -372,34 +384,39 @@ export default function ChatInterface({
       >
         <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-3 md:px-4 py-3 md:py-4">
           <form onSubmit={handleSubmit}>
-            <div
-              className="w-full px-3 md:px-[16px] py-2.5 md:py-[12px] rounded-xl md:rounded-[16px] border border-[#2c3d5d] flex items-center justify-between gap-2"
-              style={{ backgroundColor: 'rgba(255, 255, 255, 0.4)' }}
-            >
-              <input
-                ref={inputRef}
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask blu"
-                disabled={isLoading}
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck={false}
-                className="flex-1 bg-transparent text-[16px] md:text-[0.938rem] lg:text-[1rem] font-normal outline-none placeholder-neutral-400"
-                style={{ fontFamily: 'var(--font-poppins)', color: COLORS.textSecondary }}
-              />
-              <button
-                type="submit"
-                disabled={isLoading || !inputValue.trim()}
-                className="flex items-center justify-center w-5 h-5 md:w-6 md:h-6 rounded-full hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Send"
-              >
-                <Image src="/assets/send.svg" alt="Send" width={17} height={14} className="object-contain md:w-[19px] md:h-[16px]" />
-              </button>
-            </div>
+             <div
+               className="w-full px-3 md:px-[16px] py-2.5 md:py-[12px] rounded-xl md:rounded-[16px] border border-[#2c3d5d] flex items-end justify-between gap-2"
+               style={{ backgroundColor: 'rgba(255, 255, 255, 0.4)' }}
+             >
+               <textarea
+                 ref={inputRef}
+                 value={inputValue}
+                 onChange={(e) => setInputValue(e.target.value)}
+                 onKeyDown={handleKeyDown}
+                 placeholder="Ask blu"
+                 disabled={isLoading}
+                 autoComplete="off"
+                 autoCorrect="off"
+                 autoCapitalize="off"
+                 spellCheck={false}
+                 rows={1}
+                 className="flex-1 bg-transparent text-[16px] md:text-[0.938rem] lg:text-[1rem] font-normal outline-none placeholder-neutral-400 resize-none overflow-y-auto leading-normal"
+                 style={{ 
+                   fontFamily: 'var(--font-poppins)', 
+                   color: COLORS.textSecondary,
+                   minHeight: '24px',
+                   maxHeight: '120px'
+                 }}
+               />
+               <button
+                 type="submit"
+                 disabled={isLoading || !inputValue.trim()}
+                 className="flex items-center justify-center w-5 h-5 md:w-6 md:h-6 rounded-full hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                 aria-label="Send"
+               >
+                 <Image src="/assets/send.svg" alt="Send" width={17} height={14} className="object-contain md:w-[19px] md:h-[16px]" />
+               </button>
+             </div>
           </form>
         </div>
       </div>
