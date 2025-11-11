@@ -73,6 +73,33 @@ export default function BlubeezHome() {
     setIsChatActive(true);
   };
 
+  const handleDestinationClick = (countryName: string, route: string[]) => {
+    if (!isSignedIn) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+    
+    // Format the places in the route
+    let placesText = '';
+    if (route.length > 0) {
+      if (route.length === 1) {
+        placesText = ` visiting ${route[0]}`;
+      } else if (route.length === 2) {
+        placesText = ` visiting ${route[0]} and ${route[1]}`;
+      } else {
+        const lastPlace = route[route.length - 1];
+        const otherPlaces = route.slice(0, -1).join(', ');
+        placesText = ` visiting ${otherPlaces}, and ${lastPlace}`;
+      }
+    }
+    
+    // Create the message prompt
+    const message = `Plan me a trip to ${countryName}${placesText}`;
+    setInitialMessage(message);
+    setIsExploreActive(false);
+    setIsChatActive(true);
+  };
+
   // Prevent background/body scrolling while chat is active
   useEffect(() => {
     if (isChatActive) {
@@ -124,7 +151,7 @@ export default function BlubeezHome() {
             maxHeight: isDesktop ? 'calc(100vh - 80px)' : 'calc(100vh - 64px)',
           }}
         >
-          <ExplorePage />
+          <ExplorePage onDestinationClick={handleDestinationClick} />
         </div>
       ) : isChatActive ? (
         <div 
