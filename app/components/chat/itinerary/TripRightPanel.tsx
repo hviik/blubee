@@ -39,7 +39,12 @@ export function TripRightPanel({
           setMapCenter(validLocations[0].coordinates);
           setMapZoom(12);
         } else {
-          setMapCenter(validLocations[0].coordinates);
+          const bounds = new window.google.maps.LatLngBounds();
+          validLocations.forEach(loc => {
+            bounds.extend(new window.google.maps.LatLng(loc.coordinates.lat, loc.coordinates.lng));
+          });
+          const center = bounds.getCenter();
+          setMapCenter({ lat: center.lat(), lng: center.lng() });
           setMapZoom(8);
         }
       }
@@ -53,11 +58,8 @@ export function TripRightPanel({
       const location = itinerary.locations.find((loc) => loc.id === locationId);
       if (location && location.coordinates) {
         if (location.coordinates.lat !== 0 || location.coordinates.lng !== 0) {
-          console.log('Zooming to location:', location.name, location.coordinates);
           setMapCenter(location.coordinates);
           setMapZoom(14);
-        } else {
-          console.warn('Location has invalid coordinates:', location.name);
         }
       }
     }
@@ -178,4 +180,3 @@ export function TripRightPanel({
     </div>
   );
 }
-
