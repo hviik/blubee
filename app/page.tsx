@@ -167,7 +167,7 @@ export default function BlubeezHome() {
             h-screen md:h-auto md:min-h-0 justify-between md:justify-center md:gap-[clamp(5rem,11vh,7.5rem)]
           ">
           <HeroSection />
-          <div className="w-full flex flex-col items-end justify-end gap-4 mb-2 md:mb-0">
+          <div className="w-full flex flex-col items-end justify-end gap-4 mb-2 md:mb-0 pb-[env(safe-area-inset-bottom,0px)]">
             <PromptCards onPromptClick={handlePromptClick} />
             <div className="w-full bg-white rounded-t-2xl shadow-[0px_-10px_10px_0px_rgba(0,0,0,0.05)] p-2 md:p-0 md:bg-transparent md:shadow-none">
               <SearchInput

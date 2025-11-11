@@ -163,38 +163,37 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
         />
         
         {showMap && itinerary && (
-          <div className="md:hidden fixed left-0 right-0 z-30 flex justify-center gap-3"
+          <div className="md:hidden fixed left-4 right-4 z-30 flex justify-start gap-3"
             style={{ 
-              bottom: 'calc(70px + env(safe-area-inset-bottom, 0px))',
+              bottom: 'calc(140px + env(safe-area-inset-bottom, 0px))',
               pointerEvents: 'none'
             }}
           >
             <button
-              onClick={() => setMobileItineraryOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white shadow-lg hover:shadow-xl transition-all"
+              onClick={() => setMobileMapOpen(true)}
+              className="flex items-center gap-1 px-4 py-1.5 rounded-full bg-white hover:bg-gray-50 transition-all shadow-md border border-[#d5d5d5]"
               style={{ 
-                pointerEvents: 'auto',
-                border: '1px solid #d7e7f5'
+                pointerEvents: 'auto'
               }}
             >
-              <svg className="w-5 h-5 text-[#2f4f93]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg className="w-5 h-5 text-[#132341]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
               </svg>
-              <span className="text-sm font-medium text-[#2f4f93]">Itinerary</span>
+              <span className="text-[16px] font-normal text-[#132341]" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>Map</span>
             </button>
             
             <button
-              onClick={() => setMobileMapOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white shadow-lg hover:shadow-xl transition-all"
+              onClick={() => setMobileItineraryOpen(true)}
+              className="flex items-center gap-1 px-4 py-1.5 rounded-full bg-[#475f73] hover:bg-[#3d5363] transition-all shadow-md border border-[#d5d5d5] relative"
               style={{ 
-                pointerEvents: 'auto',
-                border: '1px solid #d7e7f5'
+                pointerEvents: 'auto'
               }}
             >
-              <svg className="w-5 h-5 text-[#2f4f93]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
-              <span className="text-sm font-medium text-[#2f4f93]">Map</span>
+              <span className="text-[16px] font-normal text-white" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>Itinerary</span>
+              <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full"></div>
             </button>
           </div>
         )}
@@ -219,9 +218,9 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
       </div>
 
       {mobileItineraryOpen && itinerary && (
-        <div className="md:hidden fixed inset-0 z-50 bg-white">
+        <div className="md:hidden fixed inset-0 z-50 bg-white" style={{ top: '56px' }}>
           <div className="h-full flex flex-col">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[#d7e7f5] bg-white">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[#d7e7f5] bg-white shadow-sm">
               <h2 className="text-lg font-semibold text-[#132341]" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>Itinerary</h2>
               <button
                 onClick={() => setMobileItineraryOpen(false)}
@@ -241,9 +240,9 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
       )}
 
       {mobileMapOpen && itinerary && (
-        <div className="md:hidden fixed inset-0 z-50 bg-white">
+        <div className="md:hidden fixed inset-0 z-50 bg-white" style={{ top: '56px' }}>
           <div className="h-full flex flex-col">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[#d7e7f5] bg-white">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[#d7e7f5] bg-white shadow-sm">
               <h2 className="text-lg font-semibold text-[#132341]" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>Map</h2>
               <button
                 onClick={() => setMobileMapOpen(false)}
