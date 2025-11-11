@@ -14,8 +14,82 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Blubeez - Your Travel Assistant",
-  description: "Create your perfect itinerary by just chatting with us",
+  title: {
+    default: "Blubeez | AI Travel Assistant & Trip Planner",
+    template: "%s | Blubeez"
+  },
+  description: "Plan your perfect vacation with Blubeez, your AI-powered travel assistant. Create personalized itineraries, discover destinations, and book trips to Vietnam, Malaysia, Peru, Philippines, Brazil, India, Maldives, and Laos. Chat with AI to design custom travel plans in minutes.",
+  keywords: [
+    "travel assistant",
+    "AI travel planner",
+    "trip planning",
+    "vacation planner",
+    "itinerary builder",
+    "travel chatbot",
+    "personalized travel",
+    "custom itinerary",
+    "travel destinations",
+    "vacation packages",
+    "Asia travel",
+    "South America travel",
+    "Vietnam tours",
+    "Malaysia vacation",
+    "Peru travel",
+    "Philippines holiday",
+    "Brazil trips",
+    "India tours",
+    "Maldives packages",
+    "Laos travel",
+    "AI trip planner",
+    "smart travel planning",
+    "destination explorer",
+    "travel booking",
+    "vacation ideas"
+  ],
+  authors: [{ name: "Blubeez" }],
+  creator: "Blubeez",
+  publisher: "Blubeez",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  alternates: {
+    canonical: "https://www.blubeez.ai"
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://www.blubeez.ai",
+    siteName: "Blubeez",
+    title: "Blubeez | AI Travel Assistant & Trip Planner",
+    description: "Plan your perfect vacation with Blubeez AI travel assistant. Create personalized itineraries and explore amazing destinations worldwide.",
+    images: [
+      {
+        url: "/assets/logo.svg",
+        width: 1200,
+        height: 630,
+        alt: "Blubeez Travel Assistant"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Blubeez | AI Travel Assistant & Trip Planner",
+    description: "Plan your perfect vacation with Blubeez AI travel assistant. Create personalized itineraries and explore amazing destinations worldwide.",
+    images: ["/assets/logo.svg"],
+    creator: "@blubeez"
+  },
+  verification: {
+    google: "google-site-verification-code"
+  },
+  category: "travel",
   icons: {
     icon: [
       { url: '/assets/favicon/favicon.ico' },
@@ -44,6 +118,7 @@ export default function RootLayout({
         <body
           className={`${bricolageGrotesque.variable} ${poppins.variable} antialiased`}
         >
+          {/* Google tag (gtag.js) */}
           <Script
             src="https://www.googletagmanager.com/gtag/js?id=G-WHKJFJSQRW"
             strategy="afterInteractive"
