@@ -384,7 +384,7 @@ export default function ChatInterface({
                 onKeyDown={handleKeyDown}
                 placeholder="Ask blu"
                 disabled={isLoading}
-                className="flex-1 bg-transparent text-[14px] md:text-[0.938rem] lg:text-[1rem] font-normal outline-none placeholder-neutral-400"
+                className="flex-1 bg-transparent text-[16px] md:text-[0.938rem] lg:text-[1rem] font-normal outline-none placeholder-neutral-400"
                 style={{ fontFamily: 'var(--font-poppins)', color: COLORS.textSecondary }}
               />
               <button

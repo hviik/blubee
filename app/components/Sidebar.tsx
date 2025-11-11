@@ -99,10 +99,11 @@ export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode
         aria-hidden={!isMobileOpen}
       >
         <div
-          className={`absolute inset-0 backdrop-blur-md transition-all duration-500 ease-in-out ${
+          className={`absolute inset-0 backdrop-blur-md transition-all ${
             isMobileOpen ? 'bg-black/50 opacity-100' : 'bg-black/0 opacity-0'
           }`}
           style={{
+            transitionDuration: '600ms',
             transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
           }}
           onClick={closeMobile}
@@ -112,8 +113,8 @@ export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode
             isMobileOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
           style={{
-            transitionDuration: '450ms',
-            transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+            transitionDuration: '700ms',
+            transitionTimingFunction: 'cubic-bezier(0.25, 0.8, 0.25, 1)',
           }}
           role="dialog"
           aria-modal="true"

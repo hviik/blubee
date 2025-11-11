@@ -32,7 +32,7 @@ export default function Header({
   };
 
   return (
-    <div className="w-full absolute left-0 top-0 z-20">
+    <div className="w-full fixed left-0 top-0 z-20">
       <SignedOut>
         <div
           className={`w-full px-2 md:pl-4 md:pr-14 py-4 flex justify-between items-center ${isChatMode ? 'border-b' : ''}`}
