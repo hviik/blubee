@@ -118,7 +118,6 @@ export default function RootLayout({
         <body
           className={`${bricolageGrotesque.variable} ${poppins.variable} antialiased`}
         >
-          {/* Google tag (gtag.js) */}
           <Script
             src="https://www.googletagmanager.com/gtag/js?id=G-WHKJFJSQRW"
             strategy="afterInteractive"

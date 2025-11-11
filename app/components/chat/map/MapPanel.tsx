@@ -18,7 +18,7 @@ interface MapPanelProps {
 export function MapPanel({
   locations,
   places = [],
-  center = { lat: 15.8700, lng: 100.9925 }, // Default: Southeast Asia
+  center = { lat: 15.8700, lng: 100.9925 },
   zoom = 6,
   onPlaceClick,
   selectedLocationId,
@@ -41,28 +41,24 @@ export function MapPanel({
     showPrices: false,
   });
 
-  // Initialize Google Map
   useEffect(() => {
     if (!mapRef.current) return;
 
-    // Wait for Google Maps to load
     if (typeof google === 'undefined' || !google.maps) {
       console.error('Google Maps not loaded');
       return;
     }
 
-    // Don't initialize if center coordinates are invalid (0, 0)
     if (!center || (center.lat === 0 && center.lng === 0)) {
       console.warn('Invalid map center coordinates');
       return;
     }
 
-    // Initialize map if it doesn't exist
     if (!mapInstanceRef.current) {
       const map = new google.maps.Map(mapRef.current, {
         center,
         zoom,
-        mapTypeId: google.maps.MapTypeId.ROADMAP, // Explicitly set to show roads and terrain
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
@@ -78,9 +74,7 @@ export function MapPanel({
 
       mapInstanceRef.current = map;
     } else {
-      // Update existing map center and zoom with smooth animation
       if (mapInstanceRef.current) {
-        // panTo provides smooth animation by default
         mapInstanceRef.current.panTo(center);
         mapInstanceRef.current.setZoom(zoom);
       }
@@ -88,19 +82,15 @@ export function MapPanel({
 
     const map = mapInstanceRef.current;
 
-    // Clear existing location markers
     locationMarkersRef.current.forEach((marker) => marker.setMap(null));
     locationMarkersRef.current = [];
 
-    // Clear existing location markers (markers without places)
     const existingMarkers = markersRef.current.filter(m => !m.place && m.location);
     existingMarkers.forEach(({ marker }) => {
       if (marker) marker.setMap(null);
     });
-    // Remove from array
     markersRef.current = markersRef.current.filter(m => m.place || !m.location);
 
-    // Add location markers for trip destinations (only valid coordinates)
     locations
       .filter(location => location.coordinates && location.coordinates.lat !== 0 && location.coordinates.lng !== 0)
       .forEach((location) => {
@@ -131,7 +121,6 @@ export function MapPanel({
         markersRef.current.push({ location, marker });
       });
 
-    // Fit bounds to show all valid locations (only if multiple locations)
     const validLocations = locations.filter(loc => loc.coordinates && loc.coordinates.lat !== 0 && loc.coordinates.lng !== 0);
     if (validLocations.length > 1) {
       const bounds = new google.maps.LatLngBounds();
@@ -139,18 +128,15 @@ export function MapPanel({
         bounds.extend(location.coordinates);
       });
       
-      // Check if bounds are too large (locations very far apart)
       const ne = bounds.getNorthEast();
       const sw = bounds.getSouthWest();
       const latDiff = Math.abs(ne.lat() - sw.lat());
       const lngDiff = Math.abs(ne.lng() - sw.lng());
       
-      // If locations are very far apart (>10 degrees), just center on first with reasonable zoom
       if (latDiff > 10 || lngDiff > 10) {
         map.setCenter(validLocations[0].coordinates);
-        map.setZoom(8); // Reasonable zoom for large area
+        map.setZoom(8);
       } else {
-        // Add padding to bounds for better view
         map.fitBounds(bounds, {
           top: 50,
           right: 50,
@@ -158,7 +144,6 @@ export function MapPanel({
           left: 50,
         });
         
-        // Set minimum zoom to prevent too much zoom out
         const listener = google.maps.event.addListener(map, 'bounds_changed', () => {
           if (map.getZoom() && map.getZoom()! < 6) {
             map.setZoom(6);
@@ -167,29 +152,24 @@ export function MapPanel({
         });
       }
     } else if (validLocations.length === 1) {
-      // For single location, use the zoom from props (should be 12)
       map.setCenter(validLocations[0].coordinates);
       map.setZoom(zoom || 12);
     }
   }, [center, zoom, locations]);
 
-  // Update markers based on filters and places
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
-    // Clear existing place markers
     markersRef.current.forEach(({ marker }) => {
       if (marker) marker.setMap(null);
     });
     markersRef.current = [];
 
-    // Filter places based on active filters
     const filteredPlaces = places.filter((place) => {
       if (filters.all) return true;
       return filters[place.type];
     });
 
-    // Add new markers
     filteredPlaces.forEach((place) => {
       const marker = new google.maps.Marker({
         position: place.location,
@@ -211,7 +191,6 @@ export function MapPanel({
 
       marker.addListener('click', () => {
         setSelectedPlace(place);
-        // Smooth pan to place with animation
         mapInstanceRef.current?.panTo(place.location);
         if (onPlaceClick) onPlaceClick(place);
       });
@@ -220,7 +199,6 @@ export function MapPanel({
     });
   }, [places, filters, onPlaceClick]);
 
-  // Fetch nearby places when a location is selected
   useEffect(() => {
     if (!selectedLocationId || !mapInstanceRef.current || locations.length === 0) return;
 
@@ -230,10 +208,9 @@ export function MapPanel({
     const { lat, lng } = selectedLocation.coordinates;
     if (lat === 0 && lng === 0) return;
 
-    // Fetch nearby attractions for the selected location
     searchPlaces(mapInstanceRef.current, {
       location: { lat, lng },
-      radius: 3000, // 3km radius
+      radius: 3000,
       type: 'attraction',
     })
       .then((places) => {
@@ -265,10 +242,8 @@ export function MapPanel({
 
   return (
     <div className="relative w-full h-full">
-      {/* Map Container */}
       <div ref={mapRef} className="w-full h-full" />
 
-      {/* Dark gradient overlay at top */}
       <div
         className="absolute top-0 left-0 right-0 h-[201px] pointer-events-none"
         style={{
@@ -276,14 +251,12 @@ export function MapPanel({
         }}
       />
 
-      {/* Place Info Card Overlay */}
       <PlaceInfoCard
         place={selectedPlace}
         map={mapInstanceRef.current}
         onClose={() => setSelectedPlace(null)}
       />
 
-      {/* Filter Panel */}
       <PlaceFilterPanel
         filters={filters}
         onFilterChange={setFilters}
@@ -291,7 +264,6 @@ export function MapPanel({
         isOpen={isFilterOpen}
       />
 
-      {/* Toggle filter button when closed */}
       {!isFilterOpen && (
         <button
           onClick={() => setIsFilterOpen(true)}

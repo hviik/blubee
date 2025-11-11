@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 export const runtime = 'edge';
 export const maxDuration = 10;
 
-// Currency mapping based on country
 const COUNTRY_TO_CURRENCY: Record<string, string> = {
   US: 'USD',
   GB: 'GBP',
@@ -45,17 +44,14 @@ const COUNTRY_TO_CURRENCY: Record<string, string> = {
 
 export async function GET(req: NextRequest) {
   try {
-    // Get IP address from request
     const forwarded = req.headers.get('x-forwarded-for');
     const ip = forwarded ? forwarded.split(',')[0] : req.headers.get('x-real-ip') || '';
 
-    // Use a free IP geolocation service
     let country = 'US';
     let currency = 'USD';
 
     if (ip) {
       try {
-        // Using ipapi.co (free tier: 1000 requests/day)
         const geoResponse = await fetch(`https://ipapi.co/${ip}/json/`, {
           headers: {
             'User-Agent': 'Mozilla/5.0',
@@ -69,11 +65,9 @@ export async function GET(req: NextRequest) {
         }
       } catch (error) {
         console.error('IP geolocation error:', error);
-        // Fallback to default
       }
     }
 
-    // Alternative: Try to get from request headers (Vercel provides this)
     const countryHeader = req.headers.get('x-vercel-ip-country');
     if (countryHeader) {
       country = countryHeader;

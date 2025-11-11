@@ -24,12 +24,10 @@ export default function Header({
   const currentSidebarWidth = sidebarExpanded ? sidebarExpandedWidth : sidebarCollapsedWidth;
   const desktopBrandLeft = currentSidebarWidth + sidebarGutter;
   
-  // Get user's first name, or fallback to full name or "there"
   const userName = user?.firstName || user?.fullName || 'there';
 
   const handleLogoClick = () => {
     router.push('/');
-    // Force reload to reset all states
     setTimeout(() => window.location.href = '/', 100);
   };
 
@@ -193,7 +191,6 @@ export default function Header({
             </button>
           </div>
 
-          {/* User Greeting */}
           <div
             className="text-[14px] md:text-[1rem] lg:text-[1.125rem] font-normal"
             style={{

@@ -15,7 +15,6 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
   const [panelHeight, setPanelHeight] = useState<number>(377);
   const [isDragging, setIsDragging] = useState(false);
   
-  // Filter out route segments to get unique destination locations
   const uniqueLocations = itinerary?.locations?.filter((location) => {
     const name = location.name.toLowerCase();
     return !name.includes(' to ') && !name.includes(' -> ') && !name.includes('return to');
@@ -26,30 +25,24 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
   );
   const containerRef = useRef<HTMLDivElement | null>(null);
   
-  // Update active location when itinerary changes
   useEffect(() => {
     if (uniqueLocations.length > 0 && !activeLocation) {
       const firstLocationId = uniqueLocations[0].id;
       setActiveLocation(firstLocationId);
-      // Trigger location select to center map on first location
       onLocationSelect?.(firstLocationId);
     }
   }, [itinerary, uniqueLocations.length, activeLocation, onLocationSelect]);
-
-  // --- Hooks must always be declared before any early returns ---
 
   const handleDragMove = useCallback(
     (e: MouseEvent) => {
       if (!isDragging) return;
 
-      // Get the parent container that has data-itinerary-container
       const container = document.querySelector('[data-itinerary-container]') as HTMLElement;
       if (!container) return;
 
       const rect = container.getBoundingClientRect();
       const newHeight = rect.bottom - e.clientY;
 
-      // Allow expanding all the way up (min 100px) or all the way down (max 95% of container)
       const minHeight = 100;
       const maxHeight = rect.height * 0.95;
       const clampedHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
@@ -74,7 +67,6 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
     }
   }, [isDragging, handleDragMove, handleDragEnd]);
 
-  // --- After all hooks are defined, we can safely early-return ---
   if (!itinerary) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-white border border-[#d7e7f5]">
@@ -105,8 +97,6 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
     if (!activeLocation) return true;
     const location = uniqueLocations.find((loc) => loc.id === activeLocation);
     if (!location) return false;
-    // Check if day location matches the selected location name
-    // Handle cases where day.location might be "Manila" or "Manila to Cebu"
     const dayLocation = day.location.toLowerCase();
     const locationName = location.name.toLowerCase();
     return dayLocation.includes(locationName) || dayLocation === locationName;
@@ -119,7 +109,6 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
 
   return (
     <div className="flex flex-col h-full bg-transparent relative">
-      {/* Drag Handle - Properly aligned and visible */}
       <div
         onMouseDown={handleDragStart}
         className="absolute -top-2 left-0 right-0 h-6 cursor-ns-resize hover:bg-blue-50/50 z-30 flex items-center justify-center group transition-all duration-200 rounded-t-lg"
@@ -132,7 +121,6 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
         <div className="w-20 h-1.5 bg-gray-300 rounded-full group-hover:bg-blue-500 group-hover:scale-110 transition-all duration-200 shadow-sm"></div>
       </div>
 
-      {/* Header */}
       <div className="p-3 md:p-4 pt-5 md:pt-6 flex-shrink-0">
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
@@ -161,14 +149,12 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
         </button>
       </div>
 
-      {/* Itinerary Content */}
       {!isCollapsed && (
         <div
           ref={containerRef}
           className="flex-1 border border-[#d7e7f5] mt-2 overflow-hidden flex flex-col rounded-t-xl shadow-lg"
           style={{ height: `${panelHeight}px`, minHeight: '200px', maxHeight: '85vh' }}
         >
-          {/* Location Tabs */}
           <div className="bg-white border-b border-[#d7e7f5] p-2 md:p-3 flex-shrink-0">
             <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
               {uniqueLocations.map((location, index) => (
@@ -212,7 +198,6 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
             </div>
           </div>
 
-          {/* Days List - Scrollable */}
           <div 
             className="flex-1 overflow-y-auto bg-white scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
             style={{
@@ -238,7 +223,6 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
             </div>
           </div>
 
-          {/* Scroll-to-top Button */}
           {filteredDays.length > 3 && (
             <div className="absolute bottom-4 right-4">
               <button

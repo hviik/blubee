@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Note: Using Node.js runtime for Supabase compatibility
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
@@ -16,7 +15,6 @@ interface TravelListing {
   rating?: number;
 }
 
-// Currency conversion rates (simplified - in production, use a real API)
 const CURRENCY_RATES: Record<string, number> = {
   USD: 1,
   EUR: 0.92,
@@ -62,7 +60,6 @@ async function searchAmadeus(query: string, currency: string) {
   }
 
   try {
-    // Get access token
     const tokenResponse = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
       method: 'POST',
       headers: {
@@ -82,7 +79,6 @@ async function searchAmadeus(query: string, currency: string) {
     const tokenData = await tokenResponse.json();
     const accessToken = tokenData.access_token;
 
-    // Search for destinations (using Amadeus Travel Recommendations API)
     const searchResponse = await fetch(
       `https://test.api.amadeus.com/v1/reference-data/locations?keyword=${encodeURIComponent(query)}&subType=CITY,AIRPORT`,
       {
@@ -98,7 +94,6 @@ async function searchAmadeus(query: string, currency: string) {
 
     const searchData = await searchResponse.json();
     
-    // Convert Amadeus results to our format
     const listings: TravelListing[] = (searchData.data || []).slice(0, 20).map((item: any, index: number) => ({
       id: `amadeus_${item.iataCode || index}`,
       destination: item.name || query,
@@ -119,7 +114,6 @@ async function searchAmadeus(query: string, currency: string) {
 
 async function getListingsFromSupabase(query: string, currency: string) {
   try {
-    // Try to use Supabase if available
     const { supabaseAdmin } = await import('@/lib/supabaseServer');
     
     let queryBuilder = supabaseAdmin
@@ -138,7 +132,6 @@ async function getListingsFromSupabase(query: string, currency: string) {
       return [];
     }
 
-    // Convert to our format and convert currency
     const listings: TravelListing[] = (data || []).map((item: any) => ({
       id: item.id,
       destination: item.destination,
@@ -164,18 +157,14 @@ export async function GET(req: NextRequest) {
     const query = searchParams.get('query') || '';
     const currency = searchParams.get('currency') || 'USD';
 
-    // Try Supabase first, then Amadeus as fallback
     let listings: TravelListing[] = [];
 
-    // Get from Supabase
     listings = await getListingsFromSupabase(query, currency);
 
-    // If no results and we have a query, try Amadeus
     if (listings.length === 0 && query) {
       listings = await searchAmadeus(query, currency);
     }
 
-    // If still no results, return some default popular destinations
     if (listings.length === 0) {
       const defaultDestinations = [
         { name: 'Bali', country: 'Indonesia', price: 800 },

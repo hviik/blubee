@@ -1,7 +1,3 @@
-/**
- * Utility for detecting user's local currency based on IP geolocation
- */
-
 export interface CurrencyInfo {
   code: string;
   symbol: string;
@@ -66,22 +62,15 @@ const currencyNames: Record<string, string> = {
   VND: 'Vietnamese Dong',
 };
 
-/**
- * Detect user's currency based on their IP address
- * Caches result in sessionStorage for performance
- */
 export async function detectUserCurrency(): Promise<CurrencyInfo> {
-  // Check if already cached in session
   const cached = sessionStorage.getItem('userCurrency');
   if (cached) {
     try {
       return JSON.parse(cached);
     } catch {
-      // Invalid cache, continue with detection
     }
   }
 
-  // Default fallback
   const defaultCurrency: CurrencyInfo = {
     code: 'INR',
     symbol: '₹',
@@ -89,9 +78,8 @@ export async function detectUserCurrency(): Promise<CurrencyInfo> {
   };
 
   try {
-    // Detect currency from IP
     const response = await fetch('https://ipapi.co/json/', {
-      signal: AbortSignal.timeout(5000), // 5 second timeout
+      signal: AbortSignal.timeout(5000),
     });
 
     if (!response.ok) {
@@ -113,7 +101,6 @@ export async function detectUserCurrency(): Promise<CurrencyInfo> {
       name: currencyNames[currencyCode] || currencyCode,
     };
 
-    // Cache for session
     sessionStorage.setItem('userCurrency', JSON.stringify(currencyInfo));
 
     return currencyInfo;
@@ -123,9 +110,6 @@ export async function detectUserCurrency(): Promise<CurrencyInfo> {
   }
 }
 
-/**
- * Get exchange rate from base currency to target currency
- */
 export async function getExchangeRate(
   fromCurrency: string,
   toCurrency: string
@@ -136,7 +120,7 @@ export async function getExchangeRate(
     const response = await fetch(
       `https://api.exchangerate-api.com/v4/latest/${fromCurrency}`,
       {
-        signal: AbortSignal.timeout(5000), // 5 second timeout
+        signal: AbortSignal.timeout(5000),
       }
     );
 
@@ -153,12 +137,6 @@ export async function getExchangeRate(
   }
 }
 
-/**
- * Format price in user's local currency
- * @param amount - Amount to format
- * @param currencyInfo - Currency information (code, symbol, name)
- * @returns Formatted price string with currency symbol
- */
 export function formatPrice(
   amount: number,
   currencyInfo: CurrencyInfo
@@ -171,29 +149,19 @@ export function formatPrice(
       maximumFractionDigits: 0,
     }).format(amount);
   } catch {
-    // Fallback if Intl fails
     return `${currencyInfo.symbol} ${Math.round(amount).toLocaleString()}`;
   }
 }
 
-/**
- * Convert amount from base currency (INR) to target currency with formatting
- * @param amountINR - Amount in Indian Rupees (base currency)
- * @param targetCurrency - Target currency info
- * @param exchangeRate - Exchange rate from INR to target currency
- * @returns Formatted price string in target currency
- */
 export function convertAndFormat(
   amountINR: number,
   targetCurrency: CurrencyInfo,
   exchangeRate: number
 ): string {
-  // If target is INR, no conversion needed
   if (targetCurrency.code === 'INR') {
     return formatPrice(amountINR, targetCurrency);
   }
   
-  // Convert to target currency
   const convertedAmount = Math.round(amountINR * exchangeRate);
   
   return formatPrice(convertedAmount, targetCurrency);

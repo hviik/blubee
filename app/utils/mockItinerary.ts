@@ -1,7 +1,3 @@
-/**
- * Mock itinerary data for development and testing
- */
-
 import { Itinerary } from '@/app/types/itinerary';
 
 export const mockItinerary: Itinerary = {

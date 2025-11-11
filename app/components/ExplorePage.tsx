@@ -16,7 +16,7 @@ interface Destination {
   flag: string;
   image: string;
   duration: string;
-  priceINR: number; // Base price in INR (as number for easy conversion)
+  priceINR: number;
   priceDetail: string;
   route: string[];
 }
@@ -109,13 +109,11 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
   const [currencyInfo, setCurrencyInfo] = useState<CurrencyInfo | null>(null);
   const [exchangeRate, setExchangeRate] = useState<number>(1);
 
-  // Detect user's currency on mount
   useEffect(() => {
     const initCurrency = async () => {
       const currency = await detectUserCurrency();
       setCurrencyInfo(currency);
       
-      // Get exchange rate if not INR
       if (currency.code !== 'INR') {
         const rate = await getExchangeRate('INR', currency.code);
         setExchangeRate(rate);
@@ -125,26 +123,17 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
     initCurrency();
   }, []);
 
-  /**
-   * Convert INR price to user's local currency with proper formatting
-   * @param priceINR - Price in Indian Rupees (base currency)
-   * @returns Formatted price string with local currency symbol
-   */
   const convertAndFormatPrice = (priceINR: number): string => {
-    // Show loading state if currency info not yet loaded
     if (!currencyInfo) {
       return `₹ ${priceINR.toLocaleString()}`;
     }
     
-    // If user's currency is INR, no conversion needed
     if (currencyInfo.code === 'INR') {
       return `${currencyInfo.symbol} ${priceINR.toLocaleString()}`;
     }
     
-    // Convert to user's local currency
     const convertedAmount = Math.round(priceINR * exchangeRate);
     
-    // Format with proper currency symbol and thousands separators
     return `${currencyInfo.symbol} ${convertedAmount.toLocaleString()}`;
   };
 

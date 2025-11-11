@@ -31,7 +31,6 @@ export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false, 
 
   return (
     <>
-      {/* Search Input - 16px text, 12px py on mobile */}
       <form onSubmit={handleSubmit} className="w-full">
         <div 
           className="w-full px-4 py-3 md:py-3 rounded-[16px] border border-[#9cabb6] flex items-center justify-between gap-2"
@@ -65,7 +64,6 @@ export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false, 
         </div>
       </form>
 
-      {/* Mobile Footer Links - 14px text, 18px icons on mobile */}
       <div
         className={`md:hidden w-full flex justify-between items-center gap-3 transition-all duration-500 ease-in-out ${
           isMobileSidebarOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'

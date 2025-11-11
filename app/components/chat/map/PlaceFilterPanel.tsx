@@ -19,7 +19,6 @@ export function PlaceFilterPanel({
 }: PlaceFilterPanelProps) {
   const handleFilterToggle = (filterKey: keyof PlaceFilters) => {
     if (filterKey === 'all') {
-      // If "All" is selected, uncheck all others
       onFilterChange({
         all: true,
         stays: false,
@@ -35,7 +34,6 @@ export function PlaceFilterPanel({
         showPrices: !filters.showPrices,
       });
     } else {
-      // Toggle individual filter and uncheck "All"
       onFilterChange({
         ...filters,
         all: false,
@@ -48,7 +46,6 @@ export function PlaceFilterPanel({
 
   return (
     <div className="absolute right-4 top-4 z-10 flex flex-col items-end gap-4">
-      {/* Close Button */}
       <button
         onClick={onClose}
         className="flex items-center gap-1 rounded-full bg-white px-3 py-2 shadow-lg hover:bg-gray-50 transition-colors"
@@ -63,7 +60,6 @@ export function PlaceFilterPanel({
         />
       </button>
 
-      {/* Info Button */}
       <button className="rounded-full bg-white p-2 shadow-lg hover:bg-gray-50 transition-colors">
         <Image
           src="/assets/help.svg"
@@ -74,9 +70,7 @@ export function PlaceFilterPanel({
         />
       </button>
 
-      {/* Filter Panel */}
       <div className="bg-white rounded-lg shadow-lg p-3 flex flex-col gap-3 min-w-[161px]">
-        {/* All Option */}
         <button
           onClick={() => handleFilterToggle('all')}
           className="flex items-center gap-2 hover:bg-gray-50 rounded px-1 transition-colors"
@@ -95,9 +89,7 @@ export function PlaceFilterPanel({
 
         <div className="h-px bg-[#d7e7f5]"></div>
 
-        {/* Filter Options */}
         <div className="flex flex-col gap-2">
-          {/* Stays */}
           <FilterCheckbox
             label="Stays"
             icon="/assets/bookmark-bag.svg"
@@ -105,7 +97,6 @@ export function PlaceFilterPanel({
             onChange={() => handleFilterToggle('stays')}
           />
 
-          {/* Restaurants */}
           <FilterCheckbox
             label="Restaurants"
             icon="/assets/stat-0.svg"
@@ -113,7 +104,6 @@ export function PlaceFilterPanel({
             onChange={() => handleFilterToggle('restaurants')}
           />
 
-          {/* Attraction */}
           <FilterCheckbox
             label="Attraction"
             icon="/assets/travel-explore.svg"
@@ -121,7 +111,6 @@ export function PlaceFilterPanel({
             onChange={() => handleFilterToggle('attraction')}
           />
 
-          {/* Activities */}
           <FilterCheckbox
             label="Activities"
             icon="/assets/explore.svg"
@@ -129,7 +118,6 @@ export function PlaceFilterPanel({
             onChange={() => handleFilterToggle('activities')}
           />
 
-          {/* Locations */}
           <FilterCheckbox
             label="Locations"
             icon="/assets/logo-icon.svg"
@@ -140,7 +128,6 @@ export function PlaceFilterPanel({
 
         <div className="h-px bg-[#d7e7f5]"></div>
 
-        {/* Show Prices Toggle */}
         <button
           onClick={() => handleFilterToggle('showPrices')}
           className="flex items-center gap-2 hover:bg-gray-50 rounded px-1 transition-colors"

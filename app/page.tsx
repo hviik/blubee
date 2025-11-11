@@ -25,7 +25,6 @@ export default function BlubeezHome() {
   const [initialMessage, setInitialMessage] = useState<string | null>(null);
   const [isDesktop, setIsDesktop] = useState(false);
   
-  // Detect desktop screen size
   useEffect(() => {
     const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
     checkDesktop();
@@ -33,7 +32,6 @@ export default function BlubeezHome() {
     return () => window.removeEventListener('resize', checkDesktop);
   }, []);
 
-  // Set dynamic viewport height for older browsers (fallback for dvh)
   useEffect(() => {
     const setVH = () => {
       const vh = window.innerHeight * 0.01;
@@ -48,7 +46,6 @@ export default function BlubeezHome() {
     };
   }, []);
   
-  // Calculate sidebar width for responsive chat positioning
   const sidebarWidth = isSidebarExpanded ? 240 : 67;
 
   const handleOpenModal = () => setIsModalOpen(true);
@@ -79,7 +76,6 @@ export default function BlubeezHome() {
       return;
     }
     
-    // Format the places in the route
     let placesText = '';
     if (route.length > 0) {
       if (route.length === 1) {
@@ -93,14 +89,12 @@ export default function BlubeezHome() {
       }
     }
     
-    // Create the message prompt
     const message = `Plan me a trip to ${countryName}${placesText}`;
     setInitialMessage(message);
     setIsExploreActive(false);
     setIsChatActive(true);
   };
 
-  // Prevent background/body scrolling while chat is active
   useEffect(() => {
     if (isChatActive) {
       const prev = document.body.style.overflow;
@@ -111,7 +105,6 @@ export default function BlubeezHome() {
     }
   }, [isChatActive]);
 
-  // Clear initial message once delivered to ChatInterface
   useEffect(() => {
     if (isChatActive && initialMessage) {
       const t = setTimeout(() => setInitialMessage(null), 0);
@@ -119,7 +112,6 @@ export default function BlubeezHome() {
     }
   }, [isChatActive, initialMessage]);
 
-  // Close auth modal when user signs in
   useEffect(() => {
     if (isSignedIn && isAuthModalOpen) {
       setIsAuthModalOpen(false);
@@ -141,7 +133,6 @@ export default function BlubeezHome() {
       />
 
       {isExploreActive ? (
-        // Explore Page
         <div 
           className="fixed inset-x-0 z-10 transition-all duration-300 ease-in-out"
           style={{

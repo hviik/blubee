@@ -19,7 +19,6 @@ export default function PromptCards({ onPromptClick }: PromptCardsProps) {
 
   return (
     <div className="w-full flex flex-col gap-2 items-start">
-      {/* Header - 10px on mobile (375px), scales up on larger screens */}
       <div className="w-full flex flex-wrap items-center gap-1">
         <div 
           className="text-[10px] md:text-[0.75rem] lg:text-[0.813rem] font-medium whitespace-nowrap"
@@ -41,7 +40,6 @@ export default function PromptCards({ onPromptClick }: PromptCardsProps) {
         </div>
       </div>
 
-      {/* Prompt Cards - 12px text, 8px py, 16px px on mobile (375px) */}
       <div className="w-full flex flex-col gap-3 items-start">
         {SAMPLE_PROMPTS.map((prompt, index) => (
           <div

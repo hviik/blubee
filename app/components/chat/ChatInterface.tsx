@@ -41,7 +41,6 @@ export default function ChatInterface({
   const prevMessageCount = useRef(0);
   const hasStartedStreamingRef = useRef(false);
 
-  // Detect user's currency on mount
   useEffect(() => {
     detectUserCurrency().then((currency) => {
       setUserCurrency(currency);
@@ -88,12 +87,10 @@ export default function ChatInterface({
       setMessages(updated);
       prevMessageCount.current = updated.length;
 
-      // Add empty assistant message that will be filled as streaming happens
       setMessages((prev) => [...prev, { role: 'assistant', content: '', isStreaming: true }]);
       scrollToBottom(true);
 
       try {
-        // Get user's name from Clerk
         const userName = user?.firstName || user?.fullName?.split(' ')[0] || null;
         
         const response = await fetch('/api/chat', {
@@ -101,8 +98,8 @@ export default function ChatInterface({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             messages: updated,
-            userName: userName, // Pass user's name to the API
-            currency: userCurrency // Pass user's currency to the API
+            userName: userName,
+            currency: userCurrency
           }),
         });
 
@@ -111,32 +108,26 @@ export default function ChatInterface({
           throw new Error(err.error || 'Network error');
         }
 
-        // Backend sends Server-Sent Events (SSE) format (matching FastAPI pattern)
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
         let accumulated = '';
 
-        // Process SSE stream chunks (matching FastAPI client pattern)
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
 
-          // Decode chunk and add to buffer
           buffer += decoder.decode(value, { stream: true });
           
-          // Process complete SSE messages (format: "data: {...}\n\n")
           const lines = buffer.split('\n');
-          buffer = lines.pop() || ''; // Keep incomplete line in buffer
+          buffer = lines.pop() || '';
 
           for (const line of lines) {
             if (!line.trim() || !line.startsWith('data: ')) continue;
             
-            const data = line.slice(6); // Remove "data: " prefix
+            const data = line.slice(6);
             
-            // Check for [DONE] marker (matching FastAPI pattern)
             if (data === '[DONE]') {
-              // Streaming complete - final update with markdown
               setMessages((prev) => {
                 const newMessages = [...prev];
                 const lastIndex = newMessages.length - 1;
@@ -156,18 +147,14 @@ export default function ChatInterface({
             try {
               const chunk = JSON.parse(data);
               
-              // Extract content (matching FastAPI pattern: {"content": "chunk"})
               if (chunk.content) {
-                // Mark streaming as started
                 if (!hasStartedStreamingRef.current) {
                   hasStartedStreamingRef.current = true;
                   setHasStartedStreaming(true);
                 }
 
-                // Add chunk to accumulated text
                 accumulated += chunk.content;
 
-                // Update UI immediately - use plain text during streaming for performance
                 setMessages((prev) => {
                   const newMessages = [...prev];
                   const lastIndex = newMessages.length - 1;
@@ -175,25 +162,22 @@ export default function ChatInterface({
                     newMessages[lastIndex] = {
                       role: 'assistant',
                       content: accumulated,
-                      isStreaming: true, // Flag to indicate streaming
+                      isStreaming: true,
                     };
                   }
                   return newMessages;
                 });
 
-                // Auto-scroll smoothly
                 requestAnimationFrame(() => {
                   scrollToBottom(false);
                 });
               }
             } catch (e) {
-              // Skip invalid JSON lines
               continue;
             }
           }
         }
 
-        // Process any remaining buffer
         if (buffer.trim()) {
           const line = buffer.trim();
           if (line.startsWith('data: ')) {
@@ -217,7 +201,6 @@ export default function ChatInterface({
                   });
                 }
               } catch (e) {
-                // Ignore parse errors
               }
             }
           }
@@ -243,7 +226,6 @@ export default function ChatInterface({
     [isLoading, onSendMessage, scrollToBottom, user, userCurrency]
   );
 
-  // Handle initial messages
   useEffect(() => {
     if (!hasInitialized.current && initialMessages.length > 0) {
       hasInitialized.current = true;
@@ -252,7 +234,6 @@ export default function ChatInterface({
     }
   }, [initialMessages, sendMessageToAPI]);
 
-  // Handle triggered messages from external components (like explore page)
   useEffect(() => {
     if (triggerMessage && !isLoading) {
       sendMessageToAPI(triggerMessage, messages);
@@ -260,16 +241,13 @@ export default function ChatInterface({
     }
   }, [triggerMessage]);
 
-  // Handle "/" key to focus input
   useEffect(() => {
     const handleSlashKey = (e: KeyboardEvent) => {
-      // Only trigger if not typing in an input/textarea
       const target = e.target as HTMLElement;
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
         return;
       }
 
-      // Check if "/" key is pressed
       if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
         e.preventDefault();
         inputRef.current?.focus();
@@ -342,7 +320,6 @@ export default function ChatInterface({
                 <div className="flex-1 min-w-0 pt-0.5 md:pt-1">
                   {message.role === 'assistant' ? (
                     <div className="text-[14px] md:text-[0.938rem] lg:text-[1rem]">
-                      {/* Show plain text during streaming for performance, markdown when done */}
                       {message.isStreaming && message.content ? (
                         <p
                           className="leading-relaxed whitespace-pre-wrap"
@@ -354,7 +331,6 @@ export default function ChatInterface({
                       ) : message.content ? (
                         <MarkdownMessage content={message.content} />
                       ) : (
-                        // Show loading dots when message is empty (before first chunk arrives)
                         <div className="flex gap-1">
                           <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
                           <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />

@@ -1,12 +1,5 @@
-/**
- * Utility functions for Google Places API integration
- */
-
 import { Place, PlaceType, PlacesSearchRequest, PlacesSearchResponse } from '@/app/types/itinerary';
 
-/**
- * Maps our PlaceType to Google Places API types
- */
 const placeTypeMapping: Record<PlaceType, string[]> = {
   stays: ['lodging', 'hotel'],
   restaurants: ['restaurant', 'cafe', 'food'],
@@ -15,10 +8,6 @@ const placeTypeMapping: Record<PlaceType, string[]> = {
   locations: ['point_of_interest'],
 };
 
-/**
- * Search for places using Google Places API (client-side)
- * Note: This uses the Places Library from Google Maps JavaScript API
- */
 export async function searchPlaces(
   map: google.maps.Map,
   request: PlacesSearchRequest
@@ -46,9 +35,6 @@ export async function searchPlaces(
   });
 }
 
-/**
- * Get place details using Google Places API
- */
 export async function getPlaceDetails(
   map: google.maps.Map,
   placeId: string
@@ -72,9 +58,6 @@ export async function getPlaceDetails(
   });
 }
 
-/**
- * Convert Google Places result to our Place interface
- */
 function convertToPlace(
   result: google.maps.places.PlaceResult,
   type?: PlaceType
@@ -97,28 +80,19 @@ function convertToPlace(
   };
 }
 
-/**
- * Infer our PlaceType from Google Places types array
- */
 function inferPlaceType(types: string[]): PlaceType {
   for (const [placeType, googleTypes] of Object.entries(placeTypeMapping)) {
     if (types.some((type) => googleTypes.includes(type))) {
       return placeType as PlaceType;
     }
   }
-  return 'locations'; // default
+  return 'locations';
 }
 
-/**
- * Generate a unique ID
- */
 function generateId(): string {
   return `place_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
-/**
- * Geocode an address to coordinates using Google Geocoding API
- */
 export async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
   return new Promise((resolve) => {
     const geocoder = new google.maps.Geocoder();
@@ -138,9 +112,6 @@ export async function geocodeAddress(address: string): Promise<{ lat: number; ln
   });
 }
 
-/**
- * Reverse geocode coordinates to address
- */
 export async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
   return new Promise((resolve) => {
     const geocoder = new google.maps.Geocoder();
@@ -156,9 +127,6 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string |
   });
 }
 
-/**
- * Calculate distance between two points using Google Maps Geometry Library
- */
 export function calculateDistance(
   from: { lat: number; lng: number },
   to: { lat: number; lng: number }
@@ -169,14 +137,11 @@ export function calculateDistance(
   return google.maps.geometry.spherical.computeDistanceBetween(fromLatLng, toLatLng);
 }
 
-/**
- * Search places near multiple locations (for entire trip)
- */
 export async function searchPlacesForTrip(
   map: google.maps.Map,
   locations: Array<{ lat: number; lng: number; name: string }>,
   placeType: PlaceType,
-  radius: number = 5000 // 5km default
+  radius: number = 5000
 ): Promise<Map<string, Place[]>> {
   const placesByLocation = new Map<string, Place[]>();
   

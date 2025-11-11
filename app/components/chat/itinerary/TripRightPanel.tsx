@@ -18,7 +18,6 @@ export function TripRightPanel({
   onLocationSelect,
 }: TripRightPanelProps) {
   const { isLoaded, loadError } = useGoogleMaps();
-  // Default to Southeast Asia center
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ 
     lat: 15.8700, 
     lng: 100.9925 
@@ -26,7 +25,6 @@ export function TripRightPanel({
   const [mapZoom, setMapZoom] = useState<number>(6);
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
 
-  // Update map center when itinerary changes
   useEffect(() => {
     if (itinerary && itinerary.locations.length > 0) {
       const validLocations = itinerary.locations.filter(
@@ -34,14 +32,12 @@ export function TripRightPanel({
       );
       
       if (validLocations.length > 0) {
-        // If multiple locations, let fitBounds handle it, otherwise center on first
         if (validLocations.length === 1) {
           setMapCenter(validLocations[0].coordinates);
-          setMapZoom(12); // Better zoom for single location
+          setMapZoom(12);
         } else {
-          // For multiple locations, center on first but use better default zoom
           setMapCenter(validLocations[0].coordinates);
-          setMapZoom(8); // Better default zoom for multiple locations (was 6, too zoomed out)
+          setMapZoom(8);
         }
       }
     }
@@ -53,11 +49,10 @@ export function TripRightPanel({
     if (itinerary) {
       const location = itinerary.locations.find((loc) => loc.id === locationId);
       if (location && location.coordinates) {
-        // Check if coordinates are valid
         if (location.coordinates.lat !== 0 || location.coordinates.lng !== 0) {
           console.log('Zooming to location:', location.name, location.coordinates);
           setMapCenter(location.coordinates);
-          setMapZoom(14); // Closer zoom when clicking a specific location for better detail
+          setMapZoom(14);
         } else {
           console.warn('Location has invalid coordinates:', location.name);
         }
@@ -94,7 +89,6 @@ export function TripRightPanel({
 
   return (
     <div className="w-full h-full flex flex-col bg-white relative" data-itinerary-container>
-      {/* Map Section - Flexible, takes remaining space */}
       <div className="flex-1 relative min-h-0">
         {isLoaded && (
           <MapPanel
@@ -107,7 +101,6 @@ export function TripRightPanel({
         )}
       </div>
 
-      {/* Itinerary Section - Absolute positioned at bottom */}
       <div className="absolute bottom-0 left-0 right-0 z-20">
         <ItineraryPanel
           itinerary={itinerary}

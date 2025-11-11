@@ -11,7 +11,6 @@ interface FooterProps {
 export default function Footer({ onHelpClick, onExploreClick }: FooterProps) {
   return (
     <div className="hidden md:flex w-full max-w-[1329px] mx-auto px-4 absolute bottom-[clamp(1rem,2.5vh,1.75rem)] left-1/2 -translate-x-1/2 z-10 justify-between items-center">
-      {/* Left - Explore Button */}
       <div className="flex-1 flex justify-start">
         <button
           onClick={onExploreClick}
@@ -31,7 +30,6 @@ export default function Footer({ onHelpClick, onExploreClick }: FooterProps) {
         </button>
       </div>
 
-      {/* Center - Terms Text */}
       <div className="flex justify-center items-center">
         <div 
           className="text-[0.75rem] font-normal text-center max-w-[500px]"
@@ -44,7 +42,6 @@ export default function Footer({ onHelpClick, onExploreClick }: FooterProps) {
         </div>
       </div>
 
-      {/* Right - Help Button */}
       <div className="flex-1 flex justify-end">
         <button 
           onClick={onHelpClick}

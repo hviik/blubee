@@ -22,7 +22,6 @@ export function DayCard({ day, isFirst, isLast, onExpand }: DayCardProps) {
 
   return (
     <div className="flex gap-2 md:gap-3 w-full">
-      {/* Location Icon & Line */}
       <div className="flex flex-col items-center" style={{ width: '20px' }}>
         <div className="relative w-5 h-5 md:w-6 md:h-6 flex-shrink-0">
           <Image
@@ -38,9 +37,7 @@ export function DayCard({ day, isFirst, isLast, onExpand }: DayCardProps) {
         )}
       </div>
 
-      {/* Day Content */}
       <div className="flex-1 pb-4 md:pb-6">
-        {/* Day Header */}
         <div className="mb-1.5 md:mb-2">
           <div className="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1">
             <span className="text-xs md:text-sm font-medium text-[#2f4f93]">DAY {day.dayNumber}</span>
@@ -51,14 +48,12 @@ export function DayCard({ day, isFirst, isLast, onExpand }: DayCardProps) {
           </h3>
         </div>
 
-        {/* Description */}
         {isExpanded && (
           <p className="text-xs md:text-sm text-[#7286b0] mb-3 md:mb-4 leading-relaxed">
             {day.description}
           </p>
         )}
 
-        {/* Activity Icons */}
         {isExpanded && day.activities && (
           <div className="flex gap-4 md:gap-6 mb-3 md:mb-4">
             {day.activities.icon?.hotel && (
@@ -108,7 +103,6 @@ export function DayCard({ day, isFirst, isLast, onExpand }: DayCardProps) {
           </div>
         )}
 
-        {/* More Info Button */}
         <button
           onClick={handleToggleExpand}
           className="flex items-center gap-1.5 md:gap-2 text-xs md:text-sm text-[#7286b0] hover:text-[#2f4f93] transition-colors group"

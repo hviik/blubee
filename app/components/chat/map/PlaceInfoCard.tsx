@@ -46,7 +46,6 @@ export function PlaceInfoCard({ place, map, onClose }: PlaceInfoCardProps) {
         animation: 'slideUp 0.3s ease-out',
       }}
     >
-      {/* Header with image */}
       <div className="relative h-40 md:h-48 rounded-t-2xl overflow-hidden flex-shrink-0">
         {photos.length > 0 && photos[0] ? (
           <img
@@ -97,9 +96,7 @@ export function PlaceInfoCard({ place, map, onClose }: PlaceInfoCardProps) {
         </button>
       </div>
 
-      {/* Content */}
       <div className={`flex-1 overflow-y-auto p-4 md:p-5 ${isExpanded ? '' : 'max-h-48'}`}>
-        {/* Title and Rating */}
         <div className="mb-3">
           <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-1">
             {place.name}
@@ -124,7 +121,6 @@ export function PlaceInfoCard({ place, map, onClose }: PlaceInfoCardProps) {
           )}
         </div>
 
-        {/* Address */}
         {address && (
           <div className="flex items-start gap-2 text-sm text-gray-600 mb-3">
             <svg
@@ -150,7 +146,6 @@ export function PlaceInfoCard({ place, map, onClose }: PlaceInfoCardProps) {
           </div>
         )}
 
-        {/* Loading state for additional details */}
         {loading && (
           <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
@@ -158,7 +153,6 @@ export function PlaceInfoCard({ place, map, onClose }: PlaceInfoCardProps) {
           </div>
         )}
 
-        {/* Additional Photos Grid (when expanded) */}
         {isExpanded && photos.length > 1 && (
           <div className="mt-4">
             <h4 className="text-sm font-medium text-gray-700 mb-2">More Photos</h4>
@@ -179,7 +173,6 @@ export function PlaceInfoCard({ place, map, onClose }: PlaceInfoCardProps) {
           </div>
         )}
 
-        {/* Place Types */}
         {placeDetails?.types && placeDetails.types.length > 0 && isExpanded && (
           <div className="mt-4">
             <h4 className="text-sm font-medium text-gray-700 mb-2">Categories</h4>
@@ -197,7 +190,6 @@ export function PlaceInfoCard({ place, map, onClose }: PlaceInfoCardProps) {
         )}
       </div>
 
-      {/* Expand/Collapse Button */}
       <div className="border-t border-gray-100 p-3 flex-shrink-0">
         <button
           onClick={() => setIsExpanded(!isExpanded)}

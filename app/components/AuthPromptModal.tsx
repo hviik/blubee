@@ -50,7 +50,6 @@ export default function AuthPromptModal({ isOpen, onClose }: AuthPromptModalProp
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className={`fixed inset-0 z-40 backdrop-blur-[2px] transition-all duration-500 ease-in-out ${
           isAnimating ? 'opacity-100' : 'opacity-0'
@@ -59,7 +58,6 @@ export default function AuthPromptModal({ isOpen, onClose }: AuthPromptModalProp
         onClick={onClose}
       />
 
-      {/* Modal */}
       <div 
         className={`fixed z-50 rounded-2xl flex flex-col
           left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[343px] px-6 py-8 gap-6
@@ -71,7 +69,6 @@ export default function AuthPromptModal({ isOpen, onClose }: AuthPromptModalProp
           }`}
         style={{ backgroundColor: COLORS.white }}
       >
-        {/* Close Button */}
         <div className="flex items-center justify-end w-full">
           <button 
             onClick={onClose}
@@ -81,9 +78,7 @@ export default function AuthPromptModal({ isOpen, onClose }: AuthPromptModalProp
           </button>
         </div>
 
-        {/* Content */}
         <div className="flex flex-col gap-6 w-full items-center">
-          {/* Title */}
           <div className="flex flex-col gap-3 items-center text-center w-full">
             <p
               className="text-[1.75rem] md:text-[2rem] font-normal"
@@ -105,7 +100,6 @@ export default function AuthPromptModal({ isOpen, onClose }: AuthPromptModalProp
             </p>
           </div>
 
-          {/* Buttons */}
           <div className="flex flex-col gap-3 w-full">
             <SignInButton mode="modal">
               <button

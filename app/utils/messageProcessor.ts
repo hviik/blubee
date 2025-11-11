@@ -15,13 +15,10 @@ export function processMessage(content: string): ProcessedMessage {
     intent: detectIntent(content),
   };
 
-  // Extract locations
   result.locations = extractLocations(content);
 
-  // Extract dates
   result.dates = extractDates(content);
 
-  // Extract itinerary if present
   const itinerary = extractItinerary(content);
   if (itinerary) {
     result.hasItinerary = true;
@@ -64,13 +61,9 @@ function detectIntent(content: string): ProcessedMessage['intent'] {
   return 'general';
 }
 
-/**
- * Extract location names from text
- */
 function extractLocations(content: string): string[] {
   const locations: string[] = [];
   
-  // Common location patterns
   const patterns = [
     /(?:to|in|visit|explore)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g,
     /Day\s+\d+:\s*([^-\n]+)/g,
@@ -91,13 +84,9 @@ function extractLocations(content: string): string[] {
   return locations;
 }
 
-/**
- * Extract dates from text
- */
 function extractDates(content: string): { start?: string; end?: string } {
   const dates: { start?: string; end?: string } = {};
   
-  // Look for date patterns
   const datePattern = /(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*,?\s+(\d{2,4})/gi;
   const matches = [...content.matchAll(datePattern)];
   
@@ -111,14 +100,10 @@ function extractDates(content: string): { start?: string; end?: string } {
   return dates;
 }
 
-/**
- * Extract itinerary structure from AI response
- */
 function extractItinerary(content: string): Itinerary | null {
   const dayPattern = /Day\s+(\d+):\s*([^\n]+)/gi;
   const dayMatches = [...content.matchAll(dayPattern)];
   
-  // Allow single day itineraries
   if (dayMatches.length < 1) return null;
   
   const days: ItineraryDay[] = [];
@@ -128,19 +113,16 @@ function extractItinerary(content: string): Itinerary | null {
     const dayNumber = parseInt(match[1]);
     const title = match[2].trim();
     
-    // Extract main location from title
     const locationMatch = title.match(/^([^-–(]+)/);
     const mainLocation = locationMatch ? locationMatch[1].trim() : 'Unknown';
     locationSet.add(mainLocation);
     
-    // Get full description
     const dayIndex = content.indexOf(match[0]);
     const nextDayIndex = content.indexOf(`Day ${dayNumber + 1}:`, dayIndex);
     const fullDescription = nextDayIndex > -1
       ? content.slice(dayIndex + match[0].length, nextDayIndex).trim()
       : content.slice(dayIndex + match[0].length).trim();
     
-    // Extract specific places from description
     const places = extractPlacesFromDescription(fullDescription, mainLocation);
     
     days.push({
@@ -177,7 +159,6 @@ function extractPlacesFromDescription(description: string, mainLocation: string)
   const lines = description.split('\n');
   
   lines.forEach(line => {
-    // Morning/Afternoon/Evening activities
     if (/morning:/i.test(line)) {
       const matches = line.match(/:\s*([^,\n]+)/gi);
       matches?.forEach(m => {
@@ -202,7 +183,6 @@ function extractPlacesFromDescription(description: string, mainLocation: string)
       });
     }
     
-    // Hotel/Stay mentions
     if (/hotel|stay|accommodation/i.test(line)) {
       const matches = line.match(/(?:at|stay at)\s+([^,\n]+)/gi);
       matches?.forEach(m => {
@@ -220,9 +200,6 @@ function extractPlacesFromDescription(description: string, mainLocation: string)
   }));
 }
 
-/**
- * Check if message contains itinerary data
- */
 export function hasItineraryData(content: string): boolean {
   const dayPattern = /Day\s+\d+:/gi;
   const matches = content.match(dayPattern);

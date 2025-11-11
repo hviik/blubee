@@ -1,8 +1,3 @@
-/**
- * Geocoding utilities for location processing
- * Uses client-side Google Maps Geocoder API
- */
-
 export interface GeocodeResult {
   name: string;
   lat: number;
@@ -10,12 +5,8 @@ export interface GeocodeResult {
   address?: string;
 }
 
-/**
- * Geocode a location name to coordinates using Google Maps JavaScript API
- */
 export async function geocodeLocation(locationName: string): Promise<GeocodeResult | null> {
   try {
-    // Check if Google Maps is loaded
     if (typeof google === 'undefined' || !google.maps) {
       console.error('Google Maps not loaded');
       return null;
@@ -45,9 +36,6 @@ export async function geocodeLocation(locationName: string): Promise<GeocodeResu
   }
 }
 
-/**
- * Geocode multiple locations in batch
- */
 export async function geocodeMultipleLocations(
   locationNames: string[]
 ): Promise<Map<string, GeocodeResult>> {
@@ -58,7 +46,6 @@ export async function geocodeMultipleLocations(
     if (result) {
       results.set(name, result);
     }
-    // Rate limit: wait 200ms between requests
     await new Promise(resolve => setTimeout(resolve, 200));
   }
   

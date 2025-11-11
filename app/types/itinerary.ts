@@ -1,8 +1,3 @@
-/**
- * TypeScript types for itinerary, places, and map functionality
- */
-
-// Place types for Google Places API integration
 export type PlaceType = 'stays' | 'restaurants' | 'attraction' | 'activities' | 'locations';
 
 export interface Place {
@@ -17,10 +12,9 @@ export interface Place {
   rating?: number;
   priceLevel?: number;
   photoUrl?: string;
-  placeId?: string; // Google Place ID
+  placeId?: string;
 }
 
-// Itinerary types
 export interface DayActivity {
   hotel?: string;
   food?: string;
@@ -34,7 +28,7 @@ export interface DayActivity {
 
 export interface ItineraryDay {
   dayNumber: number;
-  date: string; // Format: "09 NOV, 25"
+  date: string;
   location: string;
   title: string;
   description: string;
@@ -63,7 +57,6 @@ export interface Itinerary {
   endDate: string;
 }
 
-// Filter types for map
 export interface PlaceFilters {
   all: boolean;
   stays: boolean;
@@ -74,14 +67,12 @@ export interface PlaceFilters {
   showPrices: boolean;
 }
 
-// Map marker type
 export interface MapMarker {
-  place?: Place; // Optional for location markers
-  location?: TripLocation; // Optional for location markers
+  place?: Place;
+  location?: TripLocation;
   marker: google.maps.Marker | null;
 }
 
-// Google Maps types
 export interface MapConfig {
   center: {
     lat: number;
@@ -92,7 +83,6 @@ export interface MapConfig {
   styles?: google.maps.MapTypeStyle[];
 }
 
-// API Response types for Places
 export interface PlacesSearchRequest {
   location: {
     lat: number;

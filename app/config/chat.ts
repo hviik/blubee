@@ -1,5 +1,3 @@
-// Chat configuration and constants
-
 export const MODEL = "gpt-5-nano";
 
 export const SYSTEM_PROMPT = `You are blu, a warm, caring, and friendly female travel agent. Your role is to help travelers plan perfect trips through natural conversation.

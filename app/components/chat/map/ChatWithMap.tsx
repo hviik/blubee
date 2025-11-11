@@ -38,10 +38,8 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
       const processed = processMessage(lastMessage.content);
       
       if (processed.hasItinerary && processed.itinerary) {
-        // Reset geocoding flag for new itinerary
         hasTriedGeocoding.current = false;
         
-        // Wait for Google Maps to load before geocoding
         if (isLoaded) {
           hasTriedGeocoding.current = true;
           geocodeItineraryLocations(processed.itinerary).then(geocodedItinerary => {
@@ -49,7 +47,6 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
             setShowMap(true);
           });
         } else {
-          // Set itinerary without geocoding if Google Maps not loaded yet
           setItinerary(processed.itinerary);
           setShowMap(true);
         }
@@ -60,15 +57,12 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
   const geocodeItineraryLocations = async (itinerary: Itinerary): Promise<Itinerary> => {
     const { geocodeLocation } = await import('./geocoding');
     
-    // Geocode main locations - only geocode if coordinates are invalid (0, 0)
     const updatedLocations = await Promise.all(
       itinerary.locations.map(async (loc) => {
-        // If coordinates are already set and valid, use them
         if (loc.coordinates && loc.coordinates.lat !== 0 && loc.coordinates.lng !== 0) {
           return loc;
         }
         
-        // Otherwise, geocode the location
         console.log('Geocoding location:', loc.name);
         const result = await geocodeLocation(loc.name);
         if (result) {
@@ -79,7 +73,6 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
           };
         }
         
-        // If geocoding fails, return location with default coordinates
         console.warn(`Failed to geocode location: ${loc.name}`);
         return loc;
       })
@@ -91,7 +84,6 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
     };
   };
 
-  // Retry geocoding when Google Maps loads (only once per itinerary)
   useEffect(() => {
     if (isLoaded && itinerary && !hasTriedGeocoding.current) {
       const hasInvalidCoordinates = itinerary.locations.some(
@@ -113,7 +105,6 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
   }, []);
 
   const handleDestinationClick = useCallback((countryName: string, route: string[]) => {
-    // Format the places in the route
     let placesText = '';
     if (route.length > 0) {
       if (route.length === 1) {
@@ -127,14 +118,12 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
       }
     }
     
-    // Trigger a message with the country name and places
     const message = `Plan me a trip to ${countryName}${placesText}`;
     setTriggerMessage(message);
   }, []);
 
   return (
     <div className="relative flex w-full h-full overflow-hidden">
-      {/* Chat Section */}
       <div
         className={`flex flex-col transition-all duration-500 ease-in-out ${
           showMap ? 'md:w-[60%] w-full' : 'md:w-[65%] w-full'
@@ -151,18 +140,15 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
         />
       </div>
 
-      {/* Right Panel - Explore or Itinerary */}
       <div
         className={`absolute right-0 top-0 h-full transition-all duration-500 ease-in-out
           ${showMap ? 'md:w-[40%]' : 'md:w-[35%]'} w-0 md:block hidden`}
       >
         {showMap && itinerary ? (
-          // Show itinerary when available
           <div className="h-full bg-white border-l border-[#d9e3f0] shadow-lg">
             <TripRightPanel itinerary={itinerary} places={[]} />
           </div>
         ) : (
-          // Show explore page by default
           <div className="h-full" style={{ paddingTop: '1px' }}>
             <ExplorePage 
               compact={true}
