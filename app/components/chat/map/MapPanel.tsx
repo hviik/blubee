@@ -6,6 +6,15 @@ import { PlaceFilterPanel } from './PlaceFilterPanel';
 import { PlaceInfoCard } from './PlaceInfoCard';
 import { searchPlaces } from './googlePlaces';
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\*\*/g, '')
+    .replace(/\*/g, '')
+    .replace(/__/g, '')
+    .replace(/_/g, '')
+    .trim();
+}
+
 interface MapPanelProps {
   locations: TripLocation[];
   places?: Place[];
@@ -97,7 +106,7 @@ export function MapPanel({
         const marker = new google.maps.Marker({
           position: location.coordinates,
           map,
-          title: location.name,
+          title: stripMarkdown(location.name),
           icon: {
             path: google.maps.SymbolPath.CIRCLE,
             scale: 8,
@@ -110,7 +119,7 @@ export function MapPanel({
 
         const infoWindow = new google.maps.InfoWindow({
           content: `<div style="padding: 8px; font-family: Poppins, sans-serif;">
-            <strong>${location.name}</strong>
+            <strong>${stripMarkdown(location.name)}</strong>
           </div>`,
         });
 

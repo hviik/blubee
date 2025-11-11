@@ -1,5 +1,14 @@
 import { Itinerary, ItineraryDay, TripLocation, PlaceType } from '@/app/types/itinerary';
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\*\*/g, '')
+    .replace(/\*/g, '')
+    .replace(/__/g, '')
+    .replace(/_/g, '')
+    .trim();
+}
+
 export interface ProcessedMessage {
   hasItinerary: boolean;
   itinerary?: Itinerary;
@@ -111,10 +120,10 @@ function extractItinerary(content: string): Itinerary | null {
   
   dayMatches.forEach(match => {
     const dayNumber = parseInt(match[1]);
-    const title = match[2].trim();
+    const title = stripMarkdown(match[2].trim());
     
     const locationMatch = title.match(/^([^-–(]+)/);
-    const mainLocation = locationMatch ? locationMatch[1].trim() : 'Unknown';
+    const mainLocation = locationMatch ? stripMarkdown(locationMatch[1].trim()) : 'Unknown';
     locationSet.add(mainLocation);
     
     const dayIndex = content.indexOf(match[0]);
@@ -138,7 +147,7 @@ function extractItinerary(content: string): Itinerary | null {
   
   const locations: TripLocation[] = Array.from(locationSet).map((name, idx) => ({
     id: `loc_${idx}`,
-    name,
+    name: stripMarkdown(name),
     coordinates: { lat: 0, lng: 0 },
     active: idx === 0,
   }));

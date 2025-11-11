@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Itinerary, Place } from '@/app/types/itinerary';
 import { MapPanel } from '../map/MapPanel';
 import { ItineraryPanel } from './ItineraryPanel';
@@ -24,6 +24,9 @@ export function TripRightPanel({
   });
   const [mapZoom, setMapZoom] = useState<number>(6);
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
+  const [itineraryHeight, setItineraryHeight] = useState<number>(377);
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (itinerary && itinerary.locations.length > 0) {
@@ -63,6 +66,42 @@ export function TripRightPanel({
     }
   };
 
+  const handleDragMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isDragging || !containerRef.current) return;
+
+      const rect = containerRef.current.getBoundingClientRect();
+      const newHeight = rect.bottom - e.clientY;
+
+      const minHeight = 200;
+      const maxHeight = rect.height * 0.8;
+      const clampedHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+
+      setItineraryHeight(clampedHeight);
+    },
+    [isDragging]
+  );
+
+  const handleDragEnd = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
+    setIsDragging(true);
+    e.preventDefault();
+  }, []);
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleDragMove);
+      document.addEventListener('mouseup', handleDragEnd);
+      return () => {
+        document.removeEventListener('mousemove', handleDragMove);
+        document.removeEventListener('mouseup', handleDragEnd);
+      };
+    }
+  }, [isDragging, handleDragMove, handleDragEnd]);
+
   if (loadError) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-red-50">
@@ -88,8 +127,18 @@ export function TripRightPanel({
   }
 
   return (
-    <div className="w-full h-full flex flex-col bg-white relative" data-itinerary-container>
-      <div className="flex-1 relative min-h-0">
+    <div 
+      ref={containerRef}
+      className="w-full h-full flex flex-col bg-white relative" 
+      data-itinerary-container
+    >
+      <div 
+        className="relative"
+        style={{ 
+          flex: `0 0 calc(100% - ${itineraryHeight}px)`,
+          minHeight: 0
+        }}
+      >
         {isLoaded && (
           <MapPanel
             locations={itinerary?.locations || []}
@@ -101,7 +150,26 @@ export function TripRightPanel({
         )}
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 z-20">
+      <div
+        onMouseDown={handleDragStart}
+        className="relative h-2 cursor-ns-resize bg-transparent hover:bg-blue-200/50 z-30 flex items-center justify-center group transition-colors"
+        style={{ 
+          touchAction: 'none',
+          WebkitUserSelect: 'none',
+          userSelect: 'none',
+          flexShrink: 0
+        }}
+      >
+        <div className="w-20 h-1.5 bg-gray-300 rounded-full group-hover:bg-blue-500 group-hover:scale-110 transition-all duration-200 shadow-sm"></div>
+      </div>
+
+      <div 
+        className="relative overflow-hidden"
+        style={{ 
+          height: `${itineraryHeight}px`,
+          flexShrink: 0
+        }}
+      >
         <ItineraryPanel
           itinerary={itinerary}
           onLocationSelect={handleLocationSelect}

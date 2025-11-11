@@ -12,8 +12,6 @@ interface ItineraryPanelProps {
 
 export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [panelHeight, setPanelHeight] = useState<number>(377);
-  const [isDragging, setIsDragging] = useState(false);
   
   const uniqueLocations = itinerary?.locations?.filter((location) => {
     const name = location.name.toLowerCase();
@@ -23,7 +21,6 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
   const [activeLocation, setActiveLocation] = useState<string | null>(
     uniqueLocations?.[0]?.id || null
   );
-  const containerRef = useRef<HTMLDivElement | null>(null);
   
   useEffect(() => {
     if (uniqueLocations.length > 0 && !activeLocation) {
@@ -32,40 +29,6 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
       onLocationSelect?.(firstLocationId);
     }
   }, [itinerary, uniqueLocations.length, activeLocation, onLocationSelect]);
-
-  const handleDragMove = useCallback(
-    (e: MouseEvent) => {
-      if (!isDragging) return;
-
-      const container = document.querySelector('[data-itinerary-container]') as HTMLElement;
-      if (!container) return;
-
-      const rect = container.getBoundingClientRect();
-      const newHeight = rect.bottom - e.clientY;
-
-      const minHeight = 100;
-      const maxHeight = rect.height * 0.95;
-      const clampedHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
-
-      setPanelHeight(clampedHeight);
-    },
-    [isDragging]
-  );
-
-  const handleDragEnd = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleDragMove);
-      document.addEventListener('mouseup', handleDragEnd);
-      return () => {
-        document.removeEventListener('mousemove', handleDragMove);
-        document.removeEventListener('mouseup', handleDragEnd);
-      };
-    }
-  }, [isDragging, handleDragMove, handleDragEnd]);
 
   if (!itinerary) {
     return (
@@ -102,24 +65,8 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
     return dayLocation.includes(locationName) || dayLocation === locationName;
   });
 
-  const handleDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
-    setIsDragging(true);
-    e.preventDefault();
-  };
-
   return (
     <div className="flex flex-col h-full bg-transparent relative">
-      <div
-        onMouseDown={handleDragStart}
-        className="absolute -top-2 left-0 right-0 h-6 cursor-ns-resize hover:bg-blue-50/50 z-30 flex items-center justify-center group transition-all duration-200 rounded-t-lg"
-        style={{ 
-          touchAction: 'none',
-          WebkitUserSelect: 'none',
-          userSelect: 'none'
-        }}
-      >
-        <div className="w-20 h-1.5 bg-gray-300 rounded-full group-hover:bg-blue-500 group-hover:scale-110 transition-all duration-200 shadow-sm"></div>
-      </div>
 
       <div className="p-3 md:p-4 pt-5 md:pt-6 flex-shrink-0">
         <button
@@ -151,9 +98,8 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
 
       {!isCollapsed && (
         <div
-          ref={containerRef}
           className="flex-1 border border-[#d7e7f5] mt-2 overflow-hidden flex flex-col rounded-t-xl shadow-lg"
-          style={{ height: `${panelHeight}px`, minHeight: '200px', maxHeight: '85vh' }}
+          style={{ minHeight: '200px' }}
         >
           <div className="bg-white border-b border-[#d7e7f5] p-2 md:p-3 flex-shrink-0">
             <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">

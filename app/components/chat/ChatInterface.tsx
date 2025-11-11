@@ -10,7 +10,7 @@ import { detectUserCurrency, CurrencyInfo } from '@/app/utils/currencyDetection'
 interface Message {
   role: 'user' | 'assistant';
   content: string;
-  isStreaming?: boolean; // Flag to indicate if message is still streaming
+  isStreaming?: boolean; 
 }
 
 interface ChatInterfaceProps {
