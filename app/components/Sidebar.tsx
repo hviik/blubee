@@ -238,7 +238,7 @@ function BottomItems({ isExpanded, onHelpClick, isMobile, onItemClick }: { isExp
               className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal whitespace-nowrap"
               style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.textQuaternary }}
             >
-              How to use Blubeez?
+              How to use blubeez?
             </span>
           )}
         </button>
