@@ -198,7 +198,7 @@ export default function Header({
               color: COLORS.textQuaternary,
             }}
           >
-            Hey! {userName}
+            Hi! {userName}
           </div>
         </div>
       </SignedIn>
