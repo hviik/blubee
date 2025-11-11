@@ -10,12 +10,14 @@ interface TripRightPanelProps {
   itinerary: Itinerary | null;
   places?: Place[];
   onLocationSelect?: (locationId: string) => void;
+  mobileView?: 'itinerary' | 'map' | null;
 }
 
 export function TripRightPanel({
   itinerary,
   places = [],
   onLocationSelect,
+  mobileView = null,
 }: TripRightPanelProps) {
   const { isLoaded, loadError } = useGoogleMaps();
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ 
@@ -124,6 +126,33 @@ export function TripRightPanel({
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2f4f93] mx-auto mb-4"></div>
           <p className="text-sm text-[#7286b0]">Loading map...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (mobileView === 'itinerary') {
+    return (
+      <div className="w-full h-full bg-white overflow-auto">
+        <ItineraryPanel
+          itinerary={itinerary}
+          onLocationSelect={handleLocationSelect}
+        />
+      </div>
+    );
+  }
+
+  if (mobileView === 'map') {
+    return (
+      <div className="w-full h-full bg-white">
+        {isLoaded && (
+          <MapPanel
+            locations={itinerary?.locations || []}
+            places={places}
+            center={mapCenter}
+            zoom={mapZoom}
+            selectedLocationId={selectedLocationId}
+          />
+        )}
       </div>
     );
   }

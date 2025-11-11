@@ -22,6 +22,8 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
   const [showMap, setShowMap] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [triggerMessage, setTriggerMessage] = useState<string | null>(null);
+  const [mobileItineraryOpen, setMobileItineraryOpen] = useState(false);
+  const [mobileMapOpen, setMobileMapOpen] = useState(false);
   const lastProcessedContent = useRef('');
   const hasTriedGeocoding = useRef(false);
   const { isLoaded } = useGoogleMaps();
@@ -159,6 +161,43 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
           triggerMessage={triggerMessage}
           onMessageTriggered={() => setTriggerMessage(null)}
         />
+        
+        {showMap && itinerary && (
+          <div className="md:hidden fixed left-0 right-0 z-30 flex justify-center gap-3"
+            style={{ 
+              bottom: 'calc(70px + env(safe-area-inset-bottom, 0px))',
+              pointerEvents: 'none'
+            }}
+          >
+            <button
+              onClick={() => setMobileItineraryOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white shadow-lg hover:shadow-xl transition-all"
+              style={{ 
+                pointerEvents: 'auto',
+                border: '1px solid #d7e7f5'
+              }}
+            >
+              <svg className="w-5 h-5 text-[#2f4f93]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span className="text-sm font-medium text-[#2f4f93]">Itinerary</span>
+            </button>
+            
+            <button
+              onClick={() => setMobileMapOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white shadow-lg hover:shadow-xl transition-all"
+              style={{ 
+                pointerEvents: 'auto',
+                border: '1px solid #d7e7f5'
+              }}
+            >
+              <svg className="w-5 h-5 text-[#2f4f93]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              <span className="text-sm font-medium text-[#2f4f93]">Map</span>
+            </button>
+          </div>
+        )}
       </div>
 
       <div
@@ -178,6 +217,50 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
           </div>
         )}
       </div>
+
+      {mobileItineraryOpen && itinerary && (
+        <div className="md:hidden fixed inset-0 z-50 bg-white">
+          <div className="h-full flex flex-col">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[#d7e7f5] bg-white">
+              <h2 className="text-lg font-semibold text-[#132341]" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>Itinerary</h2>
+              <button
+                onClick={() => setMobileItineraryOpen(false)}
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                aria-label="Close itinerary"
+              >
+                <svg className="w-6 h-6 text-[#475f73]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto">
+              <TripRightPanel itinerary={itinerary} places={[]} mobileView="itinerary" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mobileMapOpen && itinerary && (
+        <div className="md:hidden fixed inset-0 z-50 bg-white">
+          <div className="h-full flex flex-col">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[#d7e7f5] bg-white">
+              <h2 className="text-lg font-semibold text-[#132341]" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>Map</h2>
+              <button
+                onClick={() => setMobileMapOpen(false)}
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                aria-label="Close map"
+              >
+                <svg className="w-6 h-6 text-[#475f73]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1">
+              <TripRightPanel itinerary={itinerary} places={[]} mobileView="map" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
