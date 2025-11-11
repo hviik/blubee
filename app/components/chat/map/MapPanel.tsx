@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { PlaceFilters, Place, MapMarker, TripLocation } from '@/app/types/itinerary';
 import { PlaceFilterPanel } from './PlaceFilterPanel';
-import { PlaceInfoCard } from './PlaceInfoCard';
 import { searchPlaces, getPlaceDetails } from './googlePlaces';
 
 function stripMarkdown(text: string): string {
@@ -47,7 +46,6 @@ export function MapPanel({
   const infoWindowsRef = useRef<google.maps.InfoWindow[]>([]);
   
   const [isFilterOpen, setIsFilterOpen] = useState(true);
-  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [nearbyPlaces, setNearbyPlaces] = useState<Place[]>([]);
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
   const [filters, setFilters] = useState<PlaceFilters>({
@@ -128,84 +126,19 @@ export function MapPanel({
           },
         });
 
-        marker.addListener('click', async () => {
-          setSelectedPlace(null);
-          
-          if (mapInstanceRef.current) {
-            try {
-              const service = new google.maps.places.PlacesService(mapInstanceRef.current);
-              const request = {
-                query: stripMarkdown(location.name),
-                location: new google.maps.LatLng(location.coordinates.lat, location.coordinates.lng),
-                radius: 1000,
-              };
+         const infoWindow = new google.maps.InfoWindow({
+           content: `<div style="padding: 8px; font-family: Poppins, sans-serif;">
+             <strong style="color: #2f4f93; font-size: 14px;">${stripMarkdown(location.name)}</strong>
+           </div>`,
+         });
 
-              service.textSearch(request, (results, status) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
-                  const result = results[0];
-                  if (result.place_id) {
-                    getPlaceDetails(mapInstanceRef.current!, result.place_id)
-                      .then((details) => {
-                        const place: Place = {
-                          id: result.place_id || generateId(),
-                          name: result.name || stripMarkdown(location.name),
-                          type: 'locations',
-                          location: {
-                            lat: result.geometry?.location?.lat() || location.coordinates.lat,
-                            lng: result.geometry?.location?.lng() || location.coordinates.lng,
-                          },
-                          address: result.formatted_address || result.vicinity,
-                          rating: result.rating,
-                          priceLevel: result.price_level,
-                          photoUrl: result.photos?.[0]?.getUrl({ maxWidth: 400 }),
-                          placeId: result.place_id,
-                        };
-                        setSelectedPlace(place);
-                        mapInstanceRef.current?.panTo(place.location);
-                      })
-                      .catch(() => {
-                        const place: Place = {
-                          id: location.id,
-                          name: stripMarkdown(location.name),
-                          type: 'locations',
-                          location: location.coordinates,
-                        };
-                        setSelectedPlace(place);
-                        mapInstanceRef.current?.panTo(location.coordinates);
-                      });
-                  } else {
-                    const place: Place = {
-                      id: location.id,
-                      name: stripMarkdown(location.name),
-                      type: 'locations',
-                      location: location.coordinates,
-                    };
-                    setSelectedPlace(place);
-                    mapInstanceRef.current?.panTo(location.coordinates);
-                  }
-                } else {
-                  const place: Place = {
-                    id: location.id,
-                    name: stripMarkdown(location.name),
-                    type: 'locations',
-                    location: location.coordinates,
-                  };
-                  setSelectedPlace(place);
-                  mapInstanceRef.current?.panTo(location.coordinates);
-                }
-              });
-            } catch (error) {
-              const place: Place = {
-                id: location.id,
-                name: stripMarkdown(location.name),
-                type: 'locations',
-                location: location.coordinates,
-              };
-              setSelectedPlace(place);
-              mapInstanceRef.current?.panTo(location.coordinates);
-            }
-          }
-        });
+         marker.addListener('click', () => {
+           infoWindowsRef.current.forEach(iw => iw.close());
+           infoWindow.open(map, marker);
+           mapInstanceRef.current?.panTo(location.coordinates);
+         });
+         
+         infoWindowsRef.current.push(infoWindow);
 
         markersRef.current.push({ location, marker });
       });
@@ -327,11 +260,20 @@ export function MapPanel({
         icon: getMarkerIcon(place.type),
       });
 
-      marker.addListener('click', () => {
-        setSelectedPlace(place);
-        mapInstanceRef.current?.panTo(place.location);
-        if (onPlaceClick) onPlaceClick(place);
-      });
+       const infoWindow = new google.maps.InfoWindow({
+         content: `<div style="padding: 8px; font-family: Poppins, sans-serif;">
+           <strong style="color: #2f4f93; font-size: 14px;">${place.name}</strong>
+         </div>`,
+       });
+
+       marker.addListener('click', () => {
+         infoWindowsRef.current.forEach(iw => iw.close());
+         infoWindow.open(mapInstanceRef.current, marker);
+         mapInstanceRef.current?.panTo(place.location);
+         if (onPlaceClick) onPlaceClick(place);
+       });
+       
+       infoWindowsRef.current.push(infoWindow);
 
       markersRef.current.push({ place, marker });
     });
@@ -459,15 +401,9 @@ export function MapPanel({
         style={{
           background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0) 100%)',
         }}
-      />
+       />
 
-      <PlaceInfoCard
-        place={selectedPlace}
-        map={mapInstanceRef.current}
-        onClose={() => setSelectedPlace(null)}
-      />
-
-      <PlaceFilterPanel
+       <PlaceFilterPanel
         filters={filters}
         onFilterChange={setFilters}
         onClose={() => setIsFilterOpen(false)}

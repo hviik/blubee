@@ -36,15 +36,38 @@ export default function BlubeezHome() {
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
       const calculateGap = () => {
-        const viewportHeight = window.innerHeight;
-        const availableHeight = viewportHeight - 112 - 200;
-        const dynamicGap = Math.max(20, Math.min(60, availableHeight / 8));
-        setMobileGap(dynamicGap);
+        const heroSection = document.querySelector('[class*="flex flex-col gap-2.5"]');
+        const promptCards = document.querySelector('[class*="w-full flex flex-col gap-2"]');
+        const searchInput = document.querySelector('[class*="w-full bg-white rounded-t-2xl"]');
+        
+        if (heroSection && promptCards && searchInput) {
+          const heroHeight = heroSection.getBoundingClientRect().height;
+          const promptHeight = promptCards.getBoundingClientRect().height;
+          const searchHeight = searchInput.getBoundingClientRect().height;
+          const viewportHeight = window.innerHeight;
+          
+          const totalContentHeight = heroHeight + promptHeight + searchHeight + 225;
+          
+          if (totalContentHeight > viewportHeight) {
+            const overflow = totalContentHeight - viewportHeight;
+            const newGap = Math.max(8, 120 - overflow);
+            setMobileGap(newGap);
+          } else {
+            setMobileGap(120);
+          }
+        } else {
+          const viewportHeight = window.innerHeight;
+          const availableHeight = viewportHeight - 112 - 200;
+          const dynamicGap = Math.max(20, Math.min(60, availableHeight / 8));
+          setMobileGap(dynamicGap);
+        }
       };
       calculateGap();
+      const timeoutId = setTimeout(calculateGap, 100);
       window.addEventListener('resize', calculateGap);
       window.addEventListener('orientationchange', calculateGap);
       return () => {
+        clearTimeout(timeoutId);
         window.removeEventListener('resize', calculateGap);
         window.removeEventListener('orientationchange', calculateGap);
       };

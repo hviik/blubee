@@ -42,7 +42,10 @@ export default function ChatInterface({
   const hasStartedStreamingRef = useRef(false);
 
   useEffect(() => {
-    detectUserCurrency().then((currency) => setUserCurrency(currency));
+    detectUserCurrency().then((currency) => {
+      setUserCurrency(currency);
+      console.log('Detected user currency:', currency);
+    });
   }, []);
 
   useEffect(() => {
@@ -143,7 +146,10 @@ export default function ChatInterface({
 
             try {
               const chunk = JSON.parse(data);
-              if (chunk.error) throw new Error(chunk.error);
+              
+              if (chunk.error) {
+                throw new Error(chunk.error);
+              }
               
               if (chunk.content) {
                 if (!hasStartedStreamingRef.current) {
@@ -171,7 +177,9 @@ export default function ChatInterface({
                 });
               }
             } catch (e) {
-              if (e instanceof Error && e.message) throw e;
+              if (e instanceof Error && e.message) {
+                throw e;
+              }
               continue;
             }
           }
@@ -199,11 +207,13 @@ export default function ChatInterface({
                     return newMessages;
                   });
                 }
-              } catch {}
+              } catch (e) {
+              }
             }
           }
         }
       } catch (err: any) {
+        console.error('Stream error:', err);
         const errorMessage = err?.message || 'Sorry, something went wrong while generating a response. Please try again.';
         setMessages((prev) => {
           const filtered = prev.filter((m, idx) => idx < prev.length - 1 || m.content !== '');
@@ -242,12 +252,16 @@ export default function ChatInterface({
   useEffect(() => {
     const handleSlashKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        return;
+      }
+
       if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
         e.preventDefault();
         inputRef.current?.focus();
       }
     };
+
     window.addEventListener('keydown', handleSlashKey);
     return () => window.removeEventListener('keydown', handleSlashKey);
   }, []);
@@ -279,77 +293,70 @@ export default function ChatInterface({
       <div
         ref={containerRef}
         className="flex-1 min-h-0 overflow-y-auto pb-[90px] md:pb-4"
-        style={{ WebkitOverflowScrolling: 'touch' }}
+        style={{ 
+          WebkitOverflowScrolling: 'touch'
+        }}
       >
         <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-3 md:px-4 py-3 md:py-4 md:pb-0">
-          {messages.map((message: Message, index: number) => {
-            const [displayContent, setDisplayContent] = useState(message.content);
-            useEffect(() => {
-              const id = setTimeout(() => setDisplayContent(message.content), 60);
-              return () => clearTimeout(id);
-            }, [message.content]);
-            return (
-              <div key={index}>
-                <div 
-                  className="flex gap-3 md:gap-4 items-start py-3 md:py-4 px-3 md:px-4 rounded-xl md:rounded-2xl mb-2"
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.6)',
-                    backdropFilter: 'blur(10px)',
-                  }}
+          {messages.map((message: Message, index: number) => (
+            <div key={index}>
+              <div 
+                className="flex gap-3 md:gap-4 items-start py-3 md:py-4 px-3 md:px-4 rounded-xl md:rounded-2xl mb-2"
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                  backdropFilter: 'blur(10px)',
+                }}
+              >
+                <div
+                  className="shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full overflow-hidden flex items-center justify-center"
+                  style={{ backgroundColor: message.role === 'user' ? COLORS.borderMedium : 'transparent' }}
                 >
-                  <div
-                    className="shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full overflow-hidden flex items-center justify-center"
-                    style={{ backgroundColor: message.role === 'user' ? COLORS.borderMedium : 'transparent' }}
-                  >
-                    {message.role === 'user' ? (
-                      user?.imageUrl ? (
-                        <img
-                          src={user.imageUrl}
-                          alt={user.firstName || 'User'}
-                          className="object-cover w-full h-full rounded-full"
-                        />
-                      ) : (
-                        <div className="w-5 h-5 md:w-6 md:h-6 rounded-full" style={{ backgroundColor: COLORS.textSecondary }} />
-                      )
+                  {message.role === 'user' ? (
+                    user?.imageUrl ? (
+                      <img
+                        src={user.imageUrl}
+                        alt={user.firstName || 'User'}
+                        className="object-cover w-full h-full rounded-full"
+                      />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Image src="/assets/logo.svg" alt="Blubeez" width={28} height={20} className="object-contain md:w-[32px] md:h-[23px]" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0 pt-0.5 md:pt-1">
-                    {message.role === 'assistant' ? (
-                      <div className="text-[14px] md:text-[0.938rem] lg:text-[1rem]">
-                        {message.content ? (
-                          <div className="relative">
-                            <MarkdownMessage content={displayContent} />
-                            {message.isStreaming && (
-                              <span className="absolute bottom-0 left-0 animate-pulse" style={{ color: COLORS.textSecondary }}>
-                                ▊
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="flex gap-1">
-                            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <p
-                        className="text-[14px] md:text-[0.938rem] lg:text-[1rem] leading-relaxed whitespace-pre-wrap"
-                        style={{ fontFamily: 'var(--font-poppins)', color: COLORS.textSecondary }}
-                      >
-                        {message.content}
-                      </p>
-                    )}
-                  </div>
+                      <div className="w-5 h-5 md:w-6 md:h-6 rounded-full" style={{ backgroundColor: COLORS.textSecondary }} />
+                    )
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Image src="/assets/logo.svg" alt="Blubeez" width={28} height={20} className="object-contain md:w-[32px] md:h-[23px]" />
+                    </div>
+                  )}
                 </div>
+                 <div className="flex-1 min-w-0 pt-0.5 md:pt-1">
+                   {message.role === 'assistant' ? (
+                     <div className="text-[14px] md:text-[0.938rem] lg:text-[1rem]">
+                       {message.content ? (
+                         <div className="relative">
+                           <MarkdownMessage content={message.content} />
+                           {message.isStreaming && (
+                             <span className="inline-block animate-pulse ml-0.5">▊</span>
+                           )}
+                         </div>
+                       ) : (
+                         <div className="flex gap-1">
+                           <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                           <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                           <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                         </div>
+                       )}
+                     </div>
+                   ) : (
+                     <p
+                       className="text-[14px] md:text-[0.938rem] lg:text-[1rem] leading-relaxed whitespace-pre-wrap"
+                       style={{ fontFamily: 'var(--font-poppins)', color: COLORS.textSecondary }}
+                     >
+                       {message.content}
+                     </p>
+                   )}
+                 </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
           <div ref={messagesEndRef} />
         </div>
       </div>
