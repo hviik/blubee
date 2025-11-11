@@ -242,7 +242,7 @@ function BottomItems({ isExpanded, onHelpClick, isMobile, onItemClick }: { isExp
             </span>
           )}
         </button>
-        <button 
+        {/* <button 
           onClick={isMobile ? onItemClick : undefined}
           className="flex items-center gap-3 hover:opacity-70 transition-opacity"
         >
@@ -255,7 +255,7 @@ function BottomItems({ isExpanded, onHelpClick, isMobile, onItemClick }: { isExp
               Settings
             </span>
           )}
-        </button>
+        </button> */}
 
         <div className="flex items-center gap-3 hover:opacity-70 transition-opacity cursor-pointer">
           <UserButton
