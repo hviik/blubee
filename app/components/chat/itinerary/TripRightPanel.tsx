@@ -75,8 +75,8 @@ export function TripRightPanel({
       const rect = containerRef.current.getBoundingClientRect();
       const newHeight = rect.bottom - e.clientY;
 
-      const minHeight = 250;
-      const maxHeight = Math.min(rect.height * 0.75, 600);
+      const minHeight = 100;
+      const maxHeight = rect.height - 100;
       const clampedHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
 
       setItineraryHeight(clampedHeight);

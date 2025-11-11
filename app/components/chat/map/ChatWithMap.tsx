@@ -57,14 +57,17 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
   const geocodeItineraryLocations = async (itinerary: Itinerary): Promise<Itinerary> => {
     const { geocodeLocation } = await import('./geocoding');
     
+    const countryHint = extractCountryFromTitle(itinerary.title);
+    console.log('Country hint for geocoding:', countryHint);
+    
     const updatedLocations = await Promise.all(
       itinerary.locations.map(async (loc) => {
         if (loc.coordinates && loc.coordinates.lat !== 0 && loc.coordinates.lng !== 0) {
           return loc;
         }
         
-        console.log('Geocoding location:', loc.name);
-        const result = await geocodeLocation(loc.name);
+        console.log(`Geocoding location: ${loc.name} (country: ${countryHint})`);
+        const result = await geocodeLocation(loc.name, countryHint);
         if (result) {
           console.log('Geocoded successfully:', loc.name, result);
           return {
@@ -82,6 +85,24 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
       ...itinerary,
       locations: updatedLocations,
     };
+  };
+
+  const extractCountryFromTitle = (title: string): string | undefined => {
+    const commonCountries = [
+      'Thailand', 'Malaysia', 'Vietnam', 'Philippines', 'Indonesia',
+      'Singapore', 'Cambodia', 'Laos', 'Myanmar', 'Brunei',
+      'India', 'China', 'Japan', 'South Korea', 'Taiwan',
+      'Peru', 'Brazil', 'Argentina', 'Chile', 'Colombia',
+      'Maldives', 'Sri Lanka', 'Nepal', 'Bhutan'
+    ];
+    
+    for (const country of commonCountries) {
+      if (title.toLowerCase().includes(country.toLowerCase())) {
+        return country;
+      }
+    }
+    
+    return undefined;
   };
 
   useEffect(() => {

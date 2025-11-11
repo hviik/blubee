@@ -52,7 +52,7 @@ export function DayCard({ day, isFirst, isLast, onExpand }: DayCardProps) {
         </div>
 
         {isExpanded && (
-          <div className="mb-3 md:mb-4 prose prose-sm md:prose-base max-w-none text-[#7286b0] [&_strong]:text-[#132341] [&_strong]:font-semibold [&_p]:mb-2 [&_p]:leading-relaxed">
+          <div className="mb-3 md:mb-4 prose prose-sm max-w-none [&_p]:text-xs [&_p]:md:text-sm [&_p]:text-[#7286b0] [&_p]:mb-2 [&_p]:leading-relaxed [&_strong]:text-[#132341] [&_strong]:font-semibold [&_ul]:text-xs [&_ul]:md:text-sm [&_ul]:text-[#7286b0] [&_li]:mb-1">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeSanitize]}

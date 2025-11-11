@@ -134,14 +134,12 @@ function extractItinerary(content: string): Itinerary | null {
     
     const places = extractPlacesFromDescription(fullDescription, mainLocation);
     
-    const description = fullDescription.split('\n').slice(0, 3).join(' ').trim();
-    
     days.push({
       dayNumber,
       date: '',
       location: mainLocation,
       title,
-      description,
+      description: fullDescription.trim(),
       expanded: false,
       places,
     });

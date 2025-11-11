@@ -3,9 +3,10 @@ export interface GeocodeResult {
   lat: number;
   lng: number;
   address?: string;
+  placeId?: string;
 }
 
-export async function geocodeLocation(locationName: string): Promise<GeocodeResult | null> {
+export async function geocodeLocation(locationName: string, countryHint?: string): Promise<GeocodeResult | null> {
   try {
     if (typeof google === 'undefined' || !google.maps) {
       console.error('Google Maps not loaded');
@@ -15,14 +16,30 @@ export async function geocodeLocation(locationName: string): Promise<GeocodeResu
     return new Promise((resolve) => {
       const geocoder = new google.maps.Geocoder();
       
-      geocoder.geocode({ address: locationName }, (results, status) => {
-        if (status === google.maps.GeocoderStatus.OK && results && results[0]) {
-          const location = results[0].geometry.location;
+      const searchQuery = countryHint ? `${locationName}, ${countryHint}` : locationName;
+      
+      const request: google.maps.GeocoderRequest = {
+        address: searchQuery,
+        region: countryHint?.toLowerCase().substring(0, 2),
+      };
+      
+      geocoder.geocode(request, (results, status) => {
+        if (status === google.maps.GeocoderStatus.OK && results && results.length > 0) {
+          const bestResult = results[0];
+          const location = bestResult.geometry.location;
+          
+          console.log(`Geocoded "${locationName}" to:`, {
+            lat: location.lat(),
+            lng: location.lng(),
+            address: bestResult.formatted_address
+          });
+          
           resolve({
             name: locationName,
             lat: location.lat(),
             lng: location.lng(),
-            address: results[0].formatted_address,
+            address: bestResult.formatted_address,
+            placeId: bestResult.place_id,
           });
         } else {
           console.error('Geocoding failed for', locationName, ':', status);

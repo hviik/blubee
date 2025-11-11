@@ -40,13 +40,14 @@ export function MapPanel({
   const [isFilterOpen, setIsFilterOpen] = useState(true);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [nearbyPlaces, setNearbyPlaces] = useState<Place[]>([]);
+  const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
   const [filters, setFilters] = useState<PlaceFilters>({
-    all: true,
+    all: false,
     stays: false,
     restaurants: false,
-    attraction: false,
+    attraction: true,
     activities: false,
-    locations: false,
+    locations: true,
     showPrices: false,
   });
 
@@ -169,15 +170,22 @@ export function MapPanel({
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
-    markersRef.current.forEach(({ marker }) => {
-      if (marker) marker.setMap(null);
+    markersRef.current.forEach(({ marker, place }) => {
+      if (marker && place) marker.setMap(null);
     });
-    markersRef.current = [];
+    markersRef.current = markersRef.current.filter(m => m.location);
 
-    const filteredPlaces = places.filter((place) => {
+    const allPlaces = [...places, ...nearbyPlaces];
+    const uniquePlaces = allPlaces.filter((place, index, self) =>
+      index === self.findIndex((p) => p.id === place.id)
+    );
+
+    const filteredPlaces = uniquePlaces.filter((place) => {
       if (filters.all) return true;
       return filters[place.type];
     });
+
+    console.log(`Displaying ${filteredPlaces.length} places on map`);
 
     filteredPlaces.forEach((place) => {
       const marker = new google.maps.Marker({
@@ -187,17 +195,6 @@ export function MapPanel({
         icon: getMarkerIcon(place.type),
       });
 
-      const content = `
-        <div style="padding: 12px; font-family: Poppins, sans-serif; max-width: 200px;">
-          <strong style="color: #2f4f93;">${place.name}</strong>
-          ${place.rating ? `<div style="color: #666; font-size: 12px; margin-top: 4px;">⭐ ${place.rating}</div>` : ''}
-          ${filters.showPrices && place.priceLevel ? `<div style="color: #666; font-size: 12px;">${'$'.repeat(place.priceLevel)}</div>` : ''}
-          ${place.address ? `<div style="color: #888; font-size: 11px; margin-top: 4px;">${place.address}</div>` : ''}
-        </div>
-      `;
-
-      const infoWindow = new google.maps.InfoWindow({ content });
-
       marker.addListener('click', () => {
         setSelectedPlace(place);
         mapInstanceRef.current?.panTo(place.location);
@@ -206,27 +203,51 @@ export function MapPanel({
 
       markersRef.current.push({ place, marker });
     });
-  }, [places, filters, onPlaceClick]);
+  }, [places, nearbyPlaces, filters, onPlaceClick]);
 
   useEffect(() => {
-    if (!selectedLocationId || !mapInstanceRef.current || locations.length === 0) return;
+    if (!selectedLocationId || !mapInstanceRef.current || locations.length === 0) {
+      setNearbyPlaces([]);
+      return;
+    }
 
     const selectedLocation = locations.find(loc => loc.id === selectedLocationId);
-    if (!selectedLocation || !selectedLocation.coordinates) return;
+    if (!selectedLocation || !selectedLocation.coordinates) {
+      setNearbyPlaces([]);
+      return;
+    }
 
     const { lat, lng } = selectedLocation.coordinates;
-    if (lat === 0 && lng === 0) return;
+    if (lat === 0 && lng === 0) {
+      setNearbyPlaces([]);
+      return;
+    }
 
-    searchPlaces(mapInstanceRef.current, {
-      location: { lat, lng },
-      radius: 3000,
-      type: 'attraction',
-    })
-      .then((places) => {
-        setNearbyPlaces(places);
+    console.log(`Fetching places near ${selectedLocation.name}...`);
+    setIsLoadingPlaces(true);
+    
+    Promise.all([
+      searchPlaces(mapInstanceRef.current!, {
+        location: { lat, lng },
+        radius: 5000,
+        type: 'attraction',
+      }).catch(() => []),
+      searchPlaces(mapInstanceRef.current!, {
+        location: { lat, lng },
+        radius: 3000,
+        type: 'restaurants',
+      }).catch(() => []),
+    ])
+      .then(([attractions, restaurants]) => {
+        const allPlaces = [...attractions, ...restaurants];
+        console.log(`Found ${allPlaces.length} places near ${selectedLocation.name}`);
+        setNearbyPlaces(allPlaces);
+        setIsLoadingPlaces(false);
       })
       .catch((error) => {
         console.error('Failed to fetch nearby places:', error);
+        setNearbyPlaces([]);
+        setIsLoadingPlaces(false);
       });
   }, [selectedLocationId, locations]);
 
