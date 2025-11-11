@@ -38,7 +38,7 @@ export default function BlubeezHome() {
       const calculateGap = () => {
         const heroSection = document.querySelector('[class*="flex flex-col gap-2.5"]');
         const promptCards = document.querySelector('[class*="w-full flex flex-col gap-2"]');
-        const searchInput = document.querySelector('[class*="w-full bg-white rounded-t-2xl"]');
+        const searchInput = document.querySelector('[class*="w-full bg-white rounded-2xl"]');
         
         if (heroSection && promptCards && searchInput) {
           const heroHeight = heroSection.getBoundingClientRect().height;
@@ -47,7 +47,7 @@ export default function BlubeezHome() {
           const viewportHeight = window.innerHeight;
           
           const headerHeight = 64;
-          const topPadding = 32;
+          const topPadding = 48;
           const bottomSafeArea = 16;
           const totalContentHeight = headerHeight + topPadding + heroHeight + 120 + promptHeight + searchHeight + bottomSafeArea;
           
@@ -205,7 +205,7 @@ export default function BlubeezHome() {
       ) : (
         <div className="
             w-full mx-auto px-4 md:px-0 md:max-w-[675px] relative z-10 flex flex-col items-center
-            pt-8 md:pt-[clamp(4.5rem,9vh,6rem)] pb-4 md:pb-[clamp(3rem,6vh,4.5rem)]
+            pt-12 md:pt-[clamp(4.5rem,9vh,6rem)] pb-4 md:pb-[clamp(3rem,6vh,4.5rem)]
             h-screen md:h-auto md:min-h-0 justify-start md:justify-center
           ">
           <HeroSection />
@@ -216,7 +216,7 @@ export default function BlubeezHome() {
             }}
           >
             <PromptCards onPromptClick={handlePromptClick} />
-            <div className="w-full bg-white rounded-t-2xl shadow-[0px_-10px_10px_0px_rgba(0,0,0,0.05)] p-2 md:p-0 md:bg-transparent md:shadow-none">
+            <div className="w-full bg-white rounded-2xl shadow-[0px_-10px_10px_0px_rgba(0,0,0,0.05)] p-2 md:p-0 md:bg-transparent md:shadow-none">
               <SearchInput
                 onHelpClick={handleOpenModal}
                 isMobileSidebarOpen={isMobileSidebarOpen}
