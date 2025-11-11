@@ -223,12 +223,13 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                   src={d.image}
                   alt={d.name}
                   fill
-                  className="object-cover brightness-[0.95] contrast-[1.08]"
+                  className="object-cover object-center brightness-[0.95] contrast-[1.08]"
                   style={{
                     transform: 'translateZ(0)',
                     willChange: 'filter',
                   }}
                   priority
+                  sizes="(max-width: 768px) 180px, 220px"
                 />
               </div>
 
