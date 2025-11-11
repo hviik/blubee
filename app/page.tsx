@@ -25,52 +25,12 @@ export default function BlubeezHome() {
   const [initialMessage, setInitialMessage] = useState<string | null>(null);
   const [isDesktop, setIsDesktop] = useState(false);
   const [heroToCardsGap, setHeroToCardsGap] = useState(120);
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   
   useEffect(() => {
     const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
     checkDesktop();
     window.addEventListener('resize', checkDesktop);
     return () => window.removeEventListener('resize', checkDesktop);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || window.innerWidth >= 768) return;
-
-    let timeoutId: NodeJS.Timeout;
-
-    const handleResize = () => {
-      clearTimeout(timeoutId);
-      
-      const viewportHeight = window.visualViewport?.height || window.innerHeight;
-      const windowHeight = window.innerHeight;
-      const heightDiff = windowHeight - viewportHeight;
-      
-      if (heightDiff > 150) {
-        setIsKeyboardVisible(true);
-      } else {
-        timeoutId = setTimeout(() => {
-          setIsKeyboardVisible(false);
-        }, 100);
-      }
-    };
-
-    const handleScroll = () => {
-      if (window.visualViewport) {
-        handleResize();
-      }
-    };
-
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', handleResize);
-      window.visualViewport.addEventListener('scroll', handleScroll);
-      
-      return () => {
-        clearTimeout(timeoutId);
-        window.visualViewport?.removeEventListener('resize', handleResize);
-        window.visualViewport?.removeEventListener('scroll', handleScroll);
-      };
-    }
   }, []);
 
   useEffect(() => {
@@ -246,34 +206,15 @@ export default function BlubeezHome() {
         <div 
           className="
             w-full mx-auto px-4 md:px-0 md:max-w-[675px] relative z-10 flex flex-col items-center
-            md:pt-[clamp(4.5rem,9vh,6rem)] md:pb-[clamp(3rem,6vh,4.5rem)]
-            md:h-auto md:min-h-0 justify-start md:justify-center
+            pt-16 md:pt-[clamp(4.5rem,9vh,6rem)] pb-4 md:pb-[clamp(3rem,6vh,4.5rem)]
+            min-h-screen md:h-auto justify-start md:justify-center
           "
-          style={{
-            paddingTop: !isDesktop ? (isKeyboardVisible ? '8px' : '64px') : undefined,
-            paddingBottom: !isDesktop ? (isKeyboardVisible ? '8px' : '16px') : undefined,
-            height: !isDesktop ? (isKeyboardVisible ? 'auto' : '100vh') : undefined,
-            minHeight: !isDesktop && isKeyboardVisible ? '0' : undefined,
-            transition: 'all 0.3s ease-in-out',
-          }}
         >
+          <HeroSection />
           <div 
+            className="w-full flex flex-col items-end justify-end gap-4 mt-auto pb-[env(safe-area-inset-bottom,16px)]"
             style={{
-              opacity: isKeyboardVisible && !isDesktop ? 0 : 1,
-              maxHeight: isKeyboardVisible && !isDesktop ? '0' : '200px',
-              overflow: 'hidden',
-              transition: 'all 0.3s ease-in-out',
-            }}
-          >
-            <HeroSection />
-          </div>
-          <div 
-            className="w-full flex flex-col items-end justify-end gap-4 pb-[env(safe-area-inset-bottom,16px)]"
-            style={{
-              marginTop: !isDesktop 
-                ? (isKeyboardVisible ? '0px' : `${heroToCardsGap}px`)
-                : 'clamp(5rem,11vh,7.5rem)',
-              transition: 'margin-top 0.3s ease-in-out',
+              marginTop: !isDesktop ? `${heroToCardsGap}px` : 'clamp(5rem,11vh,7.5rem)',
             }}
           >
             <PromptCards onPromptClick={handlePromptClick} />
