@@ -175,7 +175,7 @@ function NavItems({ isExpanded, onExploreClick, isMobile, onItemClick }: { isExp
           </span>
         )}
       </button>
-
+{/* 
       <button 
         onClick={isMobile ? onItemClick : undefined}
         className="flex items-center gap-3 hover:opacity-70 transition-opacity"
@@ -219,7 +219,7 @@ function NavItems({ isExpanded, onExploreClick, isMobile, onItemClick }: { isExp
             My trips
           </span>
         )}
-      </button>
+      </button> */}
     </div>
   );
 }
