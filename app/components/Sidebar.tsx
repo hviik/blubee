@@ -65,13 +65,15 @@ export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode
       )}
 
       <div
-        className={`hidden md:flex h-screen fixed left-0 top-0 z-30 flex-col justify-between transition-all duration-300 ${
+        className={`hidden md:flex h-screen fixed left-0 top-0 z-30 flex-col justify-between transition-all ${
           isExpanded ? 'w-[240px]' : 'w-[67px]'
         }`}
         style={{
           backgroundColor: isExpanded ? '#f3f8ff' : (isChatMode ? 'white' : 'transparent'),
           borderRight: isExpanded ? '1px solid #b4c2cf' : (isChatMode ? '1px solid #cee2f2' : 'none'),
-          padding: '16px'
+          padding: '16px',
+          transitionDuration: '400ms',
+          transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
         }}
       >
         <div className="self-stretch flex flex-col justify-start items-start gap-12 w-full">
@@ -93,11 +95,11 @@ export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode
       <HowToUseModal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} />
 
       <div
-        className={`md:hidden fixed inset-0 z-40 ${isMobileOpen ? '' : 'pointer-events-none'}`}
+        className={`md:hidden fixed inset-0 z-40 transition-all ${isMobileOpen ? '' : 'pointer-events-none'}`}
         aria-hidden={!isMobileOpen}
       >
         <div
-          className={`absolute inset-0 backdrop-blur-md transition-opacity duration-300 ease-out ${
+          className={`absolute inset-0 backdrop-blur-md transition-all duration-500 ease-in-out ${
             isMobileOpen ? 'bg-black/50 opacity-100' : 'bg-black/0 opacity-0'
           }`}
           style={{
@@ -106,11 +108,12 @@ export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode
           onClick={closeMobile}
         />
         <aside
-          className={`absolute left-0 top-0 h-full w-[280px] bg-[#f3f8ff] border-r border-[#b4c2cf] shadow-xl ${
+          className={`absolute left-0 top-0 h-full w-[280px] bg-[#f3f8ff] border-r border-[#b4c2cf] shadow-xl transition-transform ${
             isMobileOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
           style={{
-            transition: 'transform 350ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+            transitionDuration: '450ms',
+            transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
           }}
           role="dialog"
           aria-modal="true"
@@ -126,9 +129,25 @@ export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode
 
           <div className="h-full flex flex-col justify-between p-4 pt-12">
             <div className="flex flex-col gap-12">
-              <NavItems isExpanded onExploreClick={onExploreClick} />
+              <NavItems 
+                isExpanded 
+                onExploreClick={() => {
+                  closeMobile();
+                  onExploreClick?.();
+                }} 
+                isMobile
+                onItemClick={closeMobile}
+              />
             </div>
-            <BottomItems isExpanded onHelpClick={() => setIsHelpModalOpen(true)} />
+            <BottomItems 
+              isExpanded 
+              onHelpClick={() => {
+                closeMobile();
+                setIsHelpModalOpen(true);
+              }}
+              isMobile
+              onItemClick={closeMobile}
+            />
           </div>
         </aside>
       </div>
@@ -138,7 +157,7 @@ export default function Sidebar({ onExpandChange, onMobileOpenChange, isChatMode
   );
 }
 
-function NavItems({ isExpanded, onExploreClick }: { isExpanded?: boolean; onExploreClick?: () => void }) {
+function NavItems({ isExpanded, onExploreClick, isMobile, onItemClick }: { isExpanded?: boolean; onExploreClick?: () => void; isMobile?: boolean; onItemClick?: () => void }) {
   return (
     <div className="flex flex-col gap-6 w-full">
       <button 
@@ -156,7 +175,10 @@ function NavItems({ isExpanded, onExploreClick }: { isExpanded?: boolean; onExpl
         )}
       </button>
 
-      <button className="flex items-center gap-3 hover:opacity-70 transition-opacity">
+      <button 
+        onClick={isMobile ? onItemClick : undefined}
+        className="flex items-center gap-3 hover:opacity-70 transition-opacity"
+      >
         <Image src="/assets/bookmark-bag.svg" alt="Wishlist" width={24} height={24} />
         {isExpanded && (
           <span
@@ -168,7 +190,10 @@ function NavItems({ isExpanded, onExploreClick }: { isExpanded?: boolean; onExpl
         )}
       </button>
 
-      <button className="flex items-center gap-3 hover:opacity-70 transition-opacity">
+      <button 
+        onClick={isMobile ? onItemClick : undefined}
+        className="flex items-center gap-3 hover:opacity-70 transition-opacity"
+      >
         <Image src="/assets/notifications.svg" alt="Updates" width={24} height={24} />
         {isExpanded && (
           <span
@@ -180,7 +205,10 @@ function NavItems({ isExpanded, onExploreClick }: { isExpanded?: boolean; onExpl
         )}
       </button>
 
-      <button className="flex items-center gap-3 hover:opacity-70 transition-opacity">
+      <button 
+        onClick={isMobile ? onItemClick : undefined}
+        className="flex items-center gap-3 hover:opacity-70 transition-opacity"
+      >
         <Image src="/assets/997.svg" alt="My trips" width={24} height={24} />
         {isExpanded && (
           <span
@@ -195,7 +223,7 @@ function NavItems({ isExpanded, onExploreClick }: { isExpanded?: boolean; onExpl
   );
 }
 
-function BottomItems({ isExpanded, onHelpClick }: { isExpanded?: boolean; onHelpClick?: () => void }) {
+function BottomItems({ isExpanded, onHelpClick, isMobile, onItemClick }: { isExpanded?: boolean; onHelpClick?: () => void; isMobile?: boolean; onItemClick?: () => void }) {
   return (
     <div className="flex flex-col gap-4 w-full">
       <div className="flex flex-col gap-6">
@@ -213,7 +241,10 @@ function BottomItems({ isExpanded, onHelpClick }: { isExpanded?: boolean; onHelp
             </span>
           )}
         </button>
-        <button className="flex items-center gap-3 hover:opacity-70 transition-opacity">
+        <button 
+          onClick={isMobile ? onItemClick : undefined}
+          className="flex items-center gap-3 hover:opacity-70 transition-opacity"
+        >
           <Image src="/assets/settings.svg" alt="Settings" width={24} height={24} />
           {isExpanded && (
             <span

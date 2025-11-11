@@ -228,7 +228,7 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                     transform: 'translateZ(0)',
                     willChange: 'filter',
                   }}
-                  priority
+                  unoptimized
                   sizes="(max-width: 768px) 180px, 220px"
                 />
               </div>
