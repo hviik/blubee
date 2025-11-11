@@ -184,7 +184,7 @@ export default function BlubeezHome() {
             maxHeight: isDesktop ? 'calc(100vh - 80px)' : 'calc(100vh - 64px)',
           }}
         >
-          <ExplorePage onDestinationClick={handleDestinationClick} />
+          <ExplorePage compact={!isDesktop} onDestinationClick={handleDestinationClick} />
         </div>
       ) : isChatActive ? (
         <div 
