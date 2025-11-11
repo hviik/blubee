@@ -31,7 +31,7 @@ export function TripRightPanel({
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (itinerary && itinerary.locations.length > 0) {
+    if (itinerary && itinerary.locations.length > 0 && !selectedLocationId) {
       const validLocations = itinerary.locations.filter(
         loc => loc.coordinates && loc.coordinates.lat !== 0 && loc.coordinates.lng !== 0
       );
@@ -41,17 +41,19 @@ export function TripRightPanel({
           setMapCenter(validLocations[0].coordinates);
           setMapZoom(12);
         } else {
-          const bounds = new window.google.maps.LatLngBounds();
-          validLocations.forEach(loc => {
-            bounds.extend(new window.google.maps.LatLng(loc.coordinates.lat, loc.coordinates.lng));
-          });
-          const center = bounds.getCenter();
-          setMapCenter({ lat: center.lat(), lng: center.lng() });
-          setMapZoom(8);
+          if (typeof window !== 'undefined' && window.google && window.google.maps) {
+            const bounds = new window.google.maps.LatLngBounds();
+            validLocations.forEach(loc => {
+              bounds.extend(new window.google.maps.LatLng(loc.coordinates.lat, loc.coordinates.lng));
+            });
+            const center = bounds.getCenter();
+            setMapCenter({ lat: center.lat(), lng: center.lng() });
+            setMapZoom(8);
+          }
         }
       }
     }
-  }, [itinerary]);
+  }, [itinerary, selectedLocationId]);
 
   const handleLocationSelect = (locationId: string) => {
     setSelectedLocationId(locationId);

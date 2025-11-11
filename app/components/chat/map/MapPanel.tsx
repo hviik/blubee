@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { PlaceFilters, Place, MapMarker, TripLocation } from '@/app/types/itinerary';
 import { PlaceFilterPanel } from './PlaceFilterPanel';
 import { PlaceInfoCard } from './PlaceInfoCard';
-import { searchPlaces } from './googlePlaces';
+import { searchPlaces, getPlaceDetails } from './googlePlaces';
 
 function stripMarkdown(text: string): string {
   return text
@@ -13,6 +13,10 @@ function stripMarkdown(text: string): string {
     .replace(/__/g, '')
     .replace(/_/g, '')
     .trim();
+}
+
+function generateId(): string {
+  return `place_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }
 
 interface MapPanelProps {
@@ -36,6 +40,11 @@ export function MapPanel({
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<MapMarker[]>([]);
   const locationMarkersRef = useRef<google.maps.Marker[]>([]);
+  const prevLocationsRef = useRef<string>('');
+  const prevCenterRef = useRef<{ lat: number; lng: number } | null>(null);
+  const prevZoomRef = useRef<number | null>(null);
+  const isInitializedRef = useRef(false);
+  const infoWindowsRef = useRef<google.maps.InfoWindow[]>([]);
   
   const [isFilterOpen, setIsFilterOpen] = useState(true);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
@@ -59,11 +68,6 @@ export function MapPanel({
       return;
     }
 
-    if (!center || (center.lat === 0 && center.lng === 0)) {
-      console.warn('Invalid map center coordinates');
-      return;
-    }
-
     if (!mapInstanceRef.current) {
       const map = new google.maps.Map(mapRef.current, {
         center,
@@ -83,12 +87,18 @@ export function MapPanel({
       });
 
       mapInstanceRef.current = map;
-    } else {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.panTo(center);
-        mapInstanceRef.current.setZoom(zoom);
-      }
+      isInitializedRef.current = true;
     }
+  }, []);
+
+  useEffect(() => {
+    if (!mapInstanceRef.current || !isInitializedRef.current) return;
+
+    const locationsKey = JSON.stringify(locations.map(l => ({ id: l.id, lat: l.coordinates.lat, lng: l.coordinates.lng })));
+    
+    if (locationsKey === prevLocationsRef.current) return;
+    
+    prevLocationsRef.current = locationsKey;
 
     const map = mapInstanceRef.current;
 
@@ -118,54 +128,176 @@ export function MapPanel({
           },
         });
 
-        const infoWindow = new google.maps.InfoWindow({
-          content: `<div style="padding: 8px; font-family: Poppins, sans-serif;">
-            <strong>${stripMarkdown(location.name)}</strong>
-          </div>`,
-        });
+        marker.addListener('click', async () => {
+          setSelectedPlace(null);
+          
+          if (mapInstanceRef.current) {
+            try {
+              const service = new google.maps.places.PlacesService(mapInstanceRef.current);
+              const request = {
+                query: stripMarkdown(location.name),
+                location: new google.maps.LatLng(location.coordinates.lat, location.coordinates.lng),
+                radius: 1000,
+              };
 
-        marker.addListener('click', () => {
-          infoWindow.open(map, marker);
+              service.textSearch(request, (results, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+                  const result = results[0];
+                  if (result.place_id) {
+                    getPlaceDetails(mapInstanceRef.current!, result.place_id)
+                      .then((details) => {
+                        const place: Place = {
+                          id: result.place_id || generateId(),
+                          name: result.name || stripMarkdown(location.name),
+                          type: 'locations',
+                          location: {
+                            lat: result.geometry?.location?.lat() || location.coordinates.lat,
+                            lng: result.geometry?.location?.lng() || location.coordinates.lng,
+                          },
+                          address: result.formatted_address || result.vicinity,
+                          rating: result.rating,
+                          priceLevel: result.price_level,
+                          photoUrl: result.photos?.[0]?.getUrl({ maxWidth: 400 }),
+                          placeId: result.place_id,
+                        };
+                        setSelectedPlace(place);
+                        mapInstanceRef.current?.panTo(place.location);
+                      })
+                      .catch(() => {
+                        const place: Place = {
+                          id: location.id,
+                          name: stripMarkdown(location.name),
+                          type: 'locations',
+                          location: location.coordinates,
+                        };
+                        setSelectedPlace(place);
+                        mapInstanceRef.current?.panTo(location.coordinates);
+                      });
+                  } else {
+                    const place: Place = {
+                      id: location.id,
+                      name: stripMarkdown(location.name),
+                      type: 'locations',
+                      location: location.coordinates,
+                    };
+                    setSelectedPlace(place);
+                    mapInstanceRef.current?.panTo(location.coordinates);
+                  }
+                } else {
+                  const place: Place = {
+                    id: location.id,
+                    name: stripMarkdown(location.name),
+                    type: 'locations',
+                    location: location.coordinates,
+                  };
+                  setSelectedPlace(place);
+                  mapInstanceRef.current?.panTo(location.coordinates);
+                }
+              });
+            } catch (error) {
+              const place: Place = {
+                id: location.id,
+                name: stripMarkdown(location.name),
+                type: 'locations',
+                location: location.coordinates,
+              };
+              setSelectedPlace(place);
+              mapInstanceRef.current?.panTo(location.coordinates);
+            }
+          }
         });
 
         markersRef.current.push({ location, marker });
       });
 
-    const validLocations = locations.filter(loc => loc.coordinates && loc.coordinates.lat !== 0 && loc.coordinates.lng !== 0);
-    if (validLocations.length > 1) {
-      const bounds = new google.maps.LatLngBounds();
-      validLocations.forEach((location) => {
-        bounds.extend(location.coordinates);
-      });
-      
-      const ne = bounds.getNorthEast();
-      const sw = bounds.getSouthWest();
-      const latDiff = Math.abs(ne.lat() - sw.lat());
-      const lngDiff = Math.abs(ne.lng() - sw.lng());
-      
-      if (latDiff > 10 || lngDiff > 10) {
-        map.setCenter(validLocations[0].coordinates);
-        map.setZoom(8);
-      } else {
-        map.fitBounds(bounds, {
-          top: 50,
-          right: 50,
-          bottom: 50,
-          left: 50,
+    if (!selectedLocationId) {
+      const validLocations = locations.filter(loc => loc.coordinates && loc.coordinates.lat !== 0 && loc.coordinates.lng !== 0);
+      if (validLocations.length > 1) {
+        const bounds = new google.maps.LatLngBounds();
+        validLocations.forEach((location) => {
+          bounds.extend(location.coordinates);
         });
         
-        const listener = google.maps.event.addListener(map, 'bounds_changed', () => {
-          if (map.getZoom() && map.getZoom()! < 6) {
-            map.setZoom(6);
-          }
-          google.maps.event.removeListener(listener);
-        });
+        const ne = bounds.getNorthEast();
+        const sw = bounds.getSouthWest();
+        const latDiff = Math.abs(ne.lat() - sw.lat());
+        const lngDiff = Math.abs(ne.lng() - sw.lng());
+        
+        if (latDiff > 10 || lngDiff > 10) {
+          map.setCenter(validLocations[0].coordinates);
+          map.setZoom(8);
+        } else {
+          map.fitBounds(bounds, {
+            top: 50,
+            right: 50,
+            bottom: 50,
+            left: 50,
+          });
+          
+          const listener = google.maps.event.addListener(map, 'bounds_changed', () => {
+            if (map.getZoom() && map.getZoom()! < 6) {
+              map.setZoom(6);
+            }
+            google.maps.event.removeListener(listener);
+          });
+        }
+      } else if (validLocations.length === 1) {
+        map.setCenter(validLocations[0].coordinates);
+        map.setZoom(zoom || 12);
       }
-    } else if (validLocations.length === 1) {
-      map.setCenter(validLocations[0].coordinates);
-      map.setZoom(zoom || 12);
     }
-  }, [center, zoom, locations]);
+  }, [locations, selectedLocationId, zoom]);
+
+  useEffect(() => {
+    if (!mapInstanceRef.current || !isInitializedRef.current) return;
+    if (!selectedLocationId) return;
+
+    const selectedLocation = locations.find(loc => loc.id === selectedLocationId);
+    if (!selectedLocation || !selectedLocation.coordinates) return;
+
+    const { lat, lng } = selectedLocation.coordinates;
+    if (lat === 0 && lng === 0) return;
+
+    const currentCenter = mapInstanceRef.current.getCenter();
+    const centerLat = currentCenter?.lat() || 0;
+    const centerLng = currentCenter?.lng() || 0;
+    
+    const shouldUpdate = 
+      !prevCenterRef.current ||
+      Math.abs(prevCenterRef.current.lat - lat) > 0.001 ||
+      Math.abs(prevCenterRef.current.lng - lng) > 0.001 ||
+      Math.abs(centerLat - lat) > 0.01 ||
+      Math.abs(centerLng - lng) > 0.01;
+
+    if (shouldUpdate) {
+      prevCenterRef.current = { lat, lng };
+      mapInstanceRef.current.panTo({ lat, lng });
+      mapInstanceRef.current.setZoom(14);
+    }
+  }, [selectedLocationId, locations]);
+
+  useEffect(() => {
+    if (!mapInstanceRef.current || !isInitializedRef.current) return;
+    
+    const shouldUpdateCenter = 
+      !prevCenterRef.current ||
+      Math.abs(prevCenterRef.current.lat - center.lat) > 0.001 ||
+      Math.abs(prevCenterRef.current.lng - center.lng) > 0.001;
+
+    const shouldUpdateZoom = 
+      prevZoomRef.current === null ||
+      prevZoomRef.current !== zoom;
+
+    if (shouldUpdateCenter && !selectedLocationId) {
+      prevCenterRef.current = center;
+      mapInstanceRef.current.panTo(center);
+    }
+
+    if (shouldUpdateZoom && !selectedLocationId) {
+      prevZoomRef.current = zoom;
+      mapInstanceRef.current.setZoom(zoom);
+    }
+  }, [center, zoom, selectedLocationId]);
 
   useEffect(() => {
     if (!mapInstanceRef.current) return;
