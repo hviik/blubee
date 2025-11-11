@@ -147,6 +147,10 @@ export default function ChatInterface({
             try {
               const chunk = JSON.parse(data);
               
+              if (chunk.error) {
+                throw new Error(chunk.error);
+              }
+              
               if (chunk.content) {
                 if (!hasStartedStreamingRef.current) {
                   hasStartedStreamingRef.current = true;
@@ -173,6 +177,9 @@ export default function ChatInterface({
                 });
               }
             } catch (e) {
+              if (e instanceof Error && e.message) {
+                throw e;
+              }
               continue;
             }
           }
@@ -207,13 +214,14 @@ export default function ChatInterface({
         }
       } catch (err: any) {
         console.error('Stream error:', err);
+        const errorMessage = err?.message || 'Sorry, something went wrong while generating a response. Please try again.';
         setMessages((prev) => {
           const filtered = prev.filter((m, idx) => idx < prev.length - 1 || m.content !== '');
           return [
             ...filtered,
             {
               role: 'assistant',
-              content: 'Sorry, something went wrong while generating a response. Please try again.',
+              content: errorMessage,
             },
           ];
         });

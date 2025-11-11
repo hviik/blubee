@@ -70,8 +70,15 @@ export async function POST(req: Request) {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`OpenAI API error: ${response.status} - ${error}`);
+      const errorText = await response.text();
+      let errorMessage = `OpenAI API error: ${response.status}`;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.error?.message || errorJson.error?.code || errorText || errorMessage;
+      } catch {
+        errorMessage = errorText || errorMessage;
+      }
+      throw new Error(errorMessage);
     }
 
     const encoder = new TextEncoder();
@@ -108,6 +115,12 @@ export async function POST(req: Request) {
 
               try {
                 const chunk = JSON.parse(data);
+                
+                if (chunk.error) {
+                  const errorData = JSON.stringify({ error: chunk.error.message || chunk.error.code || 'Unknown error' });
+                  controller.enqueue(encoder.encode(`data: ${errorData}\n\n`));
+                  continue;
+                }
                 
                 if (chunk.choices && chunk.choices.length > 0) {
                   const delta = chunk.choices[0].delta;
