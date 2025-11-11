@@ -56,14 +56,16 @@ export function ItineraryPanel({ itinerary, onLocationSelect }: ItineraryPanelPr
     onLocationSelect?.(locationId);
   };
 
-  const filteredDays = itinerary.days.filter((day) => {
-    if (!activeLocation) return true;
-    const location = uniqueLocations.find((loc) => loc.id === activeLocation);
-    if (!location) return false;
-    const dayLocation = day.location.toLowerCase();
-    const locationName = location.name.toLowerCase();
-    return dayLocation.includes(locationName) || dayLocation === locationName;
-  });
+  const filteredDays = itinerary.days
+    .filter((day) => {
+      if (!activeLocation) return true;
+      const location = uniqueLocations.find((loc) => loc.id === activeLocation);
+      if (!location) return false;
+      const dayLocation = day.location.toLowerCase();
+      const locationName = location.name.toLowerCase();
+      return dayLocation.includes(locationName) || dayLocation === locationName;
+    })
+    .sort((a, b) => a.dayNumber - b.dayNumber);
 
   return (
     <div className="flex flex-col h-full bg-transparent relative">

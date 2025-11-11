@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeSanitize from 'rehype-sanitize';
 import { ItineraryDay } from '@/app/types/itinerary';
 
 interface DayCardProps {
@@ -49,9 +52,14 @@ export function DayCard({ day, isFirst, isLast, onExpand }: DayCardProps) {
         </div>
 
         {isExpanded && (
-          <p className="text-xs md:text-sm text-[#7286b0] mb-3 md:mb-4 leading-relaxed">
-            {day.description}
-          </p>
+          <div className="mb-3 md:mb-4 prose prose-sm md:prose-base max-w-none text-[#7286b0] [&_strong]:text-[#132341] [&_strong]:font-semibold [&_p]:mb-2 [&_p]:leading-relaxed">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeSanitize]}
+            >
+              {day.description}
+            </ReactMarkdown>
+          </div>
         )}
 
         {isExpanded && day.activities && (
