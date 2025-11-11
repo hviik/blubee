@@ -46,20 +46,18 @@ export default function BlubeezHome() {
           const searchHeight = searchInput.getBoundingClientRect().height;
           const viewportHeight = window.innerHeight;
           
-          const totalContentHeight = heroHeight + promptHeight + searchHeight + 225;
+          const topPadding = 112;
+          const totalContentHeight = topPadding + heroHeight + promptHeight + searchHeight + 120 + 16;
           
           if (totalContentHeight > viewportHeight) {
             const overflow = totalContentHeight - viewportHeight;
-            const newGap = Math.max(8, 120 - overflow);
+            const newGap = Math.max(16, 120 - overflow);
             setMobileGap(newGap);
           } else {
             setMobileGap(120);
           }
         } else {
-          const viewportHeight = window.innerHeight;
-          const availableHeight = viewportHeight - 112 - 200;
-          const dynamicGap = Math.max(20, Math.min(60, availableHeight / 8));
-          setMobileGap(dynamicGap);
+          setMobileGap(120);
         }
       };
       calculateGap();
