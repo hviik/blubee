@@ -4,68 +4,54 @@ export interface GeocodeResult {
   lng: number;
   address?: string;
   placeId?: string;
+  types?: string[];
 }
 
 export async function geocodeLocation(locationName: string, countryHint?: string): Promise<GeocodeResult | null> {
   try {
-    if (typeof google === 'undefined' || !google.maps) {
-      console.error('Google Maps not loaded');
+    if (typeof window === 'undefined' || typeof (window as any).google === 'undefined' || !(window as any).google.maps) {
       return null;
     }
 
     return new Promise((resolve) => {
-      const geocoder = new google.maps.Geocoder();
-      
+      const geocoder = new (window as any).google.maps.Geocoder();
       const searchQuery = countryHint ? `${locationName}, ${countryHint}` : locationName;
-      
       const request: google.maps.GeocoderRequest = {
         address: searchQuery,
-        region: countryHint?.toLowerCase().substring(0, 2),
+        region: countryHint ? countryHint.toLowerCase().substring(0, 2) : undefined,
       };
-      
-      geocoder.geocode(request, (results, status) => {
-        if (status === google.maps.GeocoderStatus.OK && results && results.length > 0) {
+
+      geocoder.geocode(request, (results: any[], status: any) => {
+        if (status === (window as any).google.maps.GeocoderStatus.OK && results && results.length > 0) {
           const bestResult = results[0];
           const location = bestResult.geometry.location;
-          
-          console.log(`Geocoded "${locationName}" to:`, {
-            lat: location.lat(),
-            lng: location.lng(),
-            address: bestResult.formatted_address
-          });
-          
           resolve({
             name: locationName,
             lat: location.lat(),
             lng: location.lng(),
             address: bestResult.formatted_address,
             placeId: bestResult.place_id,
+            types: bestResult.types || [],
           });
         } else {
-          console.error('Geocoding failed for', locationName, ':', status);
           resolve(null);
         }
       });
     });
   } catch (error) {
-    console.error('Geocoding error:', error);
     return null;
   }
 }
 
 export async function geocodeMultipleLocations(
-  locationNames: string[]
+  locationNames: string[],
+  countryHint?: string
 ): Promise<Map<string, GeocodeResult>> {
   const results = new Map<string, GeocodeResult>();
-  
   for (const name of locationNames) {
-    const result = await geocodeLocation(name);
-    if (result) {
-      results.set(name, result);
-    }
-    await new Promise(resolve => setTimeout(resolve, 200));
+    const result = await geocodeLocation(name, countryHint);
+    if (result) results.set(name, result);
+    await new Promise((res) => setTimeout(res, 200));
   }
-  
   return results;
 }
-

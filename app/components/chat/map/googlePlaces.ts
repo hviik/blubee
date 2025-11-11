@@ -1,33 +1,27 @@
-import { Place, PlaceType, PlacesSearchRequest, PlacesSearchResponse } from '@/app/types/itinerary';
+import { Place, PlaceType, PlacesSearchRequest } from '@/app/types/itinerary';
 
 const placeTypeMapping: Record<PlaceType, string[]> = {
   stays: ['lodging', 'hotel'],
   restaurants: ['restaurant', 'cafe', 'food'],
-  attraction: ['tourist_attraction', 'museum', 'art_gallery', 'landmark'],
+  attraction: ['tourist_attraction', 'museum', 'art_gallery', 'point_of_interest'],
   activities: ['amusement_park', 'aquarium', 'zoo', 'park', 'stadium'],
   locations: ['point_of_interest'],
 };
 
-export async function searchPlaces(
-  map: google.maps.Map,
-  request: PlacesSearchRequest
-): Promise<Place[]> {
-  return new Promise((resolve, reject) => {
-    const service = new google.maps.places.PlacesService(map);
-    
-    const types = request.type ? placeTypeMapping[request.type] : undefined;
-    
-    const searchRequest: google.maps.places.PlaceSearchRequest = {
-      location: new google.maps.LatLng(request.location.lat, request.location.lng),
-      radius: request.radius,
-      type: types?.[0],
-      keyword: request.keyword,
-    };
+function clampRadius(radius?: number) {
+  if (!radius) return 2000;
+  if (radius < 100) return 100;
+  if (radius > 4000) return 4000;
+  return radius;
+}
 
-    service.nearbySearch(searchRequest, (results, status) => {
+function runNearbySearch(service: google.maps.places.PlacesService, req: google.maps.places.PlaceSearchRequest) {
+  return new Promise<google.maps.places.PlaceResult[]>((resolve, reject) => {
+    service.nearbySearch(req, (results, status, pagination) => {
       if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-        const places: Place[] = results.map((result) => convertToPlace(result, request.type));
-        resolve(places);
+        resolve(results);
+      } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+        resolve([]);
       } else {
         reject(new Error(`Places search failed: ${status}`));
       }
@@ -35,17 +29,55 @@ export async function searchPlaces(
   });
 }
 
+export async function searchPlaces(
+  map: google.maps.Map,
+  request: PlacesSearchRequest
+): Promise<Place[]> {
+  const service = new google.maps.places.PlacesService(map);
+  const types = request.type ? placeTypeMapping[request.type] : undefined;
+  const radius = clampRadius(request.radius);
+  const location = new google.maps.LatLng(request.location.lat, request.location.lng);
+  const allResultsMap = new Map<string, google.maps.places.PlaceResult>();
+  const keywords = request.keyword ? [request.keyword] : [undefined];
+
+  const typeList = types && types.length > 0 ? types : [undefined];
+
+  for (const type of typeList) {
+    for (const kw of keywords) {
+      const searchRequest: google.maps.places.PlaceSearchRequest = {
+        location,
+        radius,
+        type: type as any,
+        keyword: kw,
+      };
+      try {
+        const results = await runNearbySearch(service, searchRequest);
+        for (const r of results) {
+          if (r.place_id) allResultsMap.set(r.place_id, r);
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+  }
+
+  const places: Place[] = Array.from(allResultsMap.values()).map((result) =>
+    convertToPlace(result, request.type)
+  );
+
+  return places;
+}
+
 export async function getPlaceDetails(
   map: google.maps.Map,
   placeId: string
 ): Promise<google.maps.places.PlaceResult | null> {
+  const service = new google.maps.places.PlacesService(map);
   return new Promise((resolve, reject) => {
-    const service = new google.maps.places.PlacesService(map);
-    
     service.getDetails(
       {
         placeId,
-        fields: ['name', 'rating', 'formatted_address', 'geometry', 'photos', 'price_level', 'types'],
+        fields: ['name', 'rating', 'formatted_address', 'geometry', 'photos', 'price_level', 'types', 'place_id', 'url', 'vicinity'],
       },
       (result, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && result) {
@@ -61,9 +93,8 @@ export async function getPlaceDetails(
 function convertToPlace(
   result: google.maps.places.PlaceResult,
   type?: PlaceType
-): Place {
+) {
   const location = result.geometry?.location;
-  
   return {
     id: result.place_id || generateId(),
     name: result.name || 'Unknown',
@@ -72,25 +103,21 @@ function convertToPlace(
       lat: location?.lat() || 0,
       lng: location?.lng() || 0,
     },
-    address: result.vicinity,
+    address: result.vicinity || result.formatted_address,
     rating: result.rating,
     priceLevel: result.price_level,
     photoUrl: result.photos?.[0]?.getUrl({ maxWidth: 400 }),
     placeId: result.place_id,
-  };
+  } as Place;
 }
 
-function inferPlaceType(types: string[]): PlaceType {
+function inferPlaceType(types: string[]) {
   for (const [placeType, googleTypes] of Object.entries(placeTypeMapping)) {
-    if (types.some((type) => googleTypes.includes(type))) {
-      return placeType as PlaceType;
-    }
+    if (types.some((t) => googleTypes.includes(t))) return placeType as PlaceType;
   }
-  return 'locations';
+  return 'locations' as PlaceType;
 }
 
 function generateId(): string {
-  return `place_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `place_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }
-
-

@@ -208,47 +208,95 @@ export function MapPanel({
   useEffect(() => {
     if (!selectedLocationId || !mapInstanceRef.current || locations.length === 0) {
       setNearbyPlaces([]);
+      markersRef.current.forEach(({ marker, place }) => {
+        if (marker && place) marker.setMap(null);
+      });
+      markersRef.current = markersRef.current.filter(m => m.location);
       return;
     }
 
     const selectedLocation = locations.find(loc => loc.id === selectedLocationId);
     if (!selectedLocation || !selectedLocation.coordinates) {
       setNearbyPlaces([]);
+      markersRef.current.forEach(({ marker, place }) => {
+        if (marker && place) marker.setMap(null);
+      });
+      markersRef.current = markersRef.current.filter(m => m.location);
       return;
     }
 
     const { lat, lng } = selectedLocation.coordinates;
     if (lat === 0 && lng === 0) {
       setNearbyPlaces([]);
+      markersRef.current.forEach(({ marker, place }) => {
+        if (marker && place) marker.setMap(null);
+      });
+      markersRef.current = markersRef.current.filter(m => m.location);
       return;
     }
 
-    console.log(`Fetching places near ${selectedLocation.name}...`);
-    setIsLoadingPlaces(true);
+    const locationName = stripMarkdown(selectedLocation.name).toLowerCase();
+    const cityLevelKeywords = ['city', 'town', 'province', 'state', 'region', 'country', 'district', 'prefecture'];
+    const isCityLevel = cityLevelKeywords.some(keyword => locationName.includes(keyword));
     
-    Promise.all([
-      searchPlaces(mapInstanceRef.current!, {
-        location: { lat, lng },
-        radius: 5000,
-        type: 'attraction',
-      }).catch(() => []),
-      searchPlaces(mapInstanceRef.current!, {
-        location: { lat, lng },
-        radius: 3000,
-        type: 'restaurants',
-      }).catch(() => []),
-    ])
-      .then(([attractions, restaurants]) => {
-        const allPlaces = [...attractions, ...restaurants];
-        console.log(`Found ${allPlaces.length} places near ${selectedLocation.name}`);
-        setNearbyPlaces(allPlaces);
-        setIsLoadingPlaces(false);
-      })
-      .catch((error) => {
-        console.error('Failed to fetch nearby places:', error);
-        setNearbyPlaces([]);
-        setIsLoadingPlaces(false);
+    if (isCityLevel) {
+      console.log(`Skipping city-level location: ${selectedLocation.name}`);
+      setNearbyPlaces([]);
+      markersRef.current.forEach(({ marker, place }) => {
+        if (marker && place) marker.setMap(null);
       });
+      markersRef.current = markersRef.current.filter(m => m.location);
+      return;
+    }
+
+    setNearbyPlaces([]);
+    markersRef.current.forEach(({ marker, place }) => {
+      if (marker && place) marker.setMap(null);
+    });
+    markersRef.current = markersRef.current.filter(m => m.location);
+
+    const timeoutId = setTimeout(() => {
+      console.log(`Fetching places near ${selectedLocation.name}...`);
+      setIsLoadingPlaces(true);
+      
+      Promise.all([
+        searchPlaces(mapInstanceRef.current!, {
+          location: { lat, lng },
+          radius: 5000,
+          type: 'attraction',
+        }).catch(() => []),
+        searchPlaces(mapInstanceRef.current!, {
+          location: { lat, lng },
+          radius: 3000,
+          type: 'restaurants',
+        }).catch(() => []),
+      ])
+        .then(([attractions, restaurants]) => {
+          const allPlaces = [...attractions, ...restaurants];
+          
+          const deduplicatedPlaces = allPlaces.reduce((acc: Place[], place: Place) => {
+            const existing = acc.find(p => {
+              if (p.placeId && place.placeId && p.placeId === place.placeId) return true;
+              const pKey = `${p.name.toLowerCase()}_${p.location.lat.toFixed(6)}_${p.location.lng.toFixed(6)}`;
+              const placeKey = `${place.name.toLowerCase()}_${place.location.lat.toFixed(6)}_${place.location.lng.toFixed(6)}`;
+              return pKey === placeKey;
+            });
+            if (!existing) acc.push(place);
+            return acc;
+          }, []);
+
+          console.log(`Found ${deduplicatedPlaces.length} unique places near ${selectedLocation.name}`);
+          setNearbyPlaces(deduplicatedPlaces);
+          setIsLoadingPlaces(false);
+        })
+        .catch((error) => {
+          console.error('Failed to fetch nearby places:', error);
+          setNearbyPlaces([]);
+          setIsLoadingPlaces(false);
+        });
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
   }, [selectedLocationId, locations]);
 
   const getMarkerIcon = (type: Place['type']): google.maps.Symbol => {

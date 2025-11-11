@@ -292,10 +292,9 @@ export default function ChatInterface({
     >
       <div
         ref={containerRef}
-        className="flex-1 min-h-0 overflow-y-auto"
+        className="flex-1 min-h-0 overflow-y-auto pb-[90px] md:pb-4"
         style={{ 
-          WebkitOverflowScrolling: 'touch',
-          paddingBottom: '90px'
+          WebkitOverflowScrolling: 'touch'
         }}
       >
         <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-[850px] lg:max-w-[1000px] px-3 md:px-4 py-3 md:py-4 md:pb-0">

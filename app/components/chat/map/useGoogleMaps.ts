@@ -19,8 +19,8 @@ const callbacks: Array<() => void> = [];
 
 export function useGoogleMaps(): UseGoogleMapsReturn {
   const [state, setState] = useState({
-    isLoaded: isLoaded,
-    loadError: loadError,
+    isLoaded,
+    loadError,
   });
 
   useEffect(() => {
@@ -34,60 +34,69 @@ export function useGoogleMaps(): UseGoogleMapsReturn {
       return;
     }
 
+    let mounted = true;
+
     const callback = () => {
-      setState({ isLoaded: true, loadError: null });
+      if (!mounted) return;
+      setState({ isLoaded: isLoaded, loadError });
     };
+
     callbacks.push(callback);
 
-    if (isLoadingStarted) {
-      return;
+    if (!isLoadingStarted) {
+      isLoadingStarted = true;
+      loadGoogleMapsScript();
     }
 
-    isLoadingStarted = true;
-    loadGoogleMapsScript();
-
     return () => {
+      mounted = false;
       const index = callbacks.indexOf(callback);
-      if (index > -1) {
-        callbacks.splice(index, 1);
-      }
+      if (index > -1) callbacks.splice(index, 1);
     };
   }, []);
 
   return state;
 }
 
+function runCallbacksAndClear() {
+  const pending = callbacks.splice(0, callbacks.length);
+  pending.forEach((cb) => cb());
+}
+
 function loadGoogleMapsScript() {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
 
   if (!apiKey) {
-    const error = new Error('Google Maps API key is missing');
-    loadError = error;
-    callbacks.forEach((cb) => cb());
+    loadError = new Error('Google Maps API key is missing');
+    runCallbacksAndClear();
     return;
   }
 
-  if (typeof google !== 'undefined' && google.maps) {
+  if (typeof window !== 'undefined' && typeof window.google !== 'undefined' && (window.google as any).maps) {
     isLoaded = true;
-    callbacks.forEach((cb) => cb());
+    runCallbacksAndClear();
     return;
   }
+
+  const existing = document.querySelector('script[data-google-maps]');
+  if (existing) return;
 
   const script = document.createElement('script');
+  script.setAttribute('data-google-maps', '1');
   script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geometry&callback=initGoogleMaps`;
   script.async = true;
   script.defer = true;
 
   window.initGoogleMaps = () => {
     isLoaded = true;
-    callbacks.forEach((cb) => cb());
+    loadError = null;
+    runCallbacksAndClear();
   };
 
   script.onerror = () => {
     loadError = new Error('Failed to load Google Maps script');
-    callbacks.forEach((cb) => cb());
+    runCallbacksAndClear();
   };
 
   document.head.appendChild(script);
 }
-
