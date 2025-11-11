@@ -388,6 +388,10 @@ export default function ChatInterface({
                 onKeyDown={handleKeyDown}
                 placeholder="Ask blu"
                 disabled={isLoading}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
                 className="flex-1 bg-transparent text-[16px] md:text-[0.938rem] lg:text-[1rem] font-normal outline-none placeholder-neutral-400"
                 style={{ fontFamily: 'var(--font-poppins)', color: COLORS.textSecondary }}
               />

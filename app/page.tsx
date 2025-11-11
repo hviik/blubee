@@ -24,12 +24,31 @@ export default function BlubeezHome() {
   const [isExploreActive, setIsExploreActive] = useState(false);
   const [initialMessage, setInitialMessage] = useState<string | null>(null);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [mobileGap, setMobileGap] = useState(20);
   
   useEffect(() => {
     const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
     checkDesktop();
     window.addEventListener('resize', checkDesktop);
     return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      const calculateGap = () => {
+        const viewportHeight = window.innerHeight;
+        const availableHeight = viewportHeight - 112 - 200;
+        const dynamicGap = Math.max(20, Math.min(60, availableHeight / 8));
+        setMobileGap(dynamicGap);
+      };
+      calculateGap();
+      window.addEventListener('resize', calculateGap);
+      window.addEventListener('orientationchange', calculateGap);
+      return () => {
+        window.removeEventListener('resize', calculateGap);
+        window.removeEventListener('orientationchange', calculateGap);
+      };
+    }
   }, []);
 
   useEffect(() => {
@@ -167,7 +186,12 @@ export default function BlubeezHome() {
             h-screen md:h-auto md:min-h-0 justify-between md:justify-center md:gap-[clamp(5rem,11vh,7.5rem)]
           ">
           <HeroSection />
-          <div className="w-full flex flex-col items-end justify-end gap-4 mb-2 md:mb-0 pb-[env(safe-area-inset-bottom,0px)]">
+          <div 
+            className="w-full flex flex-col items-end justify-end gap-4 mb-2 md:mb-0 pb-[env(safe-area-inset-bottom,0px)]"
+            style={{
+              marginTop: !isDesktop ? `${mobileGap}px` : undefined
+            }}
+          >
             <PromptCards onPromptClick={handlePromptClick} />
             <div className="w-full bg-white rounded-t-2xl shadow-[0px_-10px_10px_0px_rgba(0,0,0,0.05)] p-2 md:p-0 md:bg-transparent md:shadow-none">
               <SearchInput

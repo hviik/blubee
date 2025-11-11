@@ -44,6 +44,10 @@ export default function SearchInput({ onHelpClick, isMobileSidebarOpen = false, 
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask blubee"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
             className="flex-1 bg-transparent text-neutral-400 text-[16px] md:text-[1rem] lg:text-[1.125rem] font-normal outline-none placeholder-neutral-400 leading-normal"
             style={{ fontFamily: 'var(--font-poppins)' }}
           />
