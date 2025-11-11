@@ -227,14 +227,20 @@ export default function BlubeezHome() {
           </div>
         </div>
       ) : (
-        <div className="
+        <div 
+          className="
             w-full mx-auto px-4 md:px-0 md:max-w-[675px] relative z-10 flex flex-col items-center
             pt-16 md:pt-[clamp(4.5rem,9vh,6rem)] pb-4 md:pb-[clamp(3rem,6vh,4.5rem)]
             h-screen md:h-auto md:min-h-0 justify-start md:justify-center
-          ">
+            transition-all duration-300 ease-in-out
+          "
+          style={{
+            height: !isDesktop && isKeyboardVisible ? 'auto' : undefined
+          }}
+        >
           <HeroSection />
           <div 
-            className="w-full flex flex-col items-end justify-end gap-4 mt-auto pb-[env(safe-area-inset-bottom,16px)]"
+            className="w-full flex flex-col items-end justify-end gap-4 mt-auto pb-[env(safe-area-inset-bottom,16px)] transition-all duration-300 ease-in-out"
             style={{
               marginTop: !isDesktop ? `${heroToCardsGap}px` : 'clamp(5rem,11vh,7.5rem)'
             }}
