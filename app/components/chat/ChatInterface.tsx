@@ -395,10 +395,10 @@ export default function ChatInterface({
                  onKeyDown={handleKeyDown}
                  placeholder="Ask blu"
                  disabled={isLoading}
-                 autoComplete="off"
-                 autoCorrect="off"
-                 autoCapitalize="off"
-                 spellCheck={false}
+                 autoComplete="on"
+                 autoCorrect="on"
+                 autoCapitalize="on"
+                 spellCheck={true}
                  rows={1}
                  className="flex-1 bg-transparent text-[16px] md:text-[0.938rem] lg:text-[1rem] font-normal outline-none placeholder-neutral-400 resize-none overflow-y-auto leading-normal"
                  style={{ 
