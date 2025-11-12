@@ -26,7 +26,7 @@ IMPORTANT - When creating itineraries:
   Afternoon: Lunch at Locavore Restaurant, relax at Seminyak Beach
   Evening: Sunset dinner at La Plancha, cocktails at Potato Head Beach Club`;
 
-const MODEL = 'gpt-4o-mini';
+const MODEL = 'gpt-5-nano';
 
 export async function POST(req: Request) {
   try {
