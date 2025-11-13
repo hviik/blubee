@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "optimize:images": "node scripts/optimize-images.js",
+    "optimize:svg": "node scripts/optimize-svg.js",
+    "optimize": "npm run optimize:images && npm run optimize:svg"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.64",
@@ -34,6 +37,7 @@
     "eslint": "^8",
     "eslint-config-next": "^14.2.25",
     "postcss": "^8.4.39",
+    "sharp": "^0.34.5",
     "tailwindcss": "^3.4.4",
     "typescript": "^5"
   }
