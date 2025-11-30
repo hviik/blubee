@@ -1,20 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
+import { useUser } from '@clerk/nextjs';
 import { COLORS } from '../constants/colors';
 import { detectUserCurrency, getExchangeRate, CurrencyInfo } from '../utils/currencyDetection';
+import { getDestinationImage, getFlagImage, getISO2Code } from '../utils/countryData';
+import HeartButton, { DoubleTapHeartOverlay } from './HeartButton';
 
 interface ExplorePageProps {
   compact?: boolean;
   onDestinationClick?: (countryName: string, route: string[]) => void;
 }
 
-interface Destination {
+export interface Destination {
   id: string;
   name: string;
-  flag: string;
-  image: string;
+  iso2: string;
   duration: string;
   priceINR: number;
   priceDetail: string;
@@ -23,80 +25,72 @@ interface Destination {
 
 const destinations: Destination[] = [
   {
-    id: '1',
+    id: 'vn',
     name: 'VIETNAM',
-    flag: '/assets/flags/vietnam.png',
-    image: '/assets/destinations/vietnam.png',
+    iso2: 'vn',
     duration: '5 Days, 4 Nights',
     priceINR: 74500,
     priceDetail: 'Per person',
     route: ['Hanoi', 'Ha Long Bay', 'Ho Chi Minh City'],
   },
   {
-    id: '2',
+    id: 'my',
     name: 'MALAYSIA',
-    flag: '/assets/flags/malaysia.png',
-    image: '/assets/destinations/malaysia.png',
+    iso2: 'my',
     duration: '5 Days, 4 Nights',
     priceINR: 68900,
     priceDetail: 'Per person',
     route: ['Kuala Lumpur', 'Penang', 'Langkawi'],
   },
   {
-    id: '3',
+    id: 'pe',
     name: 'PERU',
-    flag: '/assets/flags/peru.png',
-    image: '/assets/destinations/peru.png',
+    iso2: 'pe',
     duration: '5 Days, 4 Nights',
     priceINR: 215000,
     priceDetail: 'Per person',
     route: ['Lima', 'Cusco', 'Machu Picchu'],
   },
   {
-    id: '4',
+    id: 'ph',
     name: 'PHILIPPINES',
-    flag: '/assets/flags/philippines.png',
-    image: '/assets/destinations/philippines.png',
+    iso2: 'ph',
     duration: '5 Days, 4 Nights',
     priceINR: 82400,
     priceDetail: 'Per person',
     route: ['Manila', 'Cebu', 'Palawan'],
   },
   {
-    id: '5',
+    id: 'br',
     name: 'BRAZIL',
-    flag: '/assets/flags/brazil.png',
-    image: '/assets/destinations/brazil.png',
+    iso2: 'br',
     duration: '5 Days, 4 Nights',
     priceINR: 245000,
     priceDetail: 'Per person',
     route: ['Rio de Janeiro', 'São Paulo', 'Iguazu Falls'],
   },
   {
-    id: '6',
+    id: 'in',
     name: 'INDIA',
-    flag: '/assets/flags/india.png',
-    image: '/assets/destinations/india.png',
+    iso2: 'in',
     duration: '5 Days, 4 Nights',
     priceINR: 38500,
     priceDetail: 'Per person',
     route: ['Delhi', 'Agra', 'Jaipur'],
   },
   {
-    id: '7',
+    id: 'mv',
     name: 'MALDIVES',
-    flag: '/assets/flags/maldives.png',
-    image: '/assets/destinations/maldives.png',
+    iso2: 'mv',
     duration: '5 Days, 4 Nights',
     priceINR: 112000,
     priceDetail: 'Per person',
     route: ['Male', 'Ari Atoll', 'Vaavu'],
   },
   {
-    id: '8',
+    id: 'la',
     name: 'LAOS',
-    flag: '/assets/flags/laos.png',
-    image: '/assets/destinations/laos.png',
+    iso2: 'la',
     duration: '5 Days, 4 Nights',
     priceINR: 71200,
     priceDetail: 'Per person',
@@ -105,9 +99,16 @@ const destinations: Destination[] = [
 ];
 
 export default function ExplorePage({ compact = false, onDestinationClick }: ExplorePageProps) {
+  const { isSignedIn } = useUser();
   const [searchQuery, setSearchQuery] = useState('');
   const [currencyInfo, setCurrencyInfo] = useState<CurrencyInfo | null>(null);
   const [exchangeRate, setExchangeRate] = useState<number>(1);
+  const [likedDestinations, setLikedDestinations] = useState<Set<string>>(new Set());
+  const [loadingLikes, setLoadingLikes] = useState<Set<string>>(new Set());
+  const [showHeartOverlay, setShowHeartOverlay] = useState<string | null>(null);
+  
+  // For double-tap detection on the card itself
+  const lastTapTimeRef = useRef<{ [key: string]: number }>({});
 
   useEffect(() => {
     const initCurrency = async () => {
@@ -123,6 +124,28 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
     initCurrency();
   }, []);
 
+  // Fetch user's wishlist on mount
+  useEffect(() => {
+    const fetchWishlist = async () => {
+      if (!isSignedIn) {
+        setLikedDestinations(new Set());
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/wishlist');
+        if (response.ok) {
+          const data = await response.json();
+          setLikedDestinations(new Set(data.wishlistIds || []));
+        }
+      } catch (error) {
+        console.error('Failed to fetch wishlist:', error);
+      }
+    };
+
+    fetchWishlist();
+  }, [isSignedIn]);
+
   const convertAndFormatPrice = (priceINR: number): string => {
     if (!currencyInfo) {
       return `₹ ${priceINR.toLocaleString()}`;
@@ -136,6 +159,113 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
     
     return `${currencyInfo.symbol} ${convertedAmount.toLocaleString()}`;
   };
+
+  const toggleLike = useCallback(async (destination: Destination) => {
+    if (!isSignedIn) {
+      return;
+    }
+
+    const isCurrentlyLiked = likedDestinations.has(destination.id);
+    
+    // Optimistic update
+    setLikedDestinations(prev => {
+      const newSet = new Set(prev);
+      if (isCurrentlyLiked) {
+        newSet.delete(destination.id);
+      } else {
+        newSet.add(destination.id);
+      }
+      return newSet;
+    });
+
+    setLoadingLikes(prev => new Set(prev).add(destination.id));
+
+    try {
+      if (isCurrentlyLiked) {
+        const response = await fetch(`/api/wishlist?destinationId=${destination.id}`, {
+          method: 'DELETE',
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to remove from wishlist');
+        }
+      } else {
+        const response = await fetch('/api/wishlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            destinationId: destination.id,
+            destinationName: destination.name,
+            route: destination.route,
+            priceINR: destination.priceINR,
+            duration: destination.duration,
+            iso2: destination.iso2,
+          }),
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to add to wishlist');
+        }
+      }
+    } catch (error) {
+      console.error('Wishlist toggle error:', error);
+      // Revert optimistic update on error
+      setLikedDestinations(prev => {
+        const newSet = new Set(prev);
+        if (isCurrentlyLiked) {
+          newSet.add(destination.id);
+        } else {
+          newSet.delete(destination.id);
+        }
+        return newSet;
+      });
+    } finally {
+      setLoadingLikes(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(destination.id);
+        return newSet;
+      });
+    }
+  }, [isSignedIn, likedDestinations]);
+
+  const handleCardDoubleTap = useCallback((destination: Destination, e: React.MouseEvent | React.TouchEvent) => {
+    const now = Date.now();
+    const lastTap = lastTapTimeRef.current[destination.id] || 0;
+    
+    if (now - lastTap < 300) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      setShowHeartOverlay(destination.id);
+      setTimeout(() => setShowHeartOverlay(null), 800);
+      
+      toggleLike(destination);
+      
+      lastTapTimeRef.current[destination.id] = 0;
+    } else {
+      lastTapTimeRef.current[destination.id] = now;
+    }
+  }, [toggleLike]);
+
+  const handleCardClick = useCallback((destination: Destination, e: React.MouseEvent) => {
+    handleCardDoubleTap(destination, e);
+    
+    const now = Date.now();
+    setTimeout(() => {
+      const lastTap = lastTapTimeRef.current[destination.id] || 0;
+      if (now === lastTap) {
+        onDestinationClick?.(destination.name, destination.route);
+      }
+    }, 300);
+  }, [handleCardDoubleTap, onDestinationClick]);
+
+  // Filter destinations based on search query
+  const filteredDestinations = searchQuery
+    ? destinations.filter(d => 
+        d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        d.route.some(r => r.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+    : destinations;
 
   return (
     <div className="w-full h-full flex flex-col bg-transparent overflow-hidden">
@@ -172,7 +302,7 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search"
+              placeholder="Search destinations..."
               className="flex-1 bg-transparent text-sm outline-none placeholder-gray-400"
               style={{ fontFamily: 'var(--font-poppins)', color: '#333' }}
             />
@@ -201,15 +331,18 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
               : 'repeat(auto-fill, minmax(160px, 220px))',
           }}
         >
-          {destinations.map((d) => (
+          {filteredDestinations.map((d) => (
             <div
               key={d.id}
               className="relative w-full aspect-[3/4] md:aspect-[4/5] rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform duration-300"
-              onClick={() => onDestinationClick?.(d.name, d.route)}
+              onClick={(e) => handleCardClick(d, e)}
             >
+              {/* Double-tap heart overlay animation */}
+              <DoubleTapHeartOverlay show={showHeartOverlay === d.id} />
+
               <div className="absolute inset-0">
                 <Image
-                  src={d.image}
+                  src={getDestinationImage(d.name)}
                   alt={d.name}
                   fill
                   className="object-cover object-center brightness-[0.95] contrast-[1.08]"
@@ -260,6 +393,16 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                 </svg>
               </div>
 
+              {/* Heart button positioned at bottom right */}
+              <div className="absolute bottom-28 md:bottom-32 right-3 md:right-4 z-10">
+                <HeartButton
+                  isLiked={likedDestinations.has(d.id)}
+                  onToggle={() => toggleLike(d)}
+                  size={compact ? 'sm' : 'md'}
+                  disabled={loadingLikes.has(d.id) || !isSignedIn}
+                />
+              </div>
+
               <div
                 className="absolute bottom-0 left-0 right-0 h-40 md:h-48 p-3 md:p-[18px] flex flex-col items-center justify-end"
                 style={{
@@ -268,12 +411,13 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                 }}
               >
                 <div className="flex flex-col items-center gap-1.5 md:gap-2 w-full mb-1.5 md:mb-2">
-                  <div className="w-7 h-3.5 md:w-8 md:h-4 relative">
+                  <div className="w-7 h-3.5 md:w-8 md:h-4 relative overflow-hidden rounded-sm">
                     <Image
-                      src={d.flag}
+                      src={getFlagImage(d.name)}
                       alt={`${d.name} flag`}
                       fill
-                      className="object-cover rounded-sm"
+                      className="object-cover"
+                      unoptimized
                     />
                   </div>
                   <p

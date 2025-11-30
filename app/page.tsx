@@ -13,6 +13,10 @@ import HowToUseModal from './components/HowToUseModal';
 import ChatWithMap from './components/chat/map/ChatWithMap';
 import AuthPromptModal from './components/AuthPromptModal';
 import ExplorePage from './components/ExplorePage';
+import WishlistPage from './components/WishlistPage';
+import MyTripsPage from './components/MyTripsPage';
+
+type ActiveView = 'home' | 'chat' | 'explore' | 'wishlist' | 'mytrips';
 
 export default function BlubeezHome() {
   const { isSignedIn } = useUser();
@@ -20,8 +24,7 @@ export default function BlubeezHome() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [isChatActive, setIsChatActive] = useState(false);
-  const [isExploreActive, setIsExploreActive] = useState(false);
+  const [activeView, setActiveView] = useState<ActiveView>('home');
   const [initialMessage, setInitialMessage] = useState<string | null>(null);
   const [isDesktop, setIsDesktop] = useState(false);
   const [heroToCardsGap, setHeroToCardsGap] = useState(120);
@@ -100,7 +103,7 @@ export default function BlubeezHome() {
       return;
     }
     setInitialMessage(message);
-    setIsChatActive(true);
+    setActiveView('chat');
   };
 
   const handlePromptClick = (prompt: string) => {
@@ -109,7 +112,7 @@ export default function BlubeezHome() {
       return;
     }
     setInitialMessage(prompt);
-    setIsChatActive(true);
+    setActiveView('chat');
   };
 
   const handleDestinationClick = (countryName: string, route: string[]) => {
@@ -133,26 +136,45 @@ export default function BlubeezHome() {
     
     const message = `Plan me a trip to ${countryName}${placesText}`;
     setInitialMessage(message);
-    setIsExploreActive(false);
-    setIsChatActive(true);
+    setActiveView('chat');
+  };
+
+  const handleExploreClick = () => {
+    setActiveView('explore');
+  };
+
+  const handleWishlistClick = () => {
+    if (!isSignedIn) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+    setActiveView('wishlist');
+  };
+
+  const handleMyTripsClick = () => {
+    if (!isSignedIn) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+    setActiveView('mytrips');
   };
 
   useEffect(() => {
-    if (isChatActive) {
+    if (activeView === 'chat') {
       const prev = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
       return () => {
         document.body.style.overflow = prev;
       };
     }
-  }, [isChatActive]);
+  }, [activeView]);
 
   useEffect(() => {
-    if (isChatActive && initialMessage) {
+    if (activeView === 'chat' && initialMessage) {
       const t = setTimeout(() => setInitialMessage(null), 0);
       return () => clearTimeout(t);
     }
-  }, [isChatActive, initialMessage]);
+  }, [activeView, initialMessage]);
 
   useEffect(() => {
     if (isSignedIn && isAuthModalOpen) {
@@ -160,80 +182,127 @@ export default function BlubeezHome() {
     }
   }, [isSignedIn, isAuthModalOpen]);
 
+  const isInContentView = activeView !== 'home';
+
+  const renderContent = () => {
+    switch (activeView) {
+      case 'explore':
+        return (
+          <div 
+            className="fixed inset-x-0 z-10 transition-all duration-300 ease-in-out"
+            style={{
+              top: isDesktop ? '80px' : '64px',
+              height: isDesktop ? 'calc(var(--vh, 1vh) * 100 - 80px)' : 'calc(var(--vh, 1vh) * 100 - 64px)',
+              paddingLeft: isDesktop ? `${sidebarWidth}px` : '0px',
+              maxHeight: isDesktop ? 'calc(100vh - 80px)' : 'calc(100vh - 64px)',
+            }}
+          >
+            <ExplorePage compact={!isDesktop} onDestinationClick={handleDestinationClick} />
+          </div>
+        );
+      
+      case 'wishlist':
+        return (
+          <div 
+            className="fixed inset-x-0 z-10 transition-all duration-300 ease-in-out"
+            style={{
+              top: isDesktop ? '80px' : '64px',
+              height: isDesktop ? 'calc(var(--vh, 1vh) * 100 - 80px)' : 'calc(var(--vh, 1vh) * 100 - 64px)',
+              paddingLeft: isDesktop ? `${sidebarWidth}px` : '0px',
+              maxHeight: isDesktop ? 'calc(100vh - 80px)' : 'calc(100vh - 64px)',
+            }}
+          >
+            <WishlistPage onDestinationClick={handleDestinationClick} />
+          </div>
+        );
+      
+      case 'mytrips':
+        return (
+          <div 
+            className="fixed inset-x-0 z-10 transition-all duration-300 ease-in-out"
+            style={{
+              top: isDesktop ? '80px' : '64px',
+              height: isDesktop ? 'calc(var(--vh, 1vh) * 100 - 80px)' : 'calc(var(--vh, 1vh) * 100 - 64px)',
+              paddingLeft: isDesktop ? `${sidebarWidth}px` : '0px',
+              maxHeight: isDesktop ? 'calc(100vh - 80px)' : 'calc(100vh - 64px)',
+            }}
+          >
+            <MyTripsPage onTripClick={(trip) => handleDestinationClick(trip.title, trip.preferences.route || [])} />
+          </div>
+        );
+      
+      case 'chat':
+        return (
+          <div 
+            className="fixed inset-x-0 z-10 transition-all duration-300 ease-in-out"
+            style={{
+              top: isDesktop ? '80px' : '64px',
+              height: isDesktop ? 'calc(var(--vh, 1vh) * 100 - 80px)' : 'calc(var(--vh, 1vh) * 100 - 64px)',
+              paddingLeft: isDesktop ? `${sidebarWidth}px` : '0px',
+              maxHeight: isDesktop ? 'calc(100vh - 80px)' : 'calc(100vh - 64px)',
+            }}
+          >
+            <div className="w-full h-full">
+              <ChatWithMap
+                initialMessage={initialMessage || undefined}
+              />
+            </div>
+          </div>
+        );
+      
+      default:
+        return (
+          <div 
+            className="
+              w-full mx-auto px-4 md:px-0 md:max-w-[675px] relative z-10 flex flex-col items-center
+              pt-16 md:pt-[clamp(4.5rem,9vh,6rem)] pb-4 md:pb-[clamp(3rem,6vh,4.5rem)]
+              min-h-screen md:h-auto justify-start md:justify-center
+            "
+          >
+            <HeroSection />
+            <div 
+              className="w-full flex flex-col items-end justify-end gap-4 mt-auto pb-[env(safe-area-inset-bottom,16px)]"
+              style={{
+                marginTop: !isDesktop ? `${heroToCardsGap}px` : 'clamp(5rem,11vh,7.5rem)',
+              }}
+            >
+              <PromptCards onPromptClick={handlePromptClick} />
+              <div className="w-full bg-white rounded-2xl shadow-[0px_-10px_10px_0px_rgba(0,0,0,0.05)] p-2 md:p-0 md:bg-transparent md:shadow-none">
+                <SearchInput
+                  onHelpClick={handleOpenModal}
+                  isMobileSidebarOpen={isMobileSidebarOpen}
+                  onSendMessage={handleSendMessage}
+                  onExploreClick={handleExploreClick}
+                />
+              </div>
+            </div>
+          </div>
+        );
+    }
+  };
+
   return (
     <div className="w-full min-h-screen bg-white overflow-x-hidden relative">
       <BackgroundEffects />
       <Sidebar
         onExpandChange={setIsSidebarExpanded}
         onMobileOpenChange={setIsMobileSidebarOpen}
-        isChatMode={isChatActive || isExploreActive}
-        onExploreClick={() => setIsExploreActive(true)}
+        isChatMode={isInContentView}
+        onExploreClick={handleExploreClick}
+        onWishlistClick={handleWishlistClick}
+        onMyTripsClick={handleMyTripsClick}
       />
       <Header 
         sidebarExpanded={isSidebarExpanded}
-        isChatMode={isChatActive || isExploreActive}
+        isChatMode={isInContentView}
       />
 
-      {isExploreActive ? (
-        <div 
-          className="fixed inset-x-0 z-10 transition-all duration-300 ease-in-out"
-          style={{
-            top: isDesktop ? '80px' : '64px',
-            height: isDesktop ? 'calc(var(--vh, 1vh) * 100 - 80px)' : 'calc(var(--vh, 1vh) * 100 - 64px)',
-            paddingLeft: isDesktop ? `${sidebarWidth}px` : '0px',
-            maxHeight: isDesktop ? 'calc(100vh - 80px)' : 'calc(100vh - 64px)',
-          }}
-        >
-          <ExplorePage compact={!isDesktop} onDestinationClick={handleDestinationClick} />
-        </div>
-      ) : isChatActive ? (
-        <div 
-          className="fixed inset-x-0 z-10 transition-all duration-300 ease-in-out"
-          style={{
-            top: isDesktop ? '80px' : '64px',
-            height: isDesktop ? 'calc(var(--vh, 1vh) * 100 - 80px)' : 'calc(var(--vh, 1vh) * 100 - 64px)',
-            paddingLeft: isDesktop ? `${sidebarWidth}px` : '0px',
-            maxHeight: isDesktop ? 'calc(100vh - 80px)' : 'calc(100vh - 64px)',
-          }}
-        >
-          <div className="w-full h-full">
-            <ChatWithMap
-              initialMessage={initialMessage || undefined}
-            />
-          </div>
-        </div>
-      ) : (
-        <div 
-          className="
-            w-full mx-auto px-4 md:px-0 md:max-w-[675px] relative z-10 flex flex-col items-center
-            pt-16 md:pt-[clamp(4.5rem,9vh,6rem)] pb-4 md:pb-[clamp(3rem,6vh,4.5rem)]
-            min-h-screen md:h-auto justify-start md:justify-center
-          "
-        >
-          <HeroSection />
-          <div 
-            className="w-full flex flex-col items-end justify-end gap-4 mt-auto pb-[env(safe-area-inset-bottom,16px)]"
-            style={{
-              marginTop: !isDesktop ? `${heroToCardsGap}px` : 'clamp(5rem,11vh,7.5rem)',
-            }}
-          >
-            <PromptCards onPromptClick={handlePromptClick} />
-            <div className="w-full bg-white rounded-2xl shadow-[0px_-10px_10px_0px_rgba(0,0,0,0.05)] p-2 md:p-0 md:bg-transparent md:shadow-none">
-              <SearchInput
-                onHelpClick={handleOpenModal}
-                isMobileSidebarOpen={isMobileSidebarOpen}
-                onSendMessage={handleSendMessage}
-                onExploreClick={() => setIsExploreActive(true)}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      {renderContent()}
 
-      {!isChatActive && !isExploreActive && (
+      {activeView === 'home' && (
         <Footer 
           onHelpClick={handleOpenModal}
-          onExploreClick={() => setIsExploreActive(true)}
+          onExploreClick={handleExploreClick}
         />
       )}
 
