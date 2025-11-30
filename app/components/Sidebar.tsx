@@ -231,15 +231,7 @@ function NavItems({
         onClick={onWishlistClick}
         className="flex items-center gap-3 hover:opacity-70 transition-opacity"
       >
-        {/* Bookmark bag icon matching Figma */}
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"
-            stroke={COLORS.textQuaternary}
-            strokeWidth="1.5"
-            fill="none"
-          />
-        </svg>
+        <Image src="/assets/bookmark-bag.svg" alt="Wishlist" width={24} height={24} />
         {isExpanded && (
           <span
             className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal whitespace-nowrap"
@@ -254,15 +246,7 @@ function NavItems({
         onClick={onUpdatesClick}
         className="flex items-center gap-3 hover:opacity-70 transition-opacity"
       >
-        {/* Bell/notifications icon matching Figma */}
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"
-            stroke={COLORS.textQuaternary}
-            strokeWidth="1.5"
-            fill="none"
-          />
-        </svg>
+        <Image src="/assets/notifications.svg" alt="Updates" width={24} height={24} />
         {isExpanded && (
           <span
             className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal whitespace-nowrap"
@@ -277,11 +261,7 @@ function NavItems({
         onClick={onMyTripsClick}
         className="flex items-center gap-3 hover:opacity-70 transition-opacity"
       >
-        {/* Travel bag / trips icon */}
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="9" stroke={COLORS.textQuaternary} strokeWidth="1.5" fill="none"/>
-          <path d="M12 7v5l3 3" stroke={COLORS.textQuaternary} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
-        </svg>
+        <Image src="/assets/997.svg" alt="My trips" width={24} height={24} />
         {isExpanded && (
           <span
             className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal whitespace-nowrap"
