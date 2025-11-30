@@ -29,9 +29,10 @@ export async function GET() {
     // Extract destination IDs from wishlist items
     const wishlistIds = (data || []).map(trip => {
       // The destination_id is stored in preferences
-      const prefs = trip.preferences as { destination_id?: string } | null;
-      return prefs?.destination_id;
-    }).filter(Boolean);
+      const prefs = trip.preferences as { destination_id?: string; destinationId?: string } | null;
+      // Support both destination_id and destinationId (backwards compatibility)
+      return prefs?.destination_id || prefs?.destinationId || null;
+    }).filter((id): id is string => Boolean(id));
 
     return NextResponse.json({ 
       wishlist: data || [],
@@ -64,14 +65,23 @@ export async function POST(req: NextRequest) {
 
     const { supabaseAdmin } = await import('@/lib/supabaseServer');
 
-    // Check if already in wishlist
-    const { data: existing } = await supabaseAdmin
+    // Check if already in wishlist - query all wishlist items and filter manually
+    // because .contains() doesn't work reliably with nested JSONB fields
+    const { data: allWishlistItems, error: checkError } = await supabaseAdmin
       .from('trips')
-      .select('id')
+      .select('id, preferences')
       .eq('user_id', userId)
-      .eq('status', 'wishlist')
-      .contains('preferences', { destination_id: destinationId })
-      .single();
+      .eq('status', 'wishlist');
+
+    if (checkError) {
+      console.error('Error checking existing wishlist:', checkError);
+    }
+
+    // Find if destination already exists
+    const existing = allWishlistItems?.find(trip => {
+      const prefs = trip.preferences as { destination_id?: string; destinationId?: string } | null;
+      return prefs?.destination_id === destinationId || prefs?.destinationId === destinationId;
+    });
 
     if (existing) {
       return NextResponse.json({ 
@@ -91,11 +101,15 @@ export async function POST(req: NextRequest) {
         trip_type: 'explore',
         preferences: {
           destination_id: destinationId,
+          destinationId: destinationId, // Store both for backwards compatibility
+          destinationName: destinationName,
           route: route || [],
-          price_inr: priceINR,
+          priceINR: priceINR,
+          price_inr: priceINR, // Store both formats
           duration: duration,
-          image: image,
-          flag: flag
+          image: image || null,
+          flag: flag || null,
+          iso2: body.iso2 || null
         }
       })
       .select()
@@ -138,16 +152,28 @@ export async function DELETE(req: NextRequest) {
 
     const { supabaseAdmin } = await import('@/lib/supabaseServer');
 
-    // Find and delete the wishlist item
-    const { data: existing, error: findError } = await supabaseAdmin
+    // Find and delete the wishlist item - query all and filter manually
+    const { data: allWishlistItems, error: findError } = await supabaseAdmin
       .from('trips')
-      .select('id')
+      .select('id, preferences')
       .eq('user_id', userId)
-      .eq('status', 'wishlist')
-      .contains('preferences', { destination_id: destinationId })
-      .single();
+      .eq('status', 'wishlist');
 
-    if (findError || !existing) {
+    if (findError) {
+      console.error('Error finding wishlist item:', findError);
+      return NextResponse.json({ 
+        error: 'Failed to find wishlist item',
+        action: 'error'
+      }, { status: 500 });
+    }
+
+    // Find the item to delete
+    const existing = allWishlistItems?.find(trip => {
+      const prefs = trip.preferences as { destination_id?: string; destinationId?: string } | null;
+      return prefs?.destination_id === destinationId || prefs?.destinationId === destinationId;
+    });
+
+    if (!existing) {
       return NextResponse.json({ 
         message: 'Not found in wishlist',
         action: 'not_found'

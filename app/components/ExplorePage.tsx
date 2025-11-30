@@ -136,7 +136,12 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
         const response = await fetch('/api/wishlist');
         if (response.ok) {
           const data = await response.json();
-          setLikedDestinations(new Set(data.wishlistIds || []));
+          const ids = data.wishlistIds || [];
+          console.log('Fetched wishlist IDs:', ids);
+          setLikedDestinations(new Set(ids));
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('Failed to fetch wishlist:', errorData);
         }
       } catch (error) {
         console.error('Failed to fetch wishlist:', error);
@@ -162,10 +167,12 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
 
   const toggleLike = useCallback(async (destination: Destination) => {
     if (!isSignedIn) {
+      console.warn('User not signed in, cannot toggle like');
       return;
     }
 
     const isCurrentlyLiked = likedDestinations.has(destination.id);
+    console.log(`Toggling like for ${destination.name} (${destination.id}): ${isCurrentlyLiked ? 'unliking' : 'liking'}`);
     
     // Optimistic update
     setLikedDestinations(prev => {
@@ -182,30 +189,63 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
 
     try {
       if (isCurrentlyLiked) {
-        const response = await fetch(`/api/wishlist?destinationId=${destination.id}`, {
+        const response = await fetch(`/api/wishlist?destinationId=${encodeURIComponent(destination.id)}`, {
           method: 'DELETE',
         });
         
+        const responseData = await response.json().catch(() => ({}));
+        
         if (!response.ok) {
-          throw new Error('Failed to remove from wishlist');
+          console.error('DELETE wishlist error:', responseData);
+          throw new Error(responseData.error || 'Failed to remove from wishlist');
         }
+        
+        console.log('Successfully removed from wishlist:', responseData);
       } else {
+        // Get image and flag paths
+        const destinationImage = getDestinationImage(destination.name);
+        const flagImage = getFlagImage(destination.name);
+        
+        const payload = {
+          destinationId: destination.id,
+          destinationName: destination.name,
+          route: destination.route,
+          priceINR: destination.priceINR,
+          duration: destination.duration,
+          iso2: destination.iso2,
+          image: destinationImage,
+          flag: flagImage,
+        };
+        
+        console.log('POST wishlist payload:', payload);
+        
         const response = await fetch('/api/wishlist', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            destinationId: destination.id,
-            destinationName: destination.name,
-            route: destination.route,
-            priceINR: destination.priceINR,
-            duration: destination.duration,
-            iso2: destination.iso2,
-          }),
+          body: JSON.stringify(payload),
         });
         
+        const responseData = await response.json().catch(() => ({}));
+        
         if (!response.ok) {
-          throw new Error('Failed to add to wishlist');
+          console.error('POST wishlist error:', responseData);
+          throw new Error(responseData.error || 'Failed to add to wishlist');
         }
+        
+        console.log('Successfully added to wishlist:', responseData);
+      }
+      
+      // Refresh wishlist to ensure consistency
+      try {
+        const refreshResponse = await fetch('/api/wishlist');
+        if (refreshResponse.ok) {
+          const refreshData = await refreshResponse.json();
+          const ids = refreshData.wishlistIds || [];
+          console.log('Refreshed wishlist IDs:', ids);
+          setLikedDestinations(new Set(ids));
+        }
+      } catch (refreshError) {
+        console.error('Failed to refresh wishlist:', refreshError);
       }
     } catch (error) {
       console.error('Wishlist toggle error:', error);
