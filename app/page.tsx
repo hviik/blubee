@@ -15,8 +15,9 @@ import AuthPromptModal from './components/AuthPromptModal';
 import ExplorePage from './components/ExplorePage';
 import WishlistPage from './components/WishlistPage';
 import MyTripsPage from './components/MyTripsPage';
+import UpdatesPage from './components/UpdatesPage';
 
-type ActiveView = 'home' | 'chat' | 'explore' | 'wishlist' | 'mytrips';
+type ActiveView = 'home' | 'chat' | 'explore' | 'wishlist' | 'updates' | 'mytrips';
 
 export default function BlubeezHome() {
   const { isSignedIn } = useUser();
@@ -151,6 +152,14 @@ export default function BlubeezHome() {
     setActiveView('wishlist');
   }, [isSignedIn]);
 
+  const handleUpdatesClick = useCallback(() => {
+    if (!isSignedIn) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+    setActiveView('updates');
+  }, [isSignedIn]);
+
   const handleMyTripsClick = useCallback(() => {
     if (!isSignedIn) {
       setIsAuthModalOpen(true);
@@ -216,6 +225,21 @@ export default function BlubeezHome() {
           </div>
         );
       
+      case 'updates':
+        return (
+          <div 
+            className="fixed inset-x-0 z-10 transition-all duration-300 ease-in-out"
+            style={{
+              top: isDesktop ? '80px' : '64px',
+              height: isDesktop ? 'calc(var(--vh, 1vh) * 100 - 80px)' : 'calc(var(--vh, 1vh) * 100 - 64px)',
+              paddingLeft: isDesktop ? `${sidebarWidth}px` : '0px',
+              maxHeight: isDesktop ? 'calc(100vh - 80px)' : 'calc(100vh - 64px)',
+            }}
+          >
+            <UpdatesPage />
+          </div>
+        );
+
       case 'mytrips':
         return (
           <div 
@@ -290,6 +314,7 @@ export default function BlubeezHome() {
         isChatMode={isInContentView}
         onExploreClick={handleExploreClick}
         onWishlistClick={handleWishlistClick}
+        onUpdatesClick={handleUpdatesClick}
         onMyTripsClick={handleMyTripsClick}
       />
       <Header 

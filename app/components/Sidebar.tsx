@@ -12,6 +12,7 @@ interface SidebarProps {
   isChatMode?: boolean;
   onExploreClick?: () => void;
   onWishlistClick?: () => void;
+  onUpdatesClick?: () => void;
   onMyTripsClick?: () => void;
 }
 
@@ -21,6 +22,7 @@ export default function Sidebar({
   isChatMode = false, 
   onExploreClick,
   onWishlistClick,
+  onUpdatesClick,
   onMyTripsClick
 }: SidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -103,6 +105,7 @@ export default function Sidebar({
             isExpanded={isExpanded} 
             onExploreClick={onExploreClick}
             onWishlistClick={onWishlistClick}
+            onUpdatesClick={onUpdatesClick}
             onMyTripsClick={onMyTripsClick}
           />
         </div>
@@ -158,6 +161,10 @@ export default function Sidebar({
                   closeMobile();
                   onWishlistClick?.();
                 }}
+                onUpdatesClick={() => {
+                  closeMobile();
+                  onUpdatesClick?.();
+                }}
                 onMyTripsClick={() => {
                   closeMobile();
                   onMyTripsClick?.();
@@ -188,6 +195,7 @@ interface NavItemsProps {
   isExpanded?: boolean;
   onExploreClick?: () => void;
   onWishlistClick?: () => void;
+  onUpdatesClick?: () => void;
   onMyTripsClick?: () => void;
   isMobile?: boolean;
   onItemClick?: () => void;
@@ -197,6 +205,7 @@ function NavItems({
   isExpanded, 
   onExploreClick, 
   onWishlistClick,
+  onUpdatesClick,
   onMyTripsClick,
   isMobile, 
   onItemClick 
@@ -222,9 +231,10 @@ function NavItems({
         onClick={onWishlistClick}
         className="flex items-center gap-3 hover:opacity-70 transition-opacity"
       >
+        {/* Bookmark bag icon matching Figma */}
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path
-            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+            d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"
             stroke={COLORS.textQuaternary}
             strokeWidth="1.5"
             fill="none"
@@ -241,16 +251,36 @@ function NavItems({
       </button>
 
       <button 
-        onClick={onMyTripsClick}
+        onClick={onUpdatesClick}
         className="flex items-center gap-3 hover:opacity-70 transition-opacity"
       >
+        {/* Bell/notifications icon matching Figma */}
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path
-            d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"
+            d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"
             stroke={COLORS.textQuaternary}
             strokeWidth="1.5"
             fill="none"
           />
+        </svg>
+        {isExpanded && (
+          <span
+            className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal whitespace-nowrap"
+            style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.textQuaternary }}
+          >
+            Updates
+          </span>
+        )}
+      </button>
+
+      <button 
+        onClick={onMyTripsClick}
+        className="flex items-center gap-3 hover:opacity-70 transition-opacity"
+      >
+        {/* Travel bag / trips icon */}
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="9" stroke={COLORS.textQuaternary} strokeWidth="1.5" fill="none"/>
+          <path d="M12 7v5l3 3" stroke={COLORS.textQuaternary} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
         </svg>
         {isExpanded && (
           <span

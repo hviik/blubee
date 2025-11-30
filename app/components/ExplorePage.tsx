@@ -228,35 +228,43 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
     }
   }, [isSignedIn, likedDestinations]);
 
-  const handleCardDoubleTap = useCallback((destination: Destination, e: React.MouseEvent | React.TouchEvent) => {
+  // Handle double-tap on card to like
+  const handleCardDoubleTap = useCallback((destination: Destination) => {
     const now = Date.now();
     const lastTap = lastTapTimeRef.current[destination.id] || 0;
     
     if (now - lastTap < 300) {
-      e.preventDefault();
-      e.stopPropagation();
-      
+      // Double tap - toggle like and show animation
       setShowHeartOverlay(destination.id);
-      setTimeout(() => setShowHeartOverlay(null), 800);
-      
+      setTimeout(() => setShowHeartOverlay(null), 700);
       toggleLike(destination);
-      
       lastTapTimeRef.current[destination.id] = 0;
+      return true; // Was double tap
     } else {
       lastTapTimeRef.current[destination.id] = now;
+      return false; // Was single tap (first tap)
     }
   }, [toggleLike]);
 
+  // Single tap navigates, double tap likes
+  const pendingClickRef = useRef<{ [key: string]: NodeJS.Timeout }>({});
+  
   const handleCardClick = useCallback((destination: Destination, e: React.MouseEvent) => {
-    handleCardDoubleTap(destination, e);
+    // Clear any pending navigation
+    if (pendingClickRef.current[destination.id]) {
+      clearTimeout(pendingClickRef.current[destination.id]);
+      delete pendingClickRef.current[destination.id];
+    }
+
+    const wasDoubleTap = handleCardDoubleTap(destination);
     
-    const now = Date.now();
-    setTimeout(() => {
-      const lastTap = lastTapTimeRef.current[destination.id] || 0;
-      if (now === lastTap) {
+    if (!wasDoubleTap) {
+      // Wait to see if this becomes a double tap
+      pendingClickRef.current[destination.id] = setTimeout(() => {
+        delete pendingClickRef.current[destination.id];
         onDestinationClick?.(destination.name, destination.route);
-      }
-    }, 300);
+      }, 300);
+    }
   }, [handleCardDoubleTap, onDestinationClick]);
 
   // Filter destinations based on search query
@@ -393,12 +401,12 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                 </svg>
               </div>
 
-              {/* Heart button positioned at bottom right */}
-              <div className="absolute bottom-28 md:bottom-32 right-3 md:right-4 z-10">
+              {/* Heart button positioned at actual bottom right */}
+              <div className="absolute bottom-3 md:bottom-4 right-3 md:right-4 z-10">
                 <HeartButton
                   isLiked={likedDestinations.has(d.id)}
                   onToggle={() => toggleLike(d)}
-                  size={compact ? 'sm' : 'md'}
+                  size={compact ? 'xs' : 'sm'}
                   disabled={loadingLikes.has(d.id) || !isSignedIn}
                 />
               </div>
