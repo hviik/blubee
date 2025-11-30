@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '@clerk/nextjs';
 import BackgroundEffects from './components/BackgroundEffects';
 import Header from './components/Header';
@@ -93,29 +93,29 @@ export default function BlubeezHome() {
   
   const sidebarWidth = isSidebarExpanded ? 240 : 67;
 
-  const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
-  const handleCloseAuthModal = () => setIsAuthModalOpen(false);
+  const handleOpenModal = useCallback(() => setIsModalOpen(true), []);
+  const handleCloseModal = useCallback(() => setIsModalOpen(false), []);
+  const handleCloseAuthModal = useCallback(() => setIsAuthModalOpen(false), []);
 
-  const handleSendMessage = (message: string) => {
+  const handleSendMessage = useCallback((message: string) => {
     if (!isSignedIn) {
       setIsAuthModalOpen(true);
       return;
     }
     setInitialMessage(message);
     setActiveView('chat');
-  };
+  }, [isSignedIn]);
 
-  const handlePromptClick = (prompt: string) => {
+  const handlePromptClick = useCallback((prompt: string) => {
     if (!isSignedIn) {
       setIsAuthModalOpen(true);
       return;
     }
     setInitialMessage(prompt);
     setActiveView('chat');
-  };
+  }, [isSignedIn]);
 
-  const handleDestinationClick = (countryName: string, route: string[]) => {
+  const handleDestinationClick = useCallback((countryName: string, route: string[]) => {
     if (!isSignedIn) {
       setIsAuthModalOpen(true);
       return;
@@ -137,27 +137,27 @@ export default function BlubeezHome() {
     const message = `Plan me a trip to ${countryName}${placesText}`;
     setInitialMessage(message);
     setActiveView('chat');
-  };
+  }, [isSignedIn]);
 
-  const handleExploreClick = () => {
+  const handleExploreClick = useCallback(() => {
     setActiveView('explore');
-  };
+  }, []);
 
-  const handleWishlistClick = () => {
+  const handleWishlistClick = useCallback(() => {
     if (!isSignedIn) {
       setIsAuthModalOpen(true);
       return;
     }
     setActiveView('wishlist');
-  };
+  }, [isSignedIn]);
 
-  const handleMyTripsClick = () => {
+  const handleMyTripsClick = useCallback(() => {
     if (!isSignedIn) {
       setIsAuthModalOpen(true);
       return;
     }
     setActiveView('mytrips');
-  };
+  }, [isSignedIn]);
 
   useEffect(() => {
     if (activeView === 'chat') {

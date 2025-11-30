@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import { SignedIn, UserButton } from '@clerk/nextjs';
 import { COLORS } from '../constants/colors';
@@ -27,22 +27,26 @@ export default function Sidebar({
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
 
-  const toggleExpanded = () => {
-    const newState = !isExpanded;
-    setIsExpanded(newState);
-    onExpandChange?.(newState);
-  };
+  const toggleExpanded = useCallback(() => {
+    setIsExpanded(prev => {
+      const newState = !prev;
+      onExpandChange?.(newState);
+      return newState;
+    });
+  }, [onExpandChange]);
 
-  const toggleMobile = () => {
-    const newState = !isMobileOpen;
-    setIsMobileOpen(newState);
-    onMobileOpenChange?.(newState);
-  };
+  const toggleMobile = useCallback(() => {
+    setIsMobileOpen(prev => {
+      const newState = !prev;
+      onMobileOpenChange?.(newState);
+      return newState;
+    });
+  }, [onMobileOpenChange]);
   
-  const closeMobile = () => {
+  const closeMobile = useCallback(() => {
     setIsMobileOpen(false);
     onMobileOpenChange?.(false);
-  };
+  }, [onMobileOpenChange]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -58,7 +62,7 @@ export default function Sidebar({
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
     };
-  }, [isMobileOpen]);
+  }, [isMobileOpen, closeMobile]);
 
   return (
     <SignedIn>

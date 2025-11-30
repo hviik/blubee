@@ -9,26 +9,21 @@
     "lint": "next lint",
     "optimize:images": "node scripts/optimize-images.js",
     "optimize:svg": "node scripts/optimize-svg.js",
-    "optimize": "npm run optimize:images && npm run optimize:svg"
+    "optimize": "npm run optimize:images && npm run optimize:svg",
+    "postbuild": "next-sitemap"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^2.0.64",
     "@clerk/nextjs": "^6.34.5",
     "@supabase/supabase-js": "^2.80.0",
-    "@tailwindcss/typography": "^0.5.19",
-    "ai": "^5.0.90",
-    "better-sqlite3": "^12.4.1",
     "next": "^14.2.25",
-    "next-sitemap": "^4.2.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",
     "rehype-sanitize": "^6.0.0",
-    "remark-gfm": "^4.0.1",
-    "uuid": "^13.0.0"
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
+    "@tailwindcss/typography": "^0.5.19",
     "@types/google.maps": "^3.58.1",
     "@types/node": "^20",
     "@types/react": "^18",
@@ -36,6 +31,7 @@
     "autoprefixer": "^10.4.19",
     "eslint": "^8",
     "eslint-config-next": "^14.2.25",
+    "next-sitemap": "^4.2.3",
     "postcss": "^8.4.39",
     "sharp": "^0.34.5",
     "supabase": "^2.58.5",

@@ -14,6 +14,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.blubeez.ai"),
   title: {
     default: "Blubeez | AI Travel Assistant & Trip Planner",
     template: "%s | Blubeez"
