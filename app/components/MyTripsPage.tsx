@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
 import { COLORS } from '../constants/colors';
 import { getDestinationImage, getFlagImage, getCountryDisplayName } from '../utils/countryData';
+import HeartButton from './HeartButton';
 
 type TripStatus = 'all' | 'planned' | 'completed' | 'wishlist';
 
@@ -245,14 +246,18 @@ export default function MyTripsPage({ onTripClick, defaultTab = 'all' }: MyTrips
                     Saved Destinations
                   </h2>
                 )}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div
+                  className="grid gap-4 md:gap-6 lg:gap-8 justify-center"
+                  style={{
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 220px))',
+                  }}
+                >
                   {wishlistTrips.map(trip => (
                     <WishlistTripCard
                       key={trip.id}
                       trip={trip}
                       onClick={() => onTripClick?.(trip)}
                       onDelete={(e) => handleDeleteTrip(trip.id, e)}
-                      userImage={user?.imageUrl}
                     />
                   ))}
                 </div>
@@ -290,10 +295,9 @@ interface WishlistTripCardProps {
   trip: Trip;
   onClick: () => void;
   onDelete: (e: React.MouseEvent) => void;
-  userImage?: string;
 }
 
-function WishlistTripCard({ trip, onClick, onDelete, userImage }: WishlistTripCardProps) {
+function WishlistTripCard({ trip, onClick, onDelete }: WishlistTripCardProps) {
   const parseTitle = (title: string): string => {
     const match = title.match(/^(.+?)\s*\(([A-Z]{2})\)$/i);
     if (match) {
@@ -306,10 +310,11 @@ function WishlistTripCard({ trip, onClick, onDelete, userImage }: WishlistTripCa
   const displayName = getCountryDisplayName(countryName);
   const route = trip.preferences.route || [];
   const duration = trip.preferences.duration || '5 Days, 4 Nights';
+  const priceINR = trip.preferences.price_inr;
 
   return (
     <div
-      className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden cursor-pointer group hover:scale-[1.01] transition-transform duration-300 shadow-lg"
+      className="relative w-full aspect-[3/4] md:aspect-[4/5] rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform duration-300"
       onClick={onClick}
     >
       <div className="absolute inset-0">
@@ -317,62 +322,132 @@ function WishlistTripCard({ trip, onClick, onDelete, userImage }: WishlistTripCa
           src={getDestinationImage(countryName)}
           alt={countryName}
           fill
-          className="object-cover object-center"
+          className="object-cover object-center brightness-[0.95] contrast-[1.08]"
+          style={{
+            transform: 'translateZ(0)',
+            willChange: 'filter',
+          }}
           unoptimized
-          sizes="(max-width: 768px) 100vw, 50vw"
+          sizes="(max-width: 768px) 45vw, 220px"
         />
       </div>
 
-      {/* Top-right: Flag and Country Name */}
-      <div className="absolute top-0 right-0 p-4 flex flex-col items-end">
-        <div className="w-16 h-8 relative overflow-hidden rounded shadow-md">
-          <Image
-            src={getFlagImage(countryName)}
-            alt={`${displayName} flag`}
-            fill
-            className="object-cover"
-            unoptimized
-          />
-        </div>
-        <span
-          className="mt-2 text-white text-sm font-medium drop-shadow-lg"
-          style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}
-        >
-          {displayName}
-        </span>
-      </div>
-
-      {/* Delete button */}
-      <button
-        onClick={onDelete}
-        className="absolute top-4 left-4 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/80"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="white"/>
-        </svg>
-      </button>
-
-      {/* Bottom gradient with info */}
       <div
-        className="absolute bottom-0 left-0 right-0 p-4 pt-16"
+        className="absolute top-0 left-0 right-0 h-20 md:h-24 p-3 md:p-[18px] flex items-start justify-between"
         style={{
-          background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)',
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%)',
         }}
       >
-        <div className="flex items-end justify-between">
-          <div>
-            <p className="text-white/80 text-sm mb-1" style={{ fontFamily: 'var(--font-poppins)' }}>
-              {duration}
-            </p>
-            <h3 className="text-white text-2xl md:text-3xl font-bold capitalize" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>
-              {route.length > 0 ? route.join(' • ') : displayName + ' Trip'}
-            </h3>
-          </div>
-          {userImage && (
-            <div className="w-8 h-8 rounded-full border-2 border-white overflow-hidden">
-              <Image src={userImage} alt="You" width={32} height={32} className="object-cover" />
-            </div>
+        <div className="flex flex-col text-white">
+          {priceINR && (
+            <>
+              <p
+                className="text-[10px] md:text-[12px] font-medium leading-tight"
+                style={{ fontFamily: 'var(--font-poppins)' }}
+              >
+                ₹ {priceINR.toLocaleString()}
+              </p>
+              <p
+                className="text-[8px] md:text-[9px] font-medium opacity-90"
+                style={{ fontFamily: 'var(--font-poppins)' }}
+              >
+                Per person
+              </p>
+            </>
           )}
+        </div>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 14 14"
+          fill="none"
+          className="hover:scale-110 transition-transform md:w-[14px] md:h-[14px]"
+        >
+          <path
+            d="M1 13L13 1M13 1H1M13 1V13"
+            stroke="white"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
+
+      <div 
+        className="absolute bottom-3 md:bottom-4 right-3 md:right-4 z-10"
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete(e);
+        }}
+      >
+        <HeartButton
+          isLiked={true}
+          onToggle={() => {}}
+          size="sm"
+        />
+      </div>
+
+      <div
+        className="absolute bottom-0 left-0 right-0 h-40 md:h-48 p-3 md:p-[18px] flex flex-col items-center justify-end"
+        style={{
+          background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
+        }}
+      >
+        <div className="flex flex-col items-center gap-1.5 md:gap-2 w-full mb-1.5 md:mb-2">
+          <div className="w-7 h-3.5 md:w-8 md:h-4 relative overflow-hidden rounded-sm">
+            <Image
+              src={getFlagImage(countryName)}
+              alt={`${displayName} flag`}
+              fill
+              className="object-cover"
+              unoptimized
+            />
+          </div>
+          <p
+            className="text-[10px] md:text-[12px] font-medium text-center text-white"
+            style={{ fontFamily: 'var(--font-poppins)' }}
+          >
+            {duration}
+          </p>
+        </div>
+
+        <h3
+          className="text-[18px] md:text-[24px] font-black italic text-center text-white uppercase w-full mb-0.5 md:mb-1"
+          style={{
+            fontFamily: 'var(--font-poppins)',
+            fontWeight: 900,
+          }}
+        >
+          {displayName}
+        </h3>
+
+        <div className="flex items-center gap-0.5 md:gap-1 justify-center w-full flex-wrap">
+          {route.map((loc, i) => (
+            <div key={i} className="flex items-center gap-0.5 md:gap-1">
+              <span
+                className="text-[8px] md:text-[9px] text-white"
+                style={{ fontFamily: 'var(--font-poppins)' }}
+              >
+                {loc}
+              </span>
+              {i < route.length - 1 && (
+                <svg
+                  width="9"
+                  height="9"
+                  viewBox="0 0 11 11"
+                  fill="none"
+                  className="rotate-90 md:w-[10.5px] md:h-[10.5px]"
+                >
+                  <path
+                    d="M1 1L10 10"
+                    stroke="white"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>

@@ -261,7 +261,8 @@ function NavItems({
         onClick={onMyTripsClick}
         className="flex items-center gap-3 hover:opacity-70 transition-opacity"
       >
-        <Image src="/assets/997.svg" alt="My trips" width={24} height={24} />
+        // Just keep this as a fucking img else the bitch is gonna look blurry as fuck.
+        <img src="/assets/997.svg" alt="My trips" className="w-6 h-6" draggable="false" />
         {isExpanded && (
           <span
             className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal whitespace-nowrap"
