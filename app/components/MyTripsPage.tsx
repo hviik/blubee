@@ -64,8 +64,8 @@ export default function MyTripsPage({ onTripClick, defaultTab = 'all' }: MyTrips
     fetchTrips();
   }, [isSignedIn]);
 
-  const handleDeleteTrip = useCallback(async (tripId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDeleteTrip = useCallback(async (tripId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     
     if (!confirm('Are you sure you want to delete this trip?')) return;
 
@@ -257,7 +257,7 @@ export default function MyTripsPage({ onTripClick, defaultTab = 'all' }: MyTrips
                       key={trip.id}
                       trip={trip}
                       onClick={() => onTripClick?.(trip)}
-                      onDelete={(e) => handleDeleteTrip(trip.id, e)}
+                      onRemove={() => handleDeleteTrip(trip.id)}
                     />
                   ))}
                 </div>
@@ -294,10 +294,10 @@ export default function MyTripsPage({ onTripClick, defaultTab = 'all' }: MyTrips
 interface WishlistTripCardProps {
   trip: Trip;
   onClick: () => void;
-  onDelete: (e: React.MouseEvent) => void;
+  onRemove: () => void;
 }
 
-function WishlistTripCard({ trip, onClick, onDelete }: WishlistTripCardProps) {
+function WishlistTripCard({ trip, onClick, onRemove }: WishlistTripCardProps) {
   const parseTitle = (title: string): string => {
     const match = title.match(/^(.+?)\s*\(([A-Z]{2})\)$/i);
     if (match) {
@@ -373,16 +373,10 @@ function WishlistTripCard({ trip, onClick, onDelete }: WishlistTripCardProps) {
         </svg>
       </div>
 
-      <div 
-        className="absolute bottom-3 md:bottom-4 right-3 md:right-4 z-10"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete(e);
-        }}
-      >
+      <div className="absolute bottom-3 md:bottom-4 right-3 md:right-4 z-10">
         <HeartButton
           isLiked={true}
-          onToggle={() => {}}
+          onToggle={onRemove}
           size="sm"
         />
       </div>

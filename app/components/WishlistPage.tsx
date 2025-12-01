@@ -304,16 +304,10 @@ function WishlistCard({ item, onClick, onRemove, isRemoving }: WishlistCardProps
         </svg>
       </div>
 
-      <div 
-        className="absolute bottom-3 md:bottom-4 right-3 md:right-4 z-10"
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove();
-        }}
-      >
+      <div className="absolute bottom-3 md:bottom-4 right-3 md:right-4 z-10">
         <HeartButton
           isLiked={true}
-          onToggle={() => {}}
+          onToggle={onRemove}
           size="sm"
           disabled={isRemoving}
         />
