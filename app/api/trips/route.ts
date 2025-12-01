@@ -4,7 +4,6 @@ import { auth, currentUser } from '@clerk/nextjs/server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// GET - Fetch all trips for the current user
 export async function GET(req: NextRequest) {
   try {
     const { userId } = await auth();
@@ -16,7 +15,6 @@ export async function GET(req: NextRequest) {
     const { supabaseAdmin } = await import('@/lib/supabaseServer');
     const { ensureUserProfile } = await import('@/lib/ensureUserProfile');
     
-    // Ensure user profile exists
     const user = await currentUser();
     await ensureUserProfile(
       userId, 
@@ -25,7 +23,7 @@ export async function GET(req: NextRequest) {
     );
 
     const { searchParams } = new URL(req.url);
-    const status = searchParams.get('status'); // 'planned', 'completed', 'wishlist', or null for all
+    const status = searchParams.get('status');
 
     let query = supabaseAdmin
       .from('trips')
@@ -54,7 +52,6 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST - Create a new trip (from chat agent)
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth();
@@ -83,7 +80,6 @@ export async function POST(req: NextRequest) {
     const { supabaseAdmin } = await import('@/lib/supabaseServer');
     const { ensureUserProfile } = await import('@/lib/ensureUserProfile');
     
-    // CRITICAL: Ensure user profile exists before inserting trip (FK constraint)
     const user = await currentUser();
     const profileCreated = await ensureUserProfile(
       userId, 
@@ -117,9 +113,7 @@ export async function POST(req: NextRequest) {
       console.error('Supabase insert error:', error);
       console.error('Insert error details - code:', error.code, 'message:', error.message, 'details:', error.details);
       
-      // Check for specific error types
       if (error.code === '23503') {
-        // Foreign key violation - profile doesn't exist
         return NextResponse.json({ 
           error: 'User profile not found. Please try signing out and back in.',
           details: error.message
@@ -147,7 +141,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// PUT - Update a trip
 export async function PUT(req: NextRequest) {
   try {
     const { userId } = await auth();
@@ -167,7 +160,6 @@ export async function PUT(req: NextRequest) {
 
     const { supabaseAdmin } = await import('@/lib/supabaseServer');
 
-    // Verify ownership
     const { data: existing } = await supabaseAdmin
       .from('trips')
       .select('id')
@@ -179,7 +171,6 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Trip not found' }, { status: 404 });
     }
 
-    // Build update object
     const updateData: Record<string, any> = {};
     if (updates.title !== undefined) updateData.title = updates.title;
     if (updates.startDate !== undefined) updateData.start_date = updates.startDate;
@@ -214,7 +205,6 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-// DELETE - Delete a trip
 export async function DELETE(req: NextRequest) {
   try {
     const { userId } = await auth();
@@ -232,7 +222,6 @@ export async function DELETE(req: NextRequest) {
 
     const { supabaseAdmin } = await import('@/lib/supabaseServer');
 
-    // Verify ownership and delete
     const { error } = await supabaseAdmin
       .from('trips')
       .delete()

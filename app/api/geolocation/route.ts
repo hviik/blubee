@@ -87,7 +87,7 @@ export async function GET(req: NextRequest) {
         currency: 'USD',
         ip: 'unknown',
       },
-      { status: 200 } // Return default values instead of error
+      { status: 200 }
     );
   }
 }

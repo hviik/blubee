@@ -68,7 +68,6 @@ export default function MyTripsPage({ onTripClick, defaultTab = 'all' }: MyTrips
     
     if (!confirm('Are you sure you want to delete this trip?')) return;
 
-    // Optimistic update
     setTrips(prev => prev.filter(t => t.id !== tripId));
 
     try {
@@ -81,7 +80,6 @@ export default function MyTripsPage({ onTripClick, defaultTab = 'all' }: MyTrips
       }
     } catch (error) {
       console.error('Failed to delete trip:', error);
-      // Refetch on error
       const response = await fetch('/api/trips');
       if (response.ok) {
         const data = await response.json();
@@ -90,7 +88,6 @@ export default function MyTripsPage({ onTripClick, defaultTab = 'all' }: MyTrips
     }
   }, []);
 
-  // Filter trips based on tab and search
   const filteredTrips = trips.filter(trip => {
     const matchesTab = activeTab === 'all' || trip.status === activeTab;
     const matchesSearch = !searchQuery || 
@@ -99,7 +96,6 @@ export default function MyTripsPage({ onTripClick, defaultTab = 'all' }: MyTrips
     return matchesTab && matchesSearch;
   });
 
-  // Separate wishlist from other trips for display
   const wishlistTrips = filteredTrips.filter(t => t.status === 'wishlist');
   const plannedTrips = filteredTrips.filter(t => t.status === 'planned' || t.status === 'completed');
 
@@ -298,7 +294,6 @@ interface WishlistTripCardProps {
 }
 
 function WishlistTripCard({ trip, onClick, onDelete, userImage }: WishlistTripCardProps) {
-  // Handle both old format "VIETNAM" and new format "Vietnam (VN)"
   const parseTitle = (title: string): string => {
     const match = title.match(/^(.+?)\s*\(([A-Z]{2})\)$/i);
     if (match) {
@@ -391,7 +386,6 @@ interface PlannedTripCardProps {
 }
 
 function PlannedTripCard({ trip, onClick, onDelete }: PlannedTripCardProps) {
-  // Handle both old format "VIETNAM" and new format "Vietnam (VN)"
   const parseTitle = (title: string): string => {
     const match = title.match(/^(.+?)\s*\(([A-Z]{2})\)$/i);
     if (match) {

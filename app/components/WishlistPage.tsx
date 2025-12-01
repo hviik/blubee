@@ -59,7 +59,6 @@ export default function WishlistPage({ onDestinationClick }: WishlistPageProps) 
     
     setRemovingIds(prev => new Set(prev).add(destinationId));
     
-    // Optimistic update
     setWishlist(prev => prev.filter(w => w.preferences.destination_id !== destinationId));
 
     try {
@@ -72,7 +71,6 @@ export default function WishlistPage({ onDestinationClick }: WishlistPageProps) 
       }
     } catch (error) {
       console.error('Failed to remove from wishlist:', error);
-      // Revert on error
       setWishlist(prev => [...prev, item]);
     } finally {
       setRemovingIds(prev => {
@@ -88,7 +86,6 @@ export default function WishlistPage({ onDestinationClick }: WishlistPageProps) 
     onDestinationClick?.(item.title, route);
   };
 
-  // Filter wishlist based on search query
   const filteredWishlist = searchQuery
     ? wishlist.filter(item => 
         item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -231,12 +228,10 @@ interface WishlistCardProps {
 }
 
 function WishlistCard({ item, onClick, onRemove, isRemoving, userImage }: WishlistCardProps) {
-  // Handle both old format "VIETNAM" and new format "Vietnam (VN)"
   const parseTitle = (title: string): string => {
-    // Check if title has the new format "Country (XX)"
     const match = title.match(/^(.+?)\s*\(([A-Z]{2})\)$/i);
     if (match) {
-      return match[1].trim(); // Return just the country name
+      return match[1].trim();
     }
     return title;
   };

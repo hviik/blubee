@@ -30,23 +30,18 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
   const hasSavedTrip = useRef(false);
   const { isLoaded } = useGoogleMaps();
 
-  // Save trip to database
   const saveTripToDatabase = useCallback(async (processedItinerary: Itinerary) => {
-    if (hasSavedTrip.current) return; // Prevent duplicate saves
+    if (hasSavedTrip.current) return;
     
     try {
-      // Extract country from the itinerary title
       const countryInfo = extractCountryInfo(processedItinerary.title);
       const iso2 = countryInfo?.iso2 || 'xx';
       const countryName = countryInfo?.name || extractCountryFromTitle(processedItinerary.title) || 'Trip';
       
-      // Create title with country name and ISO2: "Vietnam (VN)"
       const tripTitle = `${countryName} (${iso2.toUpperCase()})`;
       
-      // Extract route/locations from the itinerary
       const route = processedItinerary.locations.map(loc => loc.name);
       
-      // Calculate duration
       const duration = `${processedItinerary.totalDays} Days, ${Math.max(1, processedItinerary.totalDays - 1)} Nights`;
       
       const payload = {
@@ -87,11 +82,9 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
     }
   }, []);
 
-  // Extract country info from itinerary title
   const extractCountryInfo = (title: string): { name: string; iso2: string } | null => {
     const titleUpper = title.toUpperCase();
     
-    // Check all countries in our data
     for (const [key, data] of Object.entries(COUNTRY_DATA)) {
       if (titleUpper.includes(key) || titleUpper.includes(data.name.toUpperCase())) {
         return { name: data.name, iso2: data.iso2 };
@@ -120,13 +113,11 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
           geocodeItineraryLocations(processed.itinerary).then(geocodedItinerary => {
             setItinerary(geocodedItinerary);
             setShowMap(true);
-            // Save the trip to database when itinerary is generated
             saveTripToDatabase(geocodedItinerary);
           });
         } else {
           setItinerary(processed.itinerary);
           setShowMap(true);
-          // Save the trip to database even without geocoding
           saveTripToDatabase(processed.itinerary);
         }
       }
@@ -200,7 +191,6 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
     }
   }, [isLoaded]);
 
-  // Reset saved trip state when starting a new conversation
   useEffect(() => {
     if (initialMessage) {
       hasSavedTrip.current = false;

@@ -107,7 +107,6 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
   const [loadingLikes, setLoadingLikes] = useState<Set<string>>(new Set());
   const [showHeartOverlay, setShowHeartOverlay] = useState<string | null>(null);
   
-  // For double-tap detection on the card itself
   const lastTapTimeRef = useRef<{ [key: string]: number }>({});
 
   useEffect(() => {
@@ -124,7 +123,6 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
     initCurrency();
   }, []);
 
-  // Fetch user's wishlist on mount
   useEffect(() => {
     const fetchWishlist = async () => {
       if (!isSignedIn) {
@@ -174,7 +172,6 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
     const isCurrentlyLiked = likedDestinations.has(destination.id);
     console.log(`Toggling like for ${destination.name} (${destination.id}): ${isCurrentlyLiked ? 'unliking' : 'liking'}`);
     
-    // Optimistic update
     setLikedDestinations(prev => {
       const newSet = new Set(prev);
       if (isCurrentlyLiked) {
@@ -202,7 +199,6 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
         
         console.log('Successfully removed from wishlist:', responseData);
       } else {
-        // Get image and flag paths
         const destinationImage = getDestinationImage(destination.name);
         const flagImage = getFlagImage(destination.name);
         
@@ -235,7 +231,6 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
         console.log('Successfully added to wishlist:', responseData);
       }
       
-      // Refresh wishlist to ensure consistency
       try {
         const refreshResponse = await fetch('/api/wishlist');
         if (refreshResponse.ok) {
@@ -249,7 +244,6 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
       }
     } catch (error) {
       console.error('Wishlist toggle error:', error);
-      // Revert optimistic update on error
       setLikedDestinations(prev => {
         const newSet = new Set(prev);
         if (isCurrentlyLiked) {
@@ -268,13 +262,11 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
     }
   }, [isSignedIn, likedDestinations]);
 
-  // Handle double-tap on card to like
   const handleCardDoubleTap = useCallback((destination: Destination) => {
     const now = Date.now();
     const lastTap = lastTapTimeRef.current[destination.id] || 0;
     
     if (now - lastTap < 300) {
-      // Double tap - toggle like and show animation
       setShowHeartOverlay(destination.id);
       setTimeout(() => setShowHeartOverlay(null), 700);
       toggleLike(destination);
@@ -286,11 +278,9 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
     }
   }, [toggleLike]);
 
-  // Single tap navigates, double tap likes
   const pendingClickRef = useRef<{ [key: string]: NodeJS.Timeout }>({});
   
   const handleCardClick = useCallback((destination: Destination, e: React.MouseEvent) => {
-    // Clear any pending navigation
     if (pendingClickRef.current[destination.id]) {
       clearTimeout(pendingClickRef.current[destination.id]);
       delete pendingClickRef.current[destination.id];
@@ -299,7 +289,6 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
     const wasDoubleTap = handleCardDoubleTap(destination);
     
     if (!wasDoubleTap) {
-      // Wait to see if this becomes a double tap
       pendingClickRef.current[destination.id] = setTimeout(() => {
         delete pendingClickRef.current[destination.id];
         onDestinationClick?.(destination.name, destination.route);
@@ -307,7 +296,6 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
     }
   }, [handleCardDoubleTap, onDestinationClick]);
 
-  // Filter destinations based on search query
   const filteredDestinations = searchQuery
     ? destinations.filter(d => 
         d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

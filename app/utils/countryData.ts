@@ -1,13 +1,9 @@
-// Country data with ISO 2 codes for images
-// Images are stored as: /assets/destinations/{iso2}.{ext} and /assets/flags/{iso2}.png
-
 export interface CountryInfo {
   name: string;
   iso2: string;
-  imageExt: 'jpg' | 'png'; // Extension for destination image
+  imageExt: 'jpg' | 'png';
 }
 
-// Map of country names (uppercase) to their info
 export const COUNTRY_DATA: Record<string, CountryInfo> = {
   'VIETNAM': { name: 'Vietnam', iso2: 'vn', imageExt: 'png' },
   'MALAYSIA': { name: 'Malaysia', iso2: 'my', imageExt: 'png' },
@@ -71,10 +67,9 @@ export const COUNTRY_DATA: Record<string, CountryInfo> = {
   'CUBA': { name: 'Cuba', iso2: 'cu', imageExt: 'jpg' },
   'JAMAICA': { name: 'Jamaica', iso2: 'jm', imageExt: 'jpg' },
   'FIJI': { name: 'Fiji', iso2: 'fj', imageExt: 'jpg' },
-  'BALI': { name: 'Bali', iso2: 'id', imageExt: 'jpg' }, // Bali uses Indonesia's code
+  'BALI': { name: 'Bali', iso2: 'id', imageExt: 'jpg' },
 };
 
-// Get destination image path
 export function getDestinationImage(countryName: string): string {
   const upperName = countryName.toUpperCase();
   const country = COUNTRY_DATA[upperName];
@@ -83,26 +78,21 @@ export function getDestinationImage(countryName: string): string {
     return `/assets/destinations/${country.iso2}.${country.imageExt}`;
   }
   
-  // Fallback - try to use the ISO2 code directly if it's a 2-letter code
   if (countryName.length === 2) {
     return `/assets/destinations/${countryName.toLowerCase()}.jpg`;
   }
   
-  // Default fallback
   return `/assets/destinations/default.jpg`;
 }
 
-// Get flag image path (all flags are PNG with ISO2 codes from flagcdn or similar)
 export function getFlagImage(countryName: string): string {
   const upperName = countryName.toUpperCase();
   const country = COUNTRY_DATA[upperName];
   
   if (country) {
-    // Using flagcdn.com for consistent flag images
     return `https://flagcdn.com/w80/${country.iso2}.png`;
   }
   
-  // Fallback for 2-letter codes
   if (countryName.length === 2) {
     return `https://flagcdn.com/w80/${countryName.toLowerCase()}.png`;
   }
@@ -110,14 +100,12 @@ export function getFlagImage(countryName: string): string {
   return '/assets/flags/default.png';
 }
 
-// Get ISO2 code from country name
 export function getISO2Code(countryName: string): string {
   const upperName = countryName.toUpperCase();
   const country = COUNTRY_DATA[upperName];
   return country?.iso2 || 'xx';
 }
 
-// Get proper country name
 export function getCountryDisplayName(countryName: string): string {
   const upperName = countryName.toUpperCase();
   const country = COUNTRY_DATA[upperName];

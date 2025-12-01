@@ -35,7 +35,6 @@ export default function HeartButton({
     
     if (disabled) return;
 
-    // Trigger animation when liking (not when unliking)
     if (!isLiked) {
       setShowBurst(true);
       setIsAnimating(true);
@@ -43,7 +42,6 @@ export default function HeartButton({
       setTimeout(() => setIsAnimating(false), 350);
     }
 
-    // Immediately toggle - no delay!
     onToggle();
   }, [disabled, isLiked, onToggle]);
 
@@ -139,7 +137,6 @@ export default function HeartButton({
   );
 }
 
-// DoubleTapHeartOverlay - Shows a big heart animation when double-tapping on the image
 interface DoubleTapHeartOverlayProps {
   show: boolean;
 }
