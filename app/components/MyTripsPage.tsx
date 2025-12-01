@@ -63,24 +63,21 @@ export default function MyTripsPage({ onTripClick, defaultTab = 'all' }: MyTrips
 
     fetchTrips();
   }, [isSignedIn]);
-
+  
   const handleDeleteTrip = useCallback(async (tripId: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
-    
-    if (!confirm('Are you sure you want to delete this trip?')) return;
-
+  
     setTrips(prev => prev.filter(t => t.id !== tripId));
-
+  
     try {
       const response = await fetch(`/api/trips?id=${tripId}`, {
         method: 'DELETE',
       });
-      
+  
       if (!response.ok) {
-        throw new Error('Failed to delete trip');
+        throw new Error('Failed');
       }
-    } catch (error) {
-      console.error('Failed to delete trip:', error);
+    } catch {
       const response = await fetch('/api/trips');
       if (response.ok) {
         const data = await response.json();
@@ -88,6 +85,7 @@ export default function MyTripsPage({ onTripClick, defaultTab = 'all' }: MyTrips
       }
     }
   }, []);
+  
 
   const filteredTrips = trips.filter(trip => {
     const matchesTab = activeTab === 'all' || trip.status === activeTab;
