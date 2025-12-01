@@ -298,7 +298,16 @@ interface WishlistTripCardProps {
 }
 
 function WishlistTripCard({ trip, onClick, onDelete, userImage }: WishlistTripCardProps) {
-  const countryName = trip.title;
+  // Handle both old format "VIETNAM" and new format "Vietnam (VN)"
+  const parseTitle = (title: string): string => {
+    const match = title.match(/^(.+?)\s*\(([A-Z]{2})\)$/i);
+    if (match) {
+      return match[1].trim();
+    }
+    return title;
+  };
+  
+  const countryName = parseTitle(trip.title);
   const displayName = getCountryDisplayName(countryName);
   const route = trip.preferences.route || [];
   const duration = trip.preferences.duration || '5 Days, 4 Nights';
@@ -382,6 +391,16 @@ interface PlannedTripCardProps {
 }
 
 function PlannedTripCard({ trip, onClick, onDelete }: PlannedTripCardProps) {
+  // Handle both old format "VIETNAM" and new format "Vietnam (VN)"
+  const parseTitle = (title: string): string => {
+    const match = title.match(/^(.+?)\s*\(([A-Z]{2})\)$/i);
+    if (match) {
+      return match[1].trim();
+    }
+    return title;
+  };
+  
+  const displayTitle = parseTitle(trip.title);
   const route = trip.preferences.route || [];
   const startDate = trip.start_date ? new Date(trip.start_date) : null;
   const endDate = trip.end_date ? new Date(trip.end_date) : null;
@@ -407,8 +426,8 @@ function PlannedTripCard({ trip, onClick, onDelete }: PlannedTripCardProps) {
         {/* Thumbnail */}
         <div className="w-24 h-24 md:w-32 md:h-32 rounded-xl overflow-hidden flex-shrink-0 relative">
           <Image
-            src={getDestinationImage(trip.title)}
-            alt={trip.title}
+            src={getDestinationImage(displayTitle)}
+            alt={displayTitle}
             fill
             className="object-cover"
             unoptimized
@@ -431,7 +450,7 @@ function PlannedTripCard({ trip, onClick, onDelete }: PlannedTripCardProps) {
                 {startDate ? formatDate(startDate) : 'Dates TBD'} • {getDuration()}
               </p>
               <h3 className="text-lg font-semibold text-[#475f73] mb-2" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>
-                {trip.title}
+                {displayTitle}
               </h3>
             </div>
             

@@ -148,7 +148,7 @@ export default function WishlistPage({ onDestinationClick }: WishlistPageProps) 
                 color: '#475f73',
               }}
             >
-              My trips
+              Wishlist
             </h1>
           </div>
         </div>
@@ -231,7 +231,17 @@ interface WishlistCardProps {
 }
 
 function WishlistCard({ item, onClick, onRemove, isRemoving, userImage }: WishlistCardProps) {
-  const countryName = item.title;
+  // Handle both old format "VIETNAM" and new format "Vietnam (VN)"
+  const parseTitle = (title: string): string => {
+    // Check if title has the new format "Country (XX)"
+    const match = title.match(/^(.+?)\s*\(([A-Z]{2})\)$/i);
+    if (match) {
+      return match[1].trim(); // Return just the country name
+    }
+    return title;
+  };
+  
+  const countryName = parseTitle(item.title);
   const displayName = getCountryDisplayName(countryName);
   const route = item.preferences.route || [];
   const duration = item.preferences.duration || '5 Days, 4 Nights';

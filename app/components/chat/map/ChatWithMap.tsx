@@ -7,6 +7,7 @@ import ExplorePage from '../../ExplorePage';
 import { Itinerary } from '@/app/types/itinerary';
 import { processMessage, hasItineraryData } from '@/app/utils/messageProcessor';
 import { useGoogleMaps } from './useGoogleMaps';
+import { COUNTRY_DATA, getISO2Code } from '@/app/utils/countryData';
 
 interface ChatWithMapProps {
   initialMessage?: string;
@@ -26,7 +27,79 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
   const [mobileMapOpen, setMobileMapOpen] = useState(false);
   const lastProcessedContent = useRef('');
   const hasTriedGeocoding = useRef(false);
+  const hasSavedTrip = useRef(false);
   const { isLoaded } = useGoogleMaps();
+
+  // Save trip to database
+  const saveTripToDatabase = useCallback(async (processedItinerary: Itinerary) => {
+    if (hasSavedTrip.current) return; // Prevent duplicate saves
+    
+    try {
+      // Extract country from the itinerary title
+      const countryInfo = extractCountryInfo(processedItinerary.title);
+      const iso2 = countryInfo?.iso2 || 'xx';
+      const countryName = countryInfo?.name || extractCountryFromTitle(processedItinerary.title) || 'Trip';
+      
+      // Create title with country name and ISO2: "Vietnam (VN)"
+      const tripTitle = `${countryName} (${iso2.toUpperCase()})`;
+      
+      // Extract route/locations from the itinerary
+      const route = processedItinerary.locations.map(loc => loc.name);
+      
+      // Calculate duration
+      const duration = `${processedItinerary.totalDays} Days, ${Math.max(1, processedItinerary.totalDays - 1)} Nights`;
+      
+      const payload = {
+        title: tripTitle,
+        startDate: processedItinerary.startDate,
+        endDate: processedItinerary.endDate,
+        tripType: 'planned',
+        numberOfPeople: 1,
+        status: 'planned',
+        preferences: {
+          destination_id: iso2,
+          iso2: iso2,
+          route: route,
+          duration: duration,
+          description: processedItinerary.title,
+          itinerary_id: processedItinerary.id,
+        }
+      };
+
+      console.log('Saving trip to database:', payload);
+      
+      const response = await fetch('/api/trips', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Trip saved successfully:', data);
+        hasSavedTrip.current = true;
+      } else {
+        const error = await response.json();
+        console.error('Failed to save trip:', error);
+      }
+    } catch (error) {
+      console.error('Error saving trip to database:', error);
+    }
+  }, []);
+
+  // Extract country info from itinerary title
+  const extractCountryInfo = (title: string): { name: string; iso2: string } | null => {
+    const titleUpper = title.toUpperCase();
+    
+    // Check all countries in our data
+    for (const [key, data] of Object.entries(COUNTRY_DATA)) {
+      if (titleUpper.includes(key) || titleUpper.includes(data.name.toUpperCase())) {
+        return { name: data.name, iso2: data.iso2 };
+      }
+    }
+    
+    return null;
+  };
 
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
@@ -47,14 +120,18 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
           geocodeItineraryLocations(processed.itinerary).then(geocodedItinerary => {
             setItinerary(geocodedItinerary);
             setShowMap(true);
+            // Save the trip to database when itinerary is generated
+            saveTripToDatabase(geocodedItinerary);
           });
         } else {
           setItinerary(processed.itinerary);
           setShowMap(true);
+          // Save the trip to database even without geocoding
+          saveTripToDatabase(processed.itinerary);
         }
       }
     }
-  }, [messages, isLoaded]);
+  }, [messages, isLoaded, saveTripToDatabase]);
 
   const geocodeItineraryLocations = async (itinerary: Itinerary): Promise<Itinerary> => {
     const { geocodeLocation } = await import('./geocoding');
@@ -122,6 +199,15 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
       }
     }
   }, [isLoaded]);
+
+  // Reset saved trip state when starting a new conversation
+  useEffect(() => {
+    if (initialMessage) {
+      hasSavedTrip.current = false;
+      lastProcessedContent.current = '';
+      hasTriedGeocoding.current = false;
+    }
+  }, [initialMessage]);
 
   const handleMessagesUpdate = useCallback((msgs: Message[]) => {
     setMessages(msgs);
