@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
 import { COLORS } from '../constants/colors';
 import { getDestinationImage, getFlagImage, getCountryDisplayName } from '../utils/countryData';
+import HeartButton from './HeartButton';
 
 interface WishlistItem {
   id: string;
@@ -116,7 +117,6 @@ export default function WishlistPage({ onDestinationClick }: WishlistPageProps) 
 
   return (
     <div className="w-full h-full flex flex-col bg-transparent overflow-hidden">
-      {/* Header */}
       <div className="px-4 md:px-6 pt-4 pb-2 shrink-0">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 rounded-full overflow-hidden bg-[#e6f0f7] flex items-center justify-center">
@@ -150,7 +150,6 @@ export default function WishlistPage({ onDestinationClick }: WishlistPageProps) 
           </div>
         </div>
 
-        {/* Search */}
         <div
           className="flex items-center justify-between px-4 py-[10px] rounded-xl border max-w-md"
           style={{
@@ -175,7 +174,6 @@ export default function WishlistPage({ onDestinationClick }: WishlistPageProps) 
         </div>
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 md:px-6 pb-6 bg-transparent">
         {loading ? (
           <div className="flex items-center justify-center h-64">
@@ -240,14 +238,12 @@ function WishlistCard({ item, onClick, onRemove, isRemoving, userImage }: Wishli
   const displayName = getCountryDisplayName(countryName);
   const route = item.preferences.route || [];
   const duration = item.preferences.duration || '5 Days, 4 Nights';
-  const iso2 = item.preferences.iso2 || item.preferences.destination_id;
 
   return (
     <div
       className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden cursor-pointer group hover:scale-[1.01] transition-transform duration-300 shadow-lg"
       onClick={onClick}
     >
-      {/* Background Image */}
       <div className="absolute inset-0">
         <Image
           src={getDestinationImage(countryName)}
@@ -259,7 +255,6 @@ function WishlistCard({ item, onClick, onRemove, isRemoving, userImage }: Wishli
         />
       </div>
 
-      {/* Top-right: Flag and Country Name */}
       <div className="absolute top-0 right-0 p-4 flex flex-col items-end">
         <div className="w-16 h-8 relative overflow-hidden rounded shadow-md">
           <Image
@@ -278,28 +273,15 @@ function WishlistCard({ item, onClick, onRemove, isRemoving, userImage }: Wishli
         </span>
       </div>
 
-      {/* Remove button (appears on hover) */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove();
-        }}
-        disabled={isRemoving}
-        className="absolute top-4 left-4 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
-      >
-        {isRemoving ? (
-          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-        ) : (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-              fill="#ef4444"
-            />
-          </svg>
-        )}
-      </button>
+      <div className="absolute top-4 left-4">
+        <HeartButton
+          isLiked={true}
+          onToggle={onRemove}
+          size="md"
+          disabled={isRemoving}
+        />
+      </div>
 
-      {/* Bottom gradient with info */}
       <div
         className="absolute bottom-0 left-0 right-0 p-4 pt-16"
         style={{
@@ -322,7 +304,6 @@ function WishlistCard({ item, onClick, onRemove, isRemoving, userImage }: Wishli
             </h3>
           </div>
 
-          {/* User avatars */}
           <div className="flex -space-x-2">
             {userImage && (
               <div className="w-8 h-8 rounded-full border-2 border-white overflow-hidden">
@@ -341,4 +322,3 @@ function WishlistCard({ item, onClick, onRemove, isRemoving, userImage }: Wishli
     </div>
   );
 }
-
