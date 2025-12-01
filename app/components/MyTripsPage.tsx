@@ -7,8 +7,6 @@ import { COLORS } from '../constants/colors';
 import { getDestinationImage, getFlagImage, getCountryDisplayName } from '../utils/countryData';
 import HeartButton from './HeartButton';
 
-type TripStatus = 'all' | 'planned' | 'completed' | 'wishlist';
-
 interface Trip {
   id: string;
   title: string;
@@ -30,15 +28,13 @@ interface Trip {
 
 interface MyTripsPageProps {
   onTripClick?: (trip: Trip) => void;
-  defaultTab?: TripStatus;
 }
 
-export default function MyTripsPage({ onTripClick, defaultTab = 'all' }: MyTripsPageProps) {
+export default function MyTripsPage({ onTripClick }: MyTripsPageProps) {
   const { isSignedIn, user } = useUser();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<TripStatus>(defaultTab);
 
   useEffect(() => {
     const fetchTrips = async () => {
@@ -88,11 +84,10 @@ export default function MyTripsPage({ onTripClick, defaultTab = 'all' }: MyTrips
   
 
   const filteredTrips = trips.filter(trip => {
-    const matchesTab = activeTab === 'all' || trip.status === activeTab;
     const matchesSearch = !searchQuery || 
       trip.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       trip.preferences.route?.some(r => r.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesTab && matchesSearch;
+    return matchesSearch;
   });
 
   const wishlistTrips = filteredTrips.filter(t => t.status === 'wishlist');
@@ -119,16 +114,8 @@ export default function MyTripsPage({ onTripClick, defaultTab = 'all' }: MyTrips
     );
   }
 
-  const tabs: { id: TripStatus; label: string }[] = [
-    { id: 'all', label: 'All' },
-    { id: 'planned', label: 'Planned' },
-    { id: 'completed', label: 'Completed' },
-    { id: 'wishlist', label: 'Wishlist' },
-  ];
-
   return (
     <div className="w-full h-full flex flex-col bg-transparent overflow-hidden">
-      {/* Header */}
       <div className="px-4 md:px-6 pt-4 pb-2 shrink-0">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 rounded-full overflow-hidden bg-[#e6f0f7] flex items-center justify-center">
@@ -162,9 +149,8 @@ export default function MyTripsPage({ onTripClick, defaultTab = 'all' }: MyTrips
           </div>
         </div>
 
-        {/* Search */}
         <div
-          className="flex items-center justify-between px-4 py-[10px] rounded-xl border max-w-md mb-4"
+          className="flex items-center justify-between px-4 py-[10px] rounded-xl border max-w-md"
           style={{
             backgroundColor: 'rgba(255,255,255,0.45)',
             borderColor: '#a8c2e1',
@@ -184,24 +170,6 @@ export default function MyTripsPage({ onTripClick, defaultTab = 'all' }: MyTrips
               fill="#6b85b7"
             />
           </svg>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                activeTab === tab.id
-                  ? 'bg-[#475f73] text-white'
-                  : 'bg-white/50 text-[#475f73] border border-[#a8c2e1] hover:bg-white/80'
-              }`}
-              style={{ fontFamily: 'var(--font-poppins)' }}
-            >
-              {tab.label}
-            </button>
-          ))}
         </div>
       </div>
 
@@ -224,32 +192,22 @@ export default function MyTripsPage({ onTripClick, defaultTab = 'all' }: MyTrips
               </svg>
             </div>
             <h3 className="text-lg font-medium text-[#475f73] mb-2" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>
-              {searchQuery ? 'No matching trips' : activeTab === 'wishlist' ? 'No saved destinations' : 'No trips yet'}
+              {searchQuery ? 'No matching trips' : 'No trips yet'}
             </h3>
             <p className="text-sm text-[#7286b0]" style={{ fontFamily: 'var(--font-poppins)' }}>
               {searchQuery 
                 ? 'Try a different search term' 
-                : activeTab === 'wishlist' 
-                  ? 'Explore destinations and tap the heart to save them'
-                  : 'Start chatting to plan your next adventure'}
+                : 'Start chatting to plan your next adventure'}
             </p>
           </div>
         ) : (
           <div className="space-y-6 mt-4">
-            {/* Wishlist Section (if showing all or wishlist tab) */}
-            {(activeTab === 'all' || activeTab === 'wishlist') && wishlistTrips.length > 0 && (
+            {wishlistTrips.length > 0 && (
               <div>
-                {activeTab === 'all' && (
-                  <h2 className="text-lg font-semibold text-[#475f73] mb-3" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>
-                    Saved Destinations
-                  </h2>
-                )}
-                <div
-                  className="grid gap-4 md:gap-6 lg:gap-8 justify-center"
-                  style={{
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 220px))',
-                  }}
-                >
+                <h2 className="text-lg font-semibold text-[#475f73] mb-3" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>
+                  Saved Destinations
+                </h2>
+                <div className="space-y-3">
                   {wishlistTrips.map(trip => (
                     <WishlistTripCard
                       key={trip.id}
@@ -262,10 +220,9 @@ export default function MyTripsPage({ onTripClick, defaultTab = 'all' }: MyTrips
               </div>
             )}
 
-            {/* Planned/Completed Trips Section */}
-            {(activeTab === 'all' || activeTab === 'planned' || activeTab === 'completed') && plannedTrips.length > 0 && (
+            {plannedTrips.length > 0 && (
               <div>
-                {activeTab === 'all' && wishlistTrips.length > 0 && (
+                {wishlistTrips.length > 0 && (
                   <h2 className="text-lg font-semibold text-[#475f73] mb-3 mt-6" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>
                     Your Trips
                   </h2>
@@ -312,7 +269,7 @@ function WishlistTripCard({ trip, onClick, onRemove }: WishlistTripCardProps) {
 
   return (
     <div
-      className="relative w-full aspect-[3/4] md:aspect-[4/5] rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform duration-300"
+      className="relative w-full aspect-[16/9] md:aspect-[2.5/1] rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 group"
       onClick={onClick}
     >
       <div className="absolute inset-0">
@@ -320,58 +277,15 @@ function WishlistTripCard({ trip, onClick, onRemove }: WishlistTripCardProps) {
           src={getDestinationImage(countryName)}
           alt={countryName}
           fill
-          className="object-cover object-center brightness-[0.95] contrast-[1.08]"
-          style={{
-            transform: 'translateZ(0)',
-            willChange: 'filter',
-          }}
+          className="object-cover object-center"
           unoptimized
-          sizes="(max-width: 768px) 45vw, 220px"
+          sizes="(max-width: 768px) 100vw, 50vw"
         />
       </div>
 
-      <div
-        className="absolute top-0 left-0 right-0 h-20 md:h-24 p-3 md:p-[18px] flex items-start justify-between"
-        style={{
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%)',
-        }}
-      >
-        <div className="flex flex-col text-white">
-          {priceINR && (
-            <>
-              <p
-                className="text-[10px] md:text-[12px] font-medium leading-tight"
-                style={{ fontFamily: 'var(--font-poppins)' }}
-              >
-                ₹ {priceINR.toLocaleString()}
-              </p>
-              <p
-                className="text-[8px] md:text-[9px] font-medium opacity-90"
-                style={{ fontFamily: 'var(--font-poppins)' }}
-              >
-                Per person
-              </p>
-            </>
-          )}
-        </div>
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 14 14"
-          fill="none"
-          className="hover:scale-110 transition-transform md:w-[14px] md:h-[14px]"
-        >
-          <path
-            d="M1 13L13 1M13 1H1M13 1V13"
-            stroke="white"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </div>
+      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
 
-      <div className="absolute bottom-3 md:bottom-4 right-3 md:right-4 z-10">
+      <div className="absolute top-3 right-3 md:top-4 md:right-4 z-10">
         <HeartButton
           isLiked={true}
           onToggle={onRemove}
@@ -379,67 +293,54 @@ function WishlistTripCard({ trip, onClick, onRemove }: WishlistTripCardProps) {
         />
       </div>
 
-      <div
-        className="absolute bottom-0 left-0 right-0 h-40 md:h-48 p-3 md:p-[18px] flex flex-col items-center justify-end"
-        style={{
-          background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
-        }}
-      >
-        <div className="flex flex-col items-center gap-1.5 md:gap-2 w-full mb-1.5 md:mb-2">
-          <div className="w-7 h-3.5 md:w-8 md:h-4 relative overflow-hidden rounded-sm">
-            <Image
-              src={getFlagImage(countryName)}
-              alt={`${displayName} flag`}
-              fill
-              className="object-cover"
-              unoptimized
-            />
-          </div>
-          <p
-            className="text-[10px] md:text-[12px] font-medium text-center text-white"
-            style={{ fontFamily: 'var(--font-poppins)' }}
-          >
-            {duration}
-          </p>
+      <div className="absolute top-3 left-3 md:top-4 md:left-4">
+        <div className="w-10 h-6 md:w-12 md:h-7 relative overflow-hidden rounded shadow-md">
+          <Image
+            src={getFlagImage(countryName)}
+            alt={`${displayName} flag`}
+            fill
+            className="object-cover"
+            unoptimized
+          />
         </div>
+      </div>
 
-        <h3
-          className="text-[18px] md:text-[24px] font-black italic text-center text-white uppercase w-full mb-0.5 md:mb-1"
-          style={{
-            fontFamily: 'var(--font-poppins)',
-            fontWeight: 900,
-          }}
-        >
-          {displayName}
-        </h3>
-
-        <div className="flex items-center gap-0.5 md:gap-1 justify-center w-full flex-wrap">
-          {route.map((loc, i) => (
-            <div key={i} className="flex items-center gap-0.5 md:gap-1">
-              <span
-                className="text-[8px] md:text-[9px] text-white"
-                style={{ fontFamily: 'var(--font-poppins)' }}
-              >
-                {loc}
-              </span>
-              {i < route.length - 1 && (
-                <svg
-                  width="9"
-                  height="9"
-                  viewBox="0 0 11 11"
-                  fill="none"
-                  className="rotate-90 md:w-[10.5px] md:h-[10.5px]"
-                >
-                  <path
-                    d="M1 1L10 10"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
+      <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4">
+        <div className="flex items-end justify-between">
+          <div className="flex-1 min-w-0">
+            <h3
+              className="text-lg md:text-2xl font-bold text-white mb-1 truncate"
+              style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}
+            >
+              {displayName}
+            </h3>
+            <div className="flex items-center gap-2 text-white/80 text-xs md:text-sm" style={{ fontFamily: 'var(--font-poppins)' }}>
+              <span>{duration}</span>
+              {priceINR && (
+                <>
+                  <span>•</span>
+                  <span>₹{priceINR.toLocaleString()}</span>
+                </>
               )}
             </div>
-          ))}
+            {route.length > 0 && (
+              <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                {route.slice(0, 3).map((loc, i) => (
+                  <div key={i} className="flex items-center gap-1">
+                    <span className="text-[10px] md:text-xs text-white/70" style={{ fontFamily: 'var(--font-poppins)' }}>
+                      {loc}
+                    </span>
+                    {i < Math.min(route.length, 3) - 1 && (
+                      <span className="text-white/50">→</span>
+                    )}
+                  </div>
+                ))}
+                {route.length > 3 && (
+                  <span className="text-[10px] md:text-xs text-white/50">+{route.length - 3} more</span>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
