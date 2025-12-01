@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // GET - Fetch all trips for the current user
 export async function GET(req: NextRequest) {
@@ -13,6 +14,15 @@ export async function GET(req: NextRequest) {
     }
 
     const { supabaseAdmin } = await import('@/lib/supabaseServer');
+    const { ensureUserProfile } = await import('@/lib/ensureUserProfile');
+    
+    // Ensure user profile exists
+    const user = await currentUser();
+    await ensureUserProfile(
+      userId, 
+      user?.emailAddresses?.[0]?.emailAddress,
+      user?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || undefined
+    );
 
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status'); // 'planned', 'completed', 'wishlist', or null for all
@@ -64,11 +74,29 @@ export async function POST(req: NextRequest) {
       preferences = {}
     } = body;
 
+    console.log('Trips POST - Creating trip:', { title, status, userId });
+
     if (!title) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }
 
     const { supabaseAdmin } = await import('@/lib/supabaseServer');
+    const { ensureUserProfile } = await import('@/lib/ensureUserProfile');
+    
+    // CRITICAL: Ensure user profile exists before inserting trip (FK constraint)
+    const user = await currentUser();
+    const profileCreated = await ensureUserProfile(
+      userId, 
+      user?.emailAddresses?.[0]?.emailAddress,
+      user?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || undefined
+    );
+    
+    if (!profileCreated) {
+      console.error('Failed to create user profile for trips POST');
+      return NextResponse.json({ 
+        error: 'Failed to initialize user profile. Please try again.'
+      }, { status: 500 });
+    }
 
     const { data, error } = await supabaseAdmin
       .from('trips')
@@ -87,8 +115,24 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       console.error('Supabase insert error:', error);
-      return NextResponse.json({ error: 'Failed to create trip' }, { status: 500 });
+      console.error('Insert error details - code:', error.code, 'message:', error.message, 'details:', error.details);
+      
+      // Check for specific error types
+      if (error.code === '23503') {
+        // Foreign key violation - profile doesn't exist
+        return NextResponse.json({ 
+          error: 'User profile not found. Please try signing out and back in.',
+          details: error.message
+        }, { status: 500 });
+      }
+      
+      return NextResponse.json({ 
+        error: 'Failed to create trip',
+        details: error.message
+      }, { status: 500 });
     }
+
+    console.log('Trip created successfully:', data?.id);
 
     return NextResponse.json({ 
       message: 'Trip created',
@@ -114,6 +158,8 @@ export async function PUT(req: NextRequest) {
 
     const body = await req.json();
     const { id, ...updates } = body;
+
+    console.log('Trips PUT - Updating trip:', { id, updates, userId });
 
     if (!id) {
       return NextResponse.json({ error: 'Trip ID is required' }, { status: 400 });

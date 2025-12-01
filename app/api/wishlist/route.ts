@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // GET - Fetch all wishlist items for the current user
 export async function GET() {
@@ -13,6 +14,19 @@ export async function GET() {
     }
 
     const { supabaseAdmin } = await import('@/lib/supabaseServer');
+    const { ensureUserProfile } = await import('@/lib/ensureUserProfile');
+    
+    // Ensure user profile exists (handles FK constraint)
+    const user = await currentUser();
+    const profileCreated = await ensureUserProfile(
+      userId, 
+      user?.emailAddresses?.[0]?.emailAddress,
+      user?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || undefined
+    );
+    
+    if (!profileCreated) {
+      console.error('Failed to ensure user profile for wishlist GET');
+    }
 
     const { data, error } = await supabaseAdmin
       .from('trips')
@@ -63,11 +77,30 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { destinationId, destinationName, route, priceINR, duration, image, flag, iso2 } = body;
 
+    console.log('Wishlist POST - Received payload:', { destinationId, destinationName, iso2, userId });
+
     if (!destinationId || !destinationName) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     const { supabaseAdmin } = await import('@/lib/supabaseServer');
+    const { ensureUserProfile } = await import('@/lib/ensureUserProfile');
+    
+    // CRITICAL: Ensure user profile exists before inserting trip (FK constraint)
+    const user = await currentUser();
+    const profileCreated = await ensureUserProfile(
+      userId, 
+      user?.emailAddresses?.[0]?.emailAddress,
+      user?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || undefined
+    );
+    
+    if (!profileCreated) {
+      console.error('Failed to create user profile for wishlist POST');
+      return NextResponse.json({ 
+        error: 'Failed to initialize user profile. Please try again.',
+        action: 'profile_error'
+      }, { status: 500 });
+    }
 
     // Check if already in wishlist - query all wishlist items and filter manually
     // because .contains() doesn't work reliably with nested JSONB fields
@@ -131,8 +164,25 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       console.error('Supabase insert error:', error);
-      return NextResponse.json({ error: 'Failed to add to wishlist' }, { status: 500 });
+      console.error('Insert error details - code:', error.code, 'message:', error.message, 'details:', error.details);
+      
+      // Check for specific error types
+      if (error.code === '23503') {
+        // Foreign key violation - profile doesn't exist
+        return NextResponse.json({ 
+          error: 'User profile not found. Please try signing out and back in.',
+          action: 'fk_error',
+          details: error.message
+        }, { status: 500 });
+      }
+      
+      return NextResponse.json({ 
+        error: 'Failed to add to wishlist',
+        details: error.message
+      }, { status: 500 });
     }
+
+    console.log('Wishlist item created successfully:', data?.id);
 
     return NextResponse.json({ 
       message: 'Added to wishlist',
@@ -159,6 +209,8 @@ export async function DELETE(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const destinationId = searchParams.get('destinationId');
+
+    console.log('Wishlist DELETE - destinationId:', destinationId, 'userId:', userId);
 
     if (!destinationId) {
       return NextResponse.json({ error: 'Missing destinationId' }, { status: 400 });
