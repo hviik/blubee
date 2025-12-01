@@ -53,8 +53,8 @@ export default function HeartButton({
         relative flex items-center justify-center
         ${buttonSize}
         rounded-full
-        bg-black/40 backdrop-blur-sm
-        hover:bg-black/50 active:scale-95
+        bg-black/60 backdrop-blur-md
+        hover:bg-black/70 active:scale-95
         transition-all duration-150
         ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         ${className}
