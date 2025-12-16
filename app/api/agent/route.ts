@@ -56,12 +56,7 @@ export async function POST(req: Request) {
             if (chunk.type === 'token' && chunk.content) {
               const sseData = JSON.stringify({ content: chunk.content });
               controller.enqueue(encoder.encode(`data: ${sseData}\n\n`));
-            } else if (chunk.type === 'tool_call') {
-              // Optionally notify frontend about tool calls
-              const sseData = JSON.stringify({ toolCall: chunk.content });
-              controller.enqueue(encoder.encode(`data: ${sseData}\n\n`));
             } else if (chunk.type === 'tool_result') {
-              // Optionally notify frontend about tool results
               const sseData = JSON.stringify({ toolResult: chunk.content });
               controller.enqueue(encoder.encode(`data: ${sseData}\n\n`));
             } else if (chunk.type === 'done') {

@@ -48,6 +48,7 @@ export function PlaceInfoCard({ place, map, onClose }: PlaceInfoCardProps) {
     >
       <div className="relative h-40 md:h-48 rounded-t-2xl overflow-hidden flex-shrink-0">
         {photos.length > 0 && photos[0] ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={photos[0].getUrl({ maxWidth: 800 })}
             alt={place.name}
@@ -162,6 +163,7 @@ export function PlaceInfoCard({ place, map, onClose }: PlaceInfoCardProps) {
                   key={index}
                   className="aspect-square rounded-lg overflow-hidden bg-gray-200"
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={photo.getUrl({ maxWidth: 400 })}
                     alt={`${place.name} - Photo ${index + 2}`}
