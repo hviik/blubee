@@ -19,6 +19,7 @@ interface ChatInterfaceProps {
   initialMessages?: Message[];
   onSendMessage?: (message: string) => void;
   onMessagesChange?: (messages: Message[]) => void;
+  onItineraryReceived?: (itinerary: any) => void;
   triggerMessage?: string | null;
   onMessageTriggered?: () => void;
 }
@@ -27,6 +28,7 @@ export default function ChatInterface({
   initialMessages = [], 
   onSendMessage, 
   onMessagesChange,
+  onItineraryReceived,
   triggerMessage,
   onMessageTriggered 
 }: ChatInterfaceProps) {
@@ -174,8 +176,27 @@ export default function ChatInterface({
                 continue;
               }
 
-              // Handle tool results - clear tool indicator
+              // Handle tool results - check for itinerary and clear tool indicator
               if (chunk.toolResult) {
+                try {
+                  // Parse tool result to check for itinerary data
+                  const toolData = JSON.parse(chunk.toolResult);
+                  // Check if any tool returned an itinerary
+                  if (toolData?.messages) {
+                    for (const msg of toolData.messages) {
+                      if (msg?.content) {
+                        try {
+                          const content = JSON.parse(msg.content);
+                          if (content?.itinerary && onItineraryReceived) {
+                            console.log('Received itinerary from tool:', content.itinerary);
+                            onItineraryReceived(content.itinerary);
+                          }
+                        } catch {}
+                      }
+                    }
+                  }
+                } catch {}
+                
                 setMessages((prev) => {
                   const newMessages = [...prev];
                   const lastIndex = newMessages.length - 1;

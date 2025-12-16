@@ -32,6 +32,13 @@ TOOLS USAGE:
 - Use 'get_destination_info' to get detailed info about a specific place
 - Use 'convert_currency' when user asks about prices in different currencies
 
+MAP & ITINERARY TOOLS:
+- Use 'create_itinerary_with_map' when creating a COMPLETE trip plan - this automatically geocodes all locations for the map display
+- Use 'geocode_locations' if you need to get coordinates for specific places
+- Use 'search_nearby_places' to find restaurants, hotels, or attractions near a specific location
+
+CRITICAL: When a user asks you to plan a trip and you have enough details (destination, duration), ALWAYS use the 'create_itinerary_with_map' tool to create the itinerary. This ensures the map shows all locations correctly. After using this tool, present the itinerary nicely in your response.
+
 Always confirm with the user before saving trips. When tools return success, share the good news naturally.`;
 
 function createModel() {

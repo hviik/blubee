@@ -19,6 +19,9 @@ export interface DayActivity {
   hotel?: string;
   food?: string;
   sightseeing?: string;
+  morning?: string;
+  afternoon?: string;
+  evening?: string;
   icon?: {
     hotel: boolean;
     travel: boolean;

@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import ChatInterface from '../ChatInterface';
 import { TripRightPanel } from '../itinerary/TripRightPanel';
 import ExplorePage from '../../ExplorePage';
-import { Itinerary } from '@/app/types/itinerary';
+import { Itinerary, TripLocation, ItineraryDay } from '@/app/types/itinerary';
 import { processMessage, hasItineraryData } from '@/app/utils/messageProcessor';
 import { useGoogleMaps } from './useGoogleMaps';
 import { COUNTRY_DATA, getISO2Code } from '@/app/utils/countryData';
@@ -203,6 +203,40 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
     setMessages(msgs);
   }, []);
 
+  // Handle itinerary data received directly from agent tools (already geocoded)
+  const handleItineraryReceived = useCallback((agentItinerary: any) => {
+    console.log('Received itinerary from agent:', agentItinerary);
+    
+    // Convert agent itinerary format to our Itinerary type
+    const convertedItinerary: Itinerary = {
+      id: agentItinerary.id || `trip_${Date.now()}`,
+      title: agentItinerary.title || 'Trip',
+      locations: (agentItinerary.locations || []).map((loc: any, idx: number) => ({
+        id: loc.id || `loc_${idx}`,
+        name: loc.name,
+        coordinates: loc.coordinates || { lat: 0, lng: 0 },
+        active: idx === 0
+      })),
+      days: (agentItinerary.days || []).map((day: any, idx: number) => ({
+        dayNumber: day.dayNumber || idx + 1,
+        date: day.date || '',
+        location: day.location || '',
+        title: day.title || `Day ${idx + 1}`,
+        description: day.description || '',
+        expanded: false,
+        places: day.places || [],
+        activities: day.activities
+      })),
+      totalDays: agentItinerary.totalDays || agentItinerary.days?.length || 0,
+      startDate: agentItinerary.startDate || new Date().toISOString().split('T')[0],
+      endDate: agentItinerary.endDate || new Date().toISOString().split('T')[0],
+    };
+
+    setItinerary(convertedItinerary);
+    setShowMap(true);
+    hasSavedTrip.current = false; // Allow saving the new trip
+  }, []);
+
   const handleDestinationClick = useCallback((countryName: string, route: string[]) => {
     let placesText = '';
     if (route.length > 0) {
@@ -234,6 +268,7 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
             initialMessage ? [{ role: 'user', content: initialMessage }] : []
           }
           onMessagesChange={handleMessagesUpdate}
+          onItineraryReceived={handleItineraryReceived}
           triggerMessage={triggerMessage}
           onMessageTriggered={() => setTriggerMessage(null)}
         />

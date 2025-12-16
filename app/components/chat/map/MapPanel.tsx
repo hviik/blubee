@@ -246,8 +246,17 @@ export function MapPanel({
     );
 
     const filteredPlaces = uniquePlaces.filter((place) => {
+      // If 'All' is selected, show everything
       if (filters.all) return true;
-      return filters[place.type];
+      
+      // Check if ANY filter is enabled - if none are, show nothing
+      const hasActiveFilter = filters.stays || filters.restaurants || 
+                              filters.attraction || filters.activities || filters.locations;
+      if (!hasActiveFilter) return false;
+      
+      // Check if this place's type matches an active filter
+      const placeType = place.type as keyof typeof filters;
+      return filters[placeType] === true;
     });
 
     console.log(`Displaying ${filteredPlaces.length} places on map`);
