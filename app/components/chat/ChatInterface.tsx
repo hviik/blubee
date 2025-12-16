@@ -10,7 +10,9 @@ import { detectUserCurrency, CurrencyInfo } from '@/app/utils/currencyDetection'
 interface Message {
   role: 'user' | 'assistant';
   content: string;
-  isStreaming?: boolean; 
+  isStreaming?: boolean;
+  isUsingTool?: boolean;
+  toolName?: string;
 }
 
 interface ChatInterfaceProps {
@@ -93,7 +95,8 @@ export default function ChatInterface({
       try {
         const userName = user?.firstName || user?.fullName?.split(' ')[0] || null;
         
-        const response = await fetch('/api/chat', {
+        // Use the new LangChain agent API
+        const response = await fetch('/api/agent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -150,6 +153,43 @@ export default function ChatInterface({
               if (chunk.error) {
                 throw new Error(chunk.error);
               }
+
+              // Handle tool calls - show that agent is working
+              if (chunk.toolCall) {
+                try {
+                  const toolInfo = JSON.parse(chunk.toolCall);
+                  setMessages((prev) => {
+                    const newMessages = [...prev];
+                    const lastIndex = newMessages.length - 1;
+                    if (newMessages[lastIndex]?.role === 'assistant') {
+                      newMessages[lastIndex] = {
+                        ...newMessages[lastIndex],
+                        isUsingTool: true,
+                        toolName: toolInfo.name,
+                      };
+                    }
+                    return newMessages;
+                  });
+                } catch {}
+                continue;
+              }
+
+              // Handle tool results - clear tool indicator
+              if (chunk.toolResult) {
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  const lastIndex = newMessages.length - 1;
+                  if (newMessages[lastIndex]?.role === 'assistant') {
+                    newMessages[lastIndex] = {
+                      ...newMessages[lastIndex],
+                      isUsingTool: false,
+                      toolName: undefined,
+                    };
+                  }
+                  return newMessages;
+                });
+                continue;
+              }
               
               if (chunk.content) {
                 if (!hasStartedStreamingRef.current) {
@@ -167,6 +207,7 @@ export default function ChatInterface({
                       role: 'assistant',
                       content: accumulated,
                       isStreaming: true,
+                      isUsingTool: false,
                     };
                   }
                   return newMessages;
@@ -348,6 +389,23 @@ export default function ChatInterface({
                            {message.isStreaming && (
                              <span className="inline-block animate-pulse ml-0.5">▊</span>
                            )}
+                         </div>
+                       ) : message.isUsingTool ? (
+                         <div className="flex items-center gap-2 text-sm text-gray-500">
+                           <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                           </svg>
+                           <span>
+                             {message.toolName === 'save_trip' && 'Saving your trip...'}
+                             {message.toolName === 'get_user_trips' && 'Fetching your trips...'}
+                             {message.toolName === 'add_to_wishlist' && 'Adding to wishlist...'}
+                             {message.toolName === 'get_wishlist' && 'Getting your wishlist...'}
+                             {message.toolName === 'search_destinations' && 'Searching destinations...'}
+                             {message.toolName === 'get_destination_info' && 'Getting destination info...'}
+                             {message.toolName === 'convert_currency' && 'Converting currency...'}
+                             {!message.toolName && 'Working on it...'}
+                           </span>
                          </div>
                        ) : (
                          <div className="flex gap-1">
