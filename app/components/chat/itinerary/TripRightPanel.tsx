@@ -150,6 +150,7 @@ export function TripRightPanel({
           <MapPanel
             locations={itinerary?.locations || []}
             places={places}
+            days={itinerary?.days || []}
             center={mapCenter}
             zoom={mapZoom}
             selectedLocationId={selectedLocationId}
@@ -176,6 +177,7 @@ export function TripRightPanel({
           <MapPanel
             locations={itinerary?.locations || []}
             places={places}
+            days={itinerary?.days || []}
             center={mapCenter}
             zoom={mapZoom}
             selectedLocationId={selectedLocationId}

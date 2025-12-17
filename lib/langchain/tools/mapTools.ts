@@ -3,6 +3,23 @@ import { z } from "zod";
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 
+// Place type mapping for Google Places API
+const placeTypeMapping: Record<string, string> = {
+  stays: 'lodging',
+  restaurants: 'restaurant',
+  attraction: 'tourist_attraction',
+  activities: 'park',
+};
+
+// Reverse mapping for inferring types from Google results
+function inferPlaceType(types: string[]): string {
+  if (types.includes('lodging') || types.includes('hotel')) return 'stays';
+  if (types.includes('restaurant') || types.includes('cafe') || types.includes('food') || types.includes('meal_takeaway')) return 'restaurants';
+  if (types.includes('tourist_attraction') || types.includes('museum') || types.includes('art_gallery') || types.includes('church') || types.includes('temple') || types.includes('landmark')) return 'attraction';
+  if (types.includes('park') || types.includes('amusement_park') || types.includes('zoo') || types.includes('aquarium') || types.includes('stadium') || types.includes('spa')) return 'activities';
+  return 'attraction';
+}
+
 /**
  * Tool to geocode locations and get their coordinates
  */
@@ -93,13 +110,6 @@ export const searchNearbyPlacesTool = tool(
     }
 
     try {
-      const placeTypeMapping: Record<string, string> = {
-        stays: 'lodging',
-        restaurants: 'restaurant',
-        attraction: 'tourist_attraction',
-        activities: 'park',
-      };
-
       const googleType = type ? placeTypeMapping[type] || type : 'tourist_attraction';
       const clampedRadius = Math.min(Math.max(radius, 100), 50000);
 
@@ -124,13 +134,17 @@ export const searchNearbyPlacesTool = tool(
       }
 
       const places = (data.results || []).slice(0, 10).map((result: any) => ({
+        id: result.place_id || `place_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
         name: result.name,
         type: type || inferPlaceType(result.types || []),
-        lat: result.geometry?.location?.lat || 0,
-        lng: result.geometry?.location?.lng || 0,
+        location: {
+          lat: result.geometry?.location?.lat || 0,
+          lng: result.geometry?.location?.lng || 0,
+        },
         address: result.vicinity,
         rating: result.rating,
         priceLevel: result.price_level,
+        placeId: result.place_id,
       }));
 
       return JSON.stringify({
@@ -159,7 +173,7 @@ export const searchNearbyPlacesTool = tool(
 );
 
 /**
- * Tool to create a structured itinerary with geocoded locations
+ * Tool to create a structured itinerary with geocoded locations and places
  */
 export const createItineraryWithMapTool = tool(
   async ({ title, country, days, travelers, tripType }) => {
@@ -183,6 +197,8 @@ export const createItineraryWithMapTool = tool(
         address?: string;
       }> = [];
 
+      console.log(`[createItineraryWithMap] Geocoding ${uniqueLocations.length} locations for ${title}`);
+
       for (const location of uniqueLocations) {
         const searchQuery = country ? `${location}, ${country}` : location;
 
@@ -201,9 +217,13 @@ export const createItineraryWithMapTool = tool(
                 lng: result.geometry.location.lng,
                 address: result.formatted_address,
               });
+              console.log(`[createItineraryWithMap] Geocoded ${location}: ${result.geometry.location.lat}, ${result.geometry.location.lng}`);
             } else {
               geocodedLocations.push({ name: location, lat: 0, lng: 0 });
+              console.warn(`[createItineraryWithMap] Failed to geocode ${location}: ${data.status}`);
             }
+          } else {
+            geocodedLocations.push({ name: location, lat: 0, lng: 0 });
           }
 
           await new Promise(resolve => setTimeout(resolve, 100));
@@ -211,6 +231,21 @@ export const createItineraryWithMapTool = tool(
           geocodedLocations.push({ name: location, lat: 0, lng: 0 });
         }
       }
+
+      // Convert places to proper format with types
+      const processPlaces = (dayPlaces: any[]): any[] => {
+        if (!dayPlaces || !Array.isArray(dayPlaces)) return [];
+        
+        return dayPlaces.map((place, idx) => ({
+          id: `place_${Date.now()}_${idx}_${Math.random().toString(36).slice(2, 9)}`,
+          name: place.name,
+          type: place.type || 'attraction', // Default to attraction
+          location: place.location || { lat: 0, lng: 0 },
+          address: place.address,
+          rating: place.rating,
+          placeId: place.placeId,
+        }));
+      };
 
       // Build the structured itinerary
       const itinerary = {
@@ -234,18 +269,21 @@ export const createItineraryWithMapTool = tool(
             dayNumber: idx + 1,
             date: new Date(Date.now() + idx * 86400000).toISOString().split('T')[0],
             location: day.location,
-            title: `Day ${idx + 1}: ${day.location}`,
-            description: day.activities.join('\n'),
+            title: day.title || `Day ${idx + 1}: ${day.location}`,
+            description: day.activities?.join('\n') || '',
             coordinates: locationData ? { lat: locationData.lat, lng: locationData.lng } : { lat: 0, lng: 0 },
             activities: {
               morning: day.morning || '',
               afternoon: day.afternoon || '',
               evening: day.evening || ''
             },
-            places: day.places || []
+            places: processPlaces(day.places || []),
+            expanded: false
           };
         })
       };
+
+      console.log(`[createItineraryWithMap] Created itinerary with ${itinerary.locations.length} locations and ${itinerary.days.length} days`);
 
       return JSON.stringify({
         success: true,
@@ -253,6 +291,7 @@ export const createItineraryWithMapTool = tool(
         itinerary
       });
     } catch (error: any) {
+      console.error('[createItineraryWithMap] Error:', error);
       return JSON.stringify({
         success: false,
         error: error?.message || 'Failed to create itinerary'
@@ -261,20 +300,33 @@ export const createItineraryWithMapTool = tool(
   },
   {
     name: "create_itinerary_with_map",
-    description: "Create a structured day-by-day itinerary with geocoded locations for map display. Use this INSTEAD of writing itinerary text when the user wants a complete trip plan. This will automatically geocode all locations and return structured data for the map.",
+    description: `Create a structured day-by-day itinerary with geocoded locations for map display.
+    
+IMPORTANT: Use this tool when the user wants a complete trip plan. This automatically:
+1. Geocodes all locations for the map
+2. Creates structured day data with morning/afternoon/evening activities
+3. Associates places with their types (stays, restaurants, attraction, activities) for map filtering
+
+The places array for each day should include specific places the traveler will visit, with their type:
+- 'stays' for hotels, resorts, accommodations
+- 'restaurants' for dining spots, cafes, food places
+- 'attraction' for tourist spots, temples, beaches, landmarks
+- 'activities' for tours, experiences, outdoor activities`,
     schema: z.object({
       title: z.string().describe("Title of the trip, e.g. '7-Day Bali Adventure'"),
       country: z.string().describe("Country name for geocoding accuracy"),
       days: z.array(z.object({
         location: z.string().describe("Main city/area for this day"),
-        activities: z.array(z.string()).describe("List of activities for the day"),
+        title: z.string().optional().describe("Optional day title"),
+        activities: z.array(z.string()).optional().describe("List of activities for the day"),
         morning: z.string().optional().describe("Morning activity description"),
         afternoon: z.string().optional().describe("Afternoon activity description"),
         evening: z.string().optional().describe("Evening activity description"),
         places: z.array(z.object({
-          name: z.string(),
-          type: z.enum(['stays', 'restaurants', 'attraction', 'activities'])
-        })).optional().describe("Specific places mentioned")
+          name: z.string().describe("Name of the place"),
+          type: z.enum(['stays', 'restaurants', 'attraction', 'activities']).describe("Type of place for map filtering"),
+          address: z.string().optional().describe("Address if known"),
+        })).optional().describe("Specific places to visit this day - include type for map filters")
       })).describe("Array of day plans"),
       travelers: z.number().optional().describe("Number of travelers"),
       tripType: z.string().optional().describe("Type of trip: adventure, relaxation, cultural, etc.")
@@ -282,13 +334,4 @@ export const createItineraryWithMapTool = tool(
   }
 );
 
-function inferPlaceType(types: string[]): string {
-  if (types.includes('lodging') || types.includes('hotel')) return 'stays';
-  if (types.includes('restaurant') || types.includes('cafe') || types.includes('food')) return 'restaurants';
-  if (types.includes('tourist_attraction') || types.includes('museum') || types.includes('art_gallery')) return 'attraction';
-  if (types.includes('park') || types.includes('amusement_park') || types.includes('zoo')) return 'activities';
-  return 'attraction';
-}
-
 export const mapTools = [geocodeLocationsTool, searchNearbyPlacesTool, createItineraryWithMapTool];
-

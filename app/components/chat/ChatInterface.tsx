@@ -6,6 +6,7 @@ import { useUser } from '@clerk/nextjs';
 import { COLORS } from '../../constants/colors';
 import MarkdownMessage from './MarkdownMessage';
 import { detectUserCurrency, CurrencyInfo } from '@/app/utils/currencyDetection';
+import { HotelCarousel, HotelData } from './booking';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -13,6 +14,12 @@ interface Message {
   isStreaming?: boolean;
   isUsingTool?: boolean;
   toolName?: string;
+  hotelData?: {
+    hotels: HotelData[];
+    destination?: string;
+    checkInDate?: string;
+    checkOutDate?: string;
+  };
 }
 
 interface ChatInterfaceProps {
@@ -44,6 +51,7 @@ export default function ChatInterface({
   const hasInitialized = useRef(false);
   const prevMessageCount = useRef(0);
   const hasStartedStreamingRef = useRef(false);
+  const pendingHotelDataRef = useRef<Message['hotelData'] | null>(null);
 
   useEffect(() => {
     detectUserCurrency().then((currency) => {
@@ -84,6 +92,7 @@ export default function ChatInterface({
       setIsLoading(true);
       setHasStartedStreaming(false);
       hasStartedStreamingRef.current = false;
+      pendingHotelDataRef.current = null;
       onSendMessage?.(messageText);
 
       const userMessage: Message = { role: 'user', content: messageText };
@@ -141,6 +150,7 @@ export default function ChatInterface({
                     role: 'assistant',
                     content: accumulated,
                     isStreaming: false,
+                    hotelData: pendingHotelDataRef.current || undefined,
                   };
                 }
                 return newMessages;
@@ -176,20 +186,34 @@ export default function ChatInterface({
                 continue;
               }
 
-              // Handle tool results - check for itinerary and clear tool indicator
+              // Handle tool results - check for itinerary and hotel data
               if (chunk.toolResult) {
                 try {
-                  // Parse tool result to check for itinerary data
+                  // Parse tool result to check for data
                   const toolData = JSON.parse(chunk.toolResult);
-                  // Check if any tool returned an itinerary
+                  
+                  // Check if any tool returned data
                   if (toolData?.messages) {
                     for (const msg of toolData.messages) {
                       if (msg?.content) {
                         try {
                           const content = JSON.parse(msg.content);
+                          
+                          // Check for itinerary data
                           if (content?.itinerary && onItineraryReceived) {
                             console.log('Received itinerary from tool:', content.itinerary);
                             onItineraryReceived(content.itinerary);
+                          }
+                          
+                          // Check for hotel data
+                          if (content?.displayType === 'hotelCarousel' && content?.hotels) {
+                            console.log('Received hotel data from tool:', content.hotels.length, 'hotels');
+                            pendingHotelDataRef.current = {
+                              hotels: content.hotels,
+                              destination: content.destination,
+                              checkInDate: content.checkInDate,
+                              checkOutDate: content.checkOutDate,
+                            };
                           }
                         } catch {}
                       }
@@ -264,6 +288,7 @@ export default function ChatInterface({
                         role: 'assistant',
                         content: accumulated,
                         isStreaming: false,
+                        hotelData: pendingHotelDataRef.current || undefined,
                       };
                     }
                     return newMessages;
@@ -291,6 +316,7 @@ export default function ChatInterface({
         setIsLoading(false);
         setHasStartedStreaming(false);
         hasStartedStreamingRef.current = false;
+        pendingHotelDataRef.current = null;
       }
     },
     [isLoading, onSendMessage, scrollToBottom, user, userCurrency]
@@ -355,6 +381,38 @@ export default function ChatInterface({
     }
   };
 
+  // Get tool activity message
+  const getToolActivityMessage = (toolName?: string): string => {
+    switch (toolName) {
+      case 'save_trip':
+        return 'Saving your trip...';
+      case 'get_user_trips':
+        return 'Fetching your trips...';
+      case 'add_to_wishlist':
+        return 'Adding to wishlist...';
+      case 'get_wishlist':
+        return 'Getting your wishlist...';
+      case 'search_destinations':
+        return 'Searching destinations...';
+      case 'get_destination_info':
+        return 'Getting destination info...';
+      case 'convert_currency':
+        return 'Converting currency...';
+      case 'search_hotels':
+        return 'Searching hotels...';
+      case 'get_hotel_details':
+        return 'Getting hotel details...';
+      case 'create_itinerary_with_map':
+        return 'Creating your itinerary...';
+      case 'geocode_locations':
+        return 'Finding locations on map...';
+      case 'search_nearby_places':
+        return 'Finding nearby places...';
+      default:
+        return 'Working on it...';
+    }
+  };
+
   return (
     <div
       className="w-full h-full flex flex-col border-r border-[#cee2f2]"
@@ -387,6 +445,7 @@ export default function ChatInterface({
                 >
                   {message.role === 'user' ? (
                     user?.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={user.imageUrl}
                         alt={user.firstName || 'User'}
@@ -417,16 +476,7 @@ export default function ChatInterface({
                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                            </svg>
-                           <span>
-                             {message.toolName === 'save_trip' && 'Saving your trip...'}
-                             {message.toolName === 'get_user_trips' && 'Fetching your trips...'}
-                             {message.toolName === 'add_to_wishlist' && 'Adding to wishlist...'}
-                             {message.toolName === 'get_wishlist' && 'Getting your wishlist...'}
-                             {message.toolName === 'search_destinations' && 'Searching destinations...'}
-                             {message.toolName === 'get_destination_info' && 'Getting destination info...'}
-                             {message.toolName === 'convert_currency' && 'Converting currency...'}
-                             {!message.toolName && 'Working on it...'}
-                           </span>
+                           <span>{getToolActivityMessage(message.toolName)}</span>
                          </div>
                        ) : (
                          <div className="flex gap-1">
@@ -446,6 +496,19 @@ export default function ChatInterface({
                    )}
                  </div>
               </div>
+              
+              {/* Hotel Carousel - displayed below the message */}
+              {message.hotelData && message.hotelData.hotels && message.hotelData.hotels.length > 0 && (
+                <div className="mb-4 -mx-3 md:-mx-4">
+                  <HotelCarousel
+                    hotels={message.hotelData.hotels}
+                    title={`Hotel recommendations in ${message.hotelData.destination || 'your destination'}`}
+                    destination={message.hotelData.destination}
+                    checkInDate={message.hotelData.checkInDate}
+                    checkOutDate={message.hotelData.checkOutDate}
+                  />
+                </div>
+              )}
             </div>
           ))}
           <div ref={messagesEndRef} />
