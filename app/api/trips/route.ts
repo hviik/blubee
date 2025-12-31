@@ -38,14 +38,12 @@ export async function GET(req: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Supabase error:', error);
       return NextResponse.json({ error: 'Failed to fetch trips' }, { status: 500 });
     }
 
-    return NextResponse.json({ trips: data || [] });
-  } catch (error: any) {
-    console.error('Trips API error:', error);
-    return NextResponse.json(
+    return NextResponse.json({ trips: data || []       });
+    } catch (error: any) {
+      return NextResponse.json(
       { error: error?.message || 'Internal Server Error' },
       { status: 500 }
     );
@@ -71,8 +69,6 @@ export async function POST(req: NextRequest) {
       preferences = {}
     } = body;
 
-    console.log('Trips POST - Creating trip:', { title, status, userId });
-
     if (!title) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }
@@ -88,7 +84,6 @@ export async function POST(req: NextRequest) {
     );
     
     if (!profileCreated) {
-      console.error('Failed to create user profile for trips POST');
       return NextResponse.json({ 
         error: 'Failed to initialize user profile. Please try again.'
       }, { status: 500 });
@@ -110,9 +105,6 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Supabase insert error:', error);
-      console.error('Insert error details - code:', error.code, 'message:', error.message, 'details:', error.details);
-      
       if (error.code === '23503') {
         return NextResponse.json({ 
           error: 'User profile not found. Please try signing out and back in.',
@@ -126,15 +118,12 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     }
 
-    console.log('Trip created successfully:', data?.id);
-
     return NextResponse.json({ 
       message: 'Trip created',
       trip: data 
-    });
-  } catch (error: any) {
-    console.error('Trips POST error:', error);
-    return NextResponse.json(
+      });
+    } catch (error: any) {
+      return NextResponse.json(
       { error: error?.message || 'Internal Server Error' },
       { status: 500 }
     );
@@ -151,8 +140,6 @@ export async function PUT(req: NextRequest) {
 
     const body = await req.json();
     const { id, ...updates } = body;
-
-    console.log('Trips PUT - Updating trip:', { id, updates, userId });
 
     if (!id) {
       return NextResponse.json({ error: 'Trip ID is required' }, { status: 400 });
@@ -188,17 +175,15 @@ export async function PUT(req: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Supabase update error:', error);
       return NextResponse.json({ error: 'Failed to update trip' }, { status: 500 });
     }
 
     return NextResponse.json({ 
       message: 'Trip updated',
       trip: data 
-    });
-  } catch (error: any) {
-    console.error('Trips PUT error:', error);
-    return NextResponse.json(
+      });
+    } catch (error: any) {
+      return NextResponse.json(
       { error: error?.message || 'Internal Server Error' },
       { status: 500 }
     );
@@ -229,14 +214,12 @@ export async function DELETE(req: NextRequest) {
       .eq('user_id', userId);
 
     if (error) {
-      console.error('Supabase delete error:', error);
       return NextResponse.json({ error: 'Failed to delete trip' }, { status: 500 });
     }
 
-    return NextResponse.json({ message: 'Trip deleted' });
-  } catch (error: any) {
-    console.error('Trips DELETE error:', error);
-    return NextResponse.json(
+    return NextResponse.json({ message: 'Trip deleted'       });
+    } catch (error: any) {
+      return NextResponse.json(
       { error: error?.message || 'Internal Server Error' },
       { status: 500 }
     );

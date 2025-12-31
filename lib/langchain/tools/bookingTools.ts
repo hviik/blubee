@@ -30,15 +30,9 @@ export interface HotelResult {
   lng?: number;
 }
 
-/**
- * Tool to search for hotels using Booking.com API
- */
 export const searchHotelsTool = tool(
   async ({ destination, checkInDate, checkOutDate, adults, rooms, currency, minPrice, maxPrice, sortBy }) => {
     try {
-      console.log(`[searchHotelsTool] Searching hotels in ${destination} from ${checkInDate} to ${checkOutDate}`);
-      
-      // Validate dates
       const checkIn = new Date(checkInDate);
       const checkOut = new Date(checkOutDate);
       const today = new Date();
@@ -58,7 +52,6 @@ export const searchHotelsTool = tool(
         });
       }
 
-      // Call the booking API
       const baseUrl = getApiBaseUrl();
       const response = await fetch(`${baseUrl}/api/booking`, {
         method: 'POST',
@@ -94,7 +87,6 @@ export const searchHotelsTool = tool(
         });
       }
 
-      // Return structured data for the frontend to render as cards
       return JSON.stringify({
         success: true,
         destination,
@@ -103,10 +95,9 @@ export const searchHotelsTool = tool(
         hotelCount: data.hotels.length,
         hotels: data.hotels,
         message: `Found ${data.hotels.length} hotels in ${destination}`,
-        displayType: 'hotelCarousel' // Signal to frontend to render as carousel
+        displayType: 'hotelCarousel'
       });
     } catch (error: any) {
-      console.error('[searchHotelsTool] Error:', error);
       return JSON.stringify({
         success: false,
         error: error?.message || 'Failed to search hotels'
@@ -138,15 +129,9 @@ Date format must be YYYY-MM-DD (e.g., 2024-06-15).`,
   }
 );
 
-/**
- * Tool to get detailed information about a specific hotel
- */
 export const getHotelDetailsTool = tool(
   async ({ hotelId, checkInDate, checkOutDate, currency }) => {
     try {
-      console.log(`[getHotelDetailsTool] Getting details for hotel ${hotelId}`);
-      
-      // For now, return a message that this feature requires the full API
       return JSON.stringify({
         success: true,
         message: `To view full details and book this hotel, please click the booking link on the hotel card.`,
@@ -154,7 +139,6 @@ export const getHotelDetailsTool = tool(
         note: 'Full hotel details and booking functionality available through Booking.com'
       });
     } catch (error: any) {
-      console.error('[getHotelDetailsTool] Error:', error);
       return JSON.stringify({
         success: false,
         error: error?.message || 'Failed to get hotel details'

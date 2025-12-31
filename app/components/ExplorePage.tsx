@@ -135,14 +135,9 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
         if (response.ok) {
           const data = await response.json();
           const ids = data.wishlistIds || [];
-          console.log('Fetched wishlist IDs:', ids);
           setLikedDestinations(new Set(ids));
-        } else {
-          const errorData = await response.json().catch(() => ({}));
-          console.error('Failed to fetch wishlist:', errorData);
         }
       } catch (error) {
-        console.error('Failed to fetch wishlist:', error);
       }
     };
 
@@ -165,12 +160,10 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
 
   const toggleLike = useCallback(async (destination: Destination) => {
     if (!isSignedIn) {
-      console.warn('User not signed in, cannot toggle like');
       return;
     }
 
     const isCurrentlyLiked = likedDestinations.has(destination.id);
-    console.log(`Toggling like for ${destination.name} (${destination.id}): ${isCurrentlyLiked ? 'unliking' : 'liking'}`);
     
     setLikedDestinations(prev => {
       const newSet = new Set(prev);
@@ -193,11 +186,8 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
         const responseData = await response.json().catch(() => ({}));
         
         if (!response.ok) {
-          console.error('DELETE wishlist error:', responseData);
           throw new Error(responseData.error || 'Failed to remove from wishlist');
         }
-        
-        console.log('Successfully removed from wishlist:', responseData);
       } else {
         const destinationImage = getDestinationImage(destination.name);
         const flagImage = getFlagImage(destination.name);
@@ -213,8 +203,6 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
           flag: flagImage,
         };
         
-        console.log('POST wishlist payload:', payload);
-        
         const response = await fetch('/api/wishlist', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -224,11 +212,8 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
         const responseData = await response.json().catch(() => ({}));
         
         if (!response.ok) {
-          console.error('POST wishlist error:', responseData);
           throw new Error(responseData.error || 'Failed to add to wishlist');
         }
-        
-        console.log('Successfully added to wishlist:', responseData);
       }
       
       try {
@@ -236,14 +221,11 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
         if (refreshResponse.ok) {
           const refreshData = await refreshResponse.json();
           const ids = refreshData.wishlistIds || [];
-          console.log('Refreshed wishlist IDs:', ids);
           setLikedDestinations(new Set(ids));
         }
       } catch (refreshError) {
-        console.error('Failed to refresh wishlist:', refreshError);
       }
     } catch (error) {
-      console.error('Wishlist toggle error:', error);
       setLikedDestinations(prev => {
         const newSet = new Set(prev);
         if (isCurrentlyLiked) {

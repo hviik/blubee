@@ -3,7 +3,6 @@ import { z } from "zod";
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 
-// Place type mapping for Google Places API
 const placeTypeMapping: Record<string, string> = {
   stays: 'lodging',
   restaurants: 'restaurant',
@@ -11,7 +10,6 @@ const placeTypeMapping: Record<string, string> = {
   activities: 'park',
 };
 
-// Reverse mapping for inferring types from Google results
 function inferPlaceType(types: string[]): string {
   if (types.includes('lodging') || types.includes('hotel')) return 'stays';
   if (types.includes('restaurant') || types.includes('cafe') || types.includes('food') || types.includes('meal_takeaway')) return 'restaurants';
@@ -20,9 +18,6 @@ function inferPlaceType(types: string[]): string {
   return 'attraction';
 }
 
-/**
- * Tool to geocode locations and get their coordinates
- */
 export const geocodeLocationsTool = tool(
   async ({ locations, countryHint }) => {
     if (!GOOGLE_MAPS_API_KEY) {
@@ -69,7 +64,6 @@ export const geocodeLocationsTool = tool(
             results.push({ name: location, lat: 0, lng: 0 });
           }
 
-          // Rate limiting
           await new Promise(resolve => setTimeout(resolve, 100));
         } catch (error) {
           results.push({ name: location, lat: 0, lng: 0 });
@@ -97,9 +91,6 @@ export const geocodeLocationsTool = tool(
   }
 );
 
-/**
- * Tool to search for nearby places (attractions, restaurants, hotels)
- */
 export const searchNearbyPlacesTool = tool(
   async ({ lat, lng, type, locationName, radius = 5000 }) => {
     if (!GOOGLE_MAPS_API_KEY) {
@@ -172,9 +163,6 @@ export const searchNearbyPlacesTool = tool(
   }
 );
 
-/**
- * Tool to create a structured itinerary with geocoded locations and places
- */
 export const createItineraryWithMapTool = tool(
   async ({ title, country, days, travelers, tripType }) => {
     if (!GOOGLE_MAPS_API_KEY) {
@@ -185,19 +173,15 @@ export const createItineraryWithMapTool = tool(
     }
 
     try {
-      // Extract unique locations from days
       const allLocations = days.map(d => d.location);
       const uniqueLocations = [...new Set(allLocations)];
 
-      // Geocode all locations
       const geocodedLocations: Array<{
         name: string;
         lat: number;
         lng: number;
         address?: string;
       }> = [];
-
-      console.log(`[createItineraryWithMap] Geocoding ${uniqueLocations.length} locations for ${title}`);
 
       for (const location of uniqueLocations) {
         const searchQuery = country ? `${location}, ${country}` : location;
@@ -217,10 +201,8 @@ export const createItineraryWithMapTool = tool(
                 lng: result.geometry.location.lng,
                 address: result.formatted_address,
               });
-              console.log(`[createItineraryWithMap] Geocoded ${location}: ${result.geometry.location.lat}, ${result.geometry.location.lng}`);
             } else {
               geocodedLocations.push({ name: location, lat: 0, lng: 0 });
-              console.warn(`[createItineraryWithMap] Failed to geocode ${location}: ${data.status}`);
             }
           } else {
             geocodedLocations.push({ name: location, lat: 0, lng: 0 });
@@ -232,14 +214,13 @@ export const createItineraryWithMapTool = tool(
         }
       }
 
-      // Convert places to proper format with types
       const processPlaces = (dayPlaces: any[]): any[] => {
         if (!dayPlaces || !Array.isArray(dayPlaces)) return [];
         
         return dayPlaces.map((place, idx) => ({
           id: `place_${Date.now()}_${idx}_${Math.random().toString(36).slice(2, 9)}`,
           name: place.name,
-          type: place.type || 'attraction', // Default to attraction
+          type: place.type || 'attraction',
           location: place.location || { lat: 0, lng: 0 },
           address: place.address,
           rating: place.rating,
@@ -283,15 +264,12 @@ export const createItineraryWithMapTool = tool(
         })
       };
 
-      console.log(`[createItineraryWithMap] Created itinerary with ${itinerary.locations.length} locations and ${itinerary.days.length} days`);
-
       return JSON.stringify({
         success: true,
         message: `Created ${days.length}-day itinerary for ${title} with map coordinates`,
         itinerary
       });
     } catch (error: any) {
-      console.error('[createItineraryWithMap] Error:', error);
       return JSON.stringify({
         success: false,
         error: error?.message || 'Failed to create itinerary'

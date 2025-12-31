@@ -61,8 +61,6 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
         }
       };
 
-      console.log('Saving trip to database:', payload);
-      
       const response = await fetch('/api/trips', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -71,14 +69,9 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Trip saved successfully:', data);
         hasSavedTrip.current = true;
-      } else {
-        const error = await response.json();
-        console.error('Failed to save trip:', error);
       }
     } catch (error) {
-      console.error('Error saving trip to database:', error);
     }
   }, []);
 
@@ -128,7 +121,6 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
     const { geocodeLocation } = await import('./geocoding');
     
     const countryHint = extractCountryFromTitle(itinerary.title);
-    console.log('Country hint for geocoding:', countryHint);
     
     const updatedLocations = await Promise.all(
       itinerary.locations.map(async (loc) => {
@@ -136,17 +128,14 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
           return loc;
         }
         
-        console.log(`Geocoding location: ${loc.name} (country: ${countryHint})`);
         const result = await geocodeLocation(loc.name, countryHint);
         if (result) {
-          console.log('Geocoded successfully:', loc.name, result);
           return {
             ...loc,
             coordinates: { lat: result.lat, lng: result.lng },
           };
         }
         
-        console.warn(`Failed to geocode location: ${loc.name}`);
         return loc;
       })
     );
@@ -182,7 +171,6 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
       );
       
       if (hasInvalidCoordinates) {
-        console.log('Google Maps loaded, retrying geocoding...');
         hasTriedGeocoding.current = true;
         geocodeItineraryLocations(itinerary).then(geocodedItinerary => {
           setItinerary(geocodedItinerary);
@@ -203,11 +191,7 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
     setMessages(msgs);
   }, []);
 
-  // Handle itinerary data received directly from agent tools (already geocoded)
   const handleItineraryReceived = useCallback((agentItinerary: any) => {
-    console.log('Received itinerary from agent:', agentItinerary);
-    
-    // Convert agent itinerary format to our Itinerary type
     const convertedItinerary: Itinerary = {
       id: agentItinerary.id || `trip_${Date.now()}`,
       title: agentItinerary.title || 'Trip',
@@ -234,7 +218,7 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
 
     setItinerary(convertedItinerary);
     setShowMap(true);
-    hasSavedTrip.current = false; // Allow saving the new trip
+    hasSavedTrip.current = false;
   }, []);
 
   const handleDestinationClick = useCallback((countryName: string, route: string[]) => {

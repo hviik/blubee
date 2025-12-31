@@ -23,7 +23,6 @@ export async function GET() {
     );
     
     if (!profileCreated) {
-      console.error('Failed to ensure user profile for wishlist GET');
     }
 
     const { data, error } = await supabaseAdmin
@@ -34,7 +33,6 @@ export async function GET() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Supabase error:', error);
       return NextResponse.json({ error: 'Failed to fetch wishlist' }, { status: 500 });
     }
 
@@ -50,10 +48,9 @@ export async function GET() {
     return NextResponse.json({ 
       wishlist: data || [],
       wishlistIds 
-    });
-  } catch (error: any) {
-    console.error('Wishlist API error:', error);
-    return NextResponse.json(
+      });
+    } catch (error: any) {
+      return NextResponse.json(
       { error: error?.message || 'Internal Server Error' },
       { status: 500 }
     );
@@ -71,8 +68,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { destinationId, destinationName, route, priceINR, duration, image, flag, iso2 } = body;
 
-    console.log('Wishlist POST - Received payload:', { destinationId, destinationName, iso2, userId });
-
     if (!destinationId || !destinationName) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
@@ -88,7 +83,6 @@ export async function POST(req: NextRequest) {
     );
     
     if (!profileCreated) {
-      console.error('Failed to create user profile for wishlist POST');
       return NextResponse.json({ 
         error: 'Failed to initialize user profile. Please try again.',
         action: 'profile_error'
@@ -102,7 +96,6 @@ export async function POST(req: NextRequest) {
       .eq('status', 'wishlist');
 
     if (checkError) {
-      console.error('Error checking existing wishlist:', checkError);
     }
 
     const existing = allWishlistItems?.find(trip => {
@@ -149,9 +142,6 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Supabase insert error:', error);
-      console.error('Insert error details - code:', error.code, 'message:', error.message, 'details:', error.details);
-      
       if (error.code === '23503') {
         return NextResponse.json({ 
           error: 'User profile not found. Please try signing out and back in.',
@@ -166,16 +156,13 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     }
 
-    console.log('Wishlist item created successfully:', data?.id);
-
     return NextResponse.json({ 
       message: 'Added to wishlist',
       trip: data,
       action: 'added'
-    });
-  } catch (error: any) {
-    console.error('Wishlist POST error:', error);
-    return NextResponse.json(
+      });
+    } catch (error: any) {
+      return NextResponse.json(
       { error: error?.message || 'Internal Server Error' },
       { status: 500 }
     );
@@ -193,8 +180,6 @@ export async function DELETE(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const destinationId = searchParams.get('destinationId');
 
-    console.log('Wishlist DELETE - destinationId:', destinationId, 'userId:', userId);
-
     if (!destinationId) {
       return NextResponse.json({ error: 'Missing destinationId' }, { status: 400 });
     }
@@ -208,7 +193,6 @@ export async function DELETE(req: NextRequest) {
       .eq('status', 'wishlist');
 
     if (findError) {
-      console.error('Error finding wishlist item:', findError);
       return NextResponse.json({ 
         error: 'Failed to find wishlist item',
         action: 'error'
@@ -238,17 +222,15 @@ export async function DELETE(req: NextRequest) {
       .eq('id', existing.id);
 
     if (deleteError) {
-      console.error('Supabase delete error:', deleteError);
       return NextResponse.json({ error: 'Failed to remove from wishlist' }, { status: 500 });
     }
 
     return NextResponse.json({ 
       message: 'Removed from wishlist',
       action: 'removed'
-    });
-  } catch (error: any) {
-    console.error('Wishlist DELETE error:', error);
-    return NextResponse.json(
+      });
+    } catch (error: any) {
+      return NextResponse.json(
       { error: error?.message || 'Internal Server Error' },
       { status: 500 }
     );

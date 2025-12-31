@@ -56,7 +56,6 @@ export default function ChatInterface({
   useEffect(() => {
     detectUserCurrency().then((currency) => {
       setUserCurrency(currency);
-      console.log('Detected user currency:', currency);
     });
   }, []);
 
@@ -106,7 +105,6 @@ export default function ChatInterface({
       try {
         const userName = user?.firstName || user?.fullName?.split(' ')[0] || null;
         
-        // Use the new LangChain agent API
         const response = await fetch('/api/agent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -186,28 +184,21 @@ export default function ChatInterface({
                 continue;
               }
 
-              // Handle tool results - check for itinerary and hotel data
               if (chunk.toolResult) {
                 try {
-                  // Parse tool result to check for data
                   const toolData = JSON.parse(chunk.toolResult);
                   
-                  // Check if any tool returned data
                   if (toolData?.messages) {
                     for (const msg of toolData.messages) {
                       if (msg?.content) {
                         try {
                           const content = JSON.parse(msg.content);
                           
-                          // Check for itinerary data
                           if (content?.itinerary && onItineraryReceived) {
-                            console.log('Received itinerary from tool:', content.itinerary);
                             onItineraryReceived(content.itinerary);
                           }
                           
-                          // Check for hotel data
                           if (content?.displayType === 'hotelCarousel' && content?.hotels) {
-                            console.log('Received hotel data from tool:', content.hotels.length, 'hotels');
                             pendingHotelDataRef.current = {
                               hotels: content.hotels,
                               destination: content.destination,
@@ -381,7 +372,6 @@ export default function ChatInterface({
     }
   };
 
-  // Get tool activity message
   const getToolActivityMessage = (toolName?: string): string => {
     switch (toolName) {
       case 'save_trip':
@@ -497,7 +487,6 @@ export default function ChatInterface({
                  </div>
               </div>
               
-              {/* Hotel Carousel - displayed below the message */}
               {message.hotelData && message.hotelData.hotels && message.hotelData.hotels.length > 0 && (
                 <div className="mb-4 -mx-3 md:-mx-4">
                   <HotelCarousel
