@@ -1,5 +1,11 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
+import { 
+  validateDateRange, 
+  validateDate, 
+  getCurrentDateContext,
+  formatToISO 
+} from "../../utils/dateResolver";
 
 const getApiBaseUrl = () => {
   if (typeof window !== 'undefined') {
@@ -30,24 +36,19 @@ export interface HotelResult {
 }
 
 export const searchHotelsTool = tool(
-  async ({ destination, checkInDate, checkOutDate, adults, rooms, currency, minPrice, maxPrice, sortBy }) => {
+  async ({ destination, checkInDate, checkOutDate, adults, children, childrenAges, rooms, currency, minPrice, maxPrice, sortBy }) => {
     try {
-      const checkIn = new Date(checkInDate);
-      const checkOut = new Date(checkOutDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const dateContext = getCurrentDateContext();
       
-      if (checkIn < today) {
+      // Validate dates using the date resolver
+      const dateValidation = validateDateRange(checkInDate, checkOutDate);
+      
+      if (!dateValidation.isValid) {
         return JSON.stringify({
           success: false,
-          error: 'Check-in date cannot be in the past'
-        });
-      }
-      
-      if (checkOut <= checkIn) {
-        return JSON.stringify({
-          success: false,
-          error: 'Check-out date must be after check-in date'
+          error: dateValidation.error,
+          currentDate: dateContext.currentDate,
+          hint: `Today is ${dateContext.currentDate}. Please provide dates in YYYY-MM-DD format that are today or in the future.`
         });
       }
 
@@ -57,9 +58,11 @@ export const searchHotelsTool = tool(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           destination,
-          checkInDate,
-          checkOutDate,
+          checkInDate: dateValidation.checkInDate,
+          checkOutDate: dateValidation.checkOutDate,
           adults: adults || 2,
+          children: children || 0,
+          childrenAges: childrenAges || [],
           rooms: rooms || 1,
           currency: currency || 'USD',
           minPrice,
@@ -72,7 +75,8 @@ export const searchHotelsTool = tool(
         const error = await response.json();
         return JSON.stringify({
           success: false,
-          error: error.error || 'Failed to search hotels'
+          error: error.error || 'Failed to search hotels',
+          currentDate: dateContext.currentDate,
         });
       }
 
@@ -81,25 +85,30 @@ export const searchHotelsTool = tool(
       if (!data.hotels || data.hotels.length === 0) {
         return JSON.stringify({
           success: false,
-          error: `No hotels found in ${destination} for the selected dates`,
-          hotels: []
+          error: `No hotels found in ${destination} for ${dateValidation.checkInDate} to ${dateValidation.checkOutDate}`,
+          hotels: [],
+          currentDate: dateContext.currentDate,
         });
       }
 
       return JSON.stringify({
         success: true,
-        destination,
-        checkInDate,
-        checkOutDate,
+        destination: data.destination || destination,
+        checkInDate: dateValidation.checkInDate,
+        checkOutDate: dateValidation.checkOutDate,
+        nights: dateValidation.nights,
         hotelCount: data.hotels.length,
         hotels: data.hotels,
-        message: `Found ${data.hotels.length} hotels in ${destination}`,
-        displayType: 'hotelCarousel'
+        message: `Found ${data.hotels.length} hotels in ${data.destination || destination} for ${dateValidation.nights} night${dateValidation.nights > 1 ? 's' : ''}`,
+        displayType: 'hotelCarousel',
+        currentDate: dateContext.currentDate,
       });
     } catch (error: any) {
+      const dateContext = getCurrentDateContext();
       return JSON.stringify({
         success: false,
-        error: error?.message || 'Failed to search hotels'
+        error: error?.message || 'Failed to search hotels',
+        currentDate: dateContext.currentDate,
       });
     }
   },
@@ -111,16 +120,24 @@ export const searchHotelsTool = tool(
 - Mentions budget constraints for hotels
 - Needs to find hotels for specific dates
 
-IMPORTANT: This tool returns hotel data that will be displayed as clickable cards in the chat. After using this tool, present a brief summary and let the user know they can browse the options.
+CRITICAL DATE REQUIREMENTS:
+- Dates MUST be in ISO format: YYYY-MM-DD (e.g., 2026-02-15)
+- Check-in date MUST be today or in the future (not in the past)
+- Check-out date MUST be after check-in date
+- Maximum stay is 30 nights
 
-Date format must be YYYY-MM-DD (e.g., 2024-06-15).`,
+If the user mentions relative dates like "next week" or "June 15th", calculate the actual YYYY-MM-DD date based on the current date provided in the system context.
+
+The tool will return hotel cards that display automatically in the chat. After getting results, provide a brief summary and let the user know they can browse the options.`,
     schema: z.object({
-      destination: z.string().describe("City or destination name, e.g. 'Colombo', 'Sri Lanka', 'Bali'"),
-      checkInDate: z.string().describe("Check-in date in YYYY-MM-DD format"),
-      checkOutDate: z.string().describe("Check-out date in YYYY-MM-DD format"),
+      destination: z.string().describe("City or destination name, e.g. 'Colombo', 'Sri Lanka', 'Bali', 'Tokyo'"),
+      checkInDate: z.string().describe("Check-in date in YYYY-MM-DD format. MUST be today or a future date."),
+      checkOutDate: z.string().describe("Check-out date in YYYY-MM-DD format. MUST be after check-in date."),
       adults: z.number().optional().describe("Number of adults (default: 2)"),
+      children: z.number().optional().describe("Number of children (default: 0)"),
+      childrenAges: z.array(z.number()).optional().describe("Ages of children, e.g. [5, 8]"),
       rooms: z.number().optional().describe("Number of rooms (default: 1)"),
-      currency: z.string().optional().describe("Currency code like USD, EUR, INR (default: USD)"),
+      currency: z.string().optional().describe("Currency code like USD, EUR, INR, AED (default: USD)"),
       minPrice: z.number().optional().describe("Minimum price per night in the specified currency"),
       maxPrice: z.number().optional().describe("Maximum price per night - use this when user mentions 'budget', 'cheap', 'affordable', 'mid-range', etc."),
       sortBy: z.enum(['popularity', 'price', 'review_score', 'distance']).optional().describe("Sort results by: popularity, price, review_score, or distance")
@@ -131,11 +148,26 @@ Date format must be YYYY-MM-DD (e.g., 2024-06-15).`,
 export const getHotelDetailsTool = tool(
   async ({ hotelId, checkInDate, checkOutDate, currency }) => {
     try {
+      const dateContext = getCurrentDateContext();
+      
+      // Validate dates if provided
+      if (checkInDate && checkOutDate) {
+        const dateValidation = validateDateRange(checkInDate, checkOutDate);
+        if (!dateValidation.isValid) {
+          return JSON.stringify({
+            success: false,
+            error: dateValidation.error,
+            currentDate: dateContext.currentDate,
+          });
+        }
+      }
+      
       return JSON.stringify({
         success: true,
         message: `To view full details and book this hotel, please click the booking link on the hotel card.`,
         hotelId,
-        note: 'Full hotel details and booking functionality available through Booking.com'
+        note: 'Full hotel details and booking functionality available through Booking.com',
+        currentDate: dateContext.currentDate,
       });
     } catch (error: any) {
       return JSON.stringify({
@@ -159,6 +191,20 @@ export const getHotelDetailsTool = tool(
 export const saveHotelBookingTool = tool(
   async ({ hotelId, hotelName, destination, checkInDate, checkOutDate, pricePerNight, currency, tripId }) => {
     try {
+      const dateContext = getCurrentDateContext();
+      
+      // Validate dates if provided
+      if (checkInDate && checkOutDate) {
+        const dateValidation = validateDateRange(checkInDate, checkOutDate);
+        if (!dateValidation.isValid) {
+          return JSON.stringify({
+            success: false,
+            error: dateValidation.error,
+            currentDate: dateContext.currentDate,
+          });
+        }
+      }
+      
       const baseUrl = getApiBaseUrl();
       const response = await fetch(`${baseUrl}/api/booking/save`, {
         method: 'POST',
@@ -179,7 +225,8 @@ export const saveHotelBookingTool = tool(
         const error = await response.json();
         return JSON.stringify({
           success: false,
-          error: error.error || 'Failed to save booking'
+          error: error.error || 'Failed to save booking',
+          currentDate: dateContext.currentDate,
         });
       }
 
@@ -188,7 +235,8 @@ export const saveHotelBookingTool = tool(
       return JSON.stringify({
         success: true,
         message: `Hotel booking for ${hotelName} has been saved to your account.`,
-        booking: data.booking
+        booking: data.booking,
+        currentDate: dateContext.currentDate,
       });
     } catch (error: any) {
       return JSON.stringify({
@@ -221,6 +269,7 @@ This stores the booking reference in the database so users can track their booki
 export const getUserBookingsTool = tool(
   async ({ limit, offset }) => {
     try {
+      const dateContext = getCurrentDateContext();
       const baseUrl = getApiBaseUrl();
       const params = new URLSearchParams();
       if (limit) params.set('limit', String(limit));
@@ -235,7 +284,8 @@ export const getUserBookingsTool = tool(
         const error = await response.json();
         return JSON.stringify({
           success: false,
-          error: error.error || 'Failed to fetch bookings'
+          error: error.error || 'Failed to fetch bookings',
+          currentDate: dateContext.currentDate,
         });
       }
 
@@ -245,7 +295,8 @@ export const getUserBookingsTool = tool(
         return JSON.stringify({
           success: true,
           message: "You haven't saved any hotel bookings yet.",
-          bookings: []
+          bookings: [],
+          currentDate: dateContext.currentDate,
         });
       }
 
@@ -253,7 +304,8 @@ export const getUserBookingsTool = tool(
         success: true,
         message: `Found ${data.bookings.length} saved hotel bookings.`,
         bookings: data.bookings,
-        total: data.total
+        total: data.total,
+        currentDate: dateContext.currentDate,
       });
     } catch (error: any) {
       return JSON.stringify({
