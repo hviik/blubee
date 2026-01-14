@@ -59,22 +59,34 @@ MAP & ITINERARY TOOLS - CRITICAL:
 When a user asks you to plan a trip and you have the destination and duration:
 
 1. ALWAYS use 'create_itinerary_with_map' tool to create the itinerary
-2. Include SPECIFIC places for each day with their correct type:
+2. The 'country' parameter MUST be the actual country name (e.g., "Italy", "Thailand", "Japan")
+3. Each day's 'location' MUST be a specific city or area name (e.g., "Milan", "Rome", "Bali")
+4. Include SPECIFIC, REAL places for each day with their correct type:
    - 'stays' = hotels, resorts, villas, accommodations
-   - 'restaurants' = cafes, restaurants, bars, food spots
-   - 'attraction' = temples, beaches, museums, landmarks, viewpoints
-   - 'activities' = tours, water sports, hiking, spa, diving
-3. Include morning, afternoon, and evening activities for each day
-4. After using the tool, present a brief summary (don't repeat all details)
+   - 'restaurants' = cafes, restaurants, bars, food spots  
+   - 'attraction' = temples, churches, museums, landmarks, viewpoints, monuments
+   - 'activities' = tours, water sports, hiking, spa, cooking classes
+5. Include morning, afternoon, and evening activity descriptions
+6. ALWAYS use REAL, NAMED places - the tool will geocode them for the map
 
-Example places array for a day:
-places: [
-  { name: "Tanah Lot Temple", type: "attraction" },
-  { name: "Warung Babi Guling Ibu Oka", type: "restaurants" },
-  { name: "The Mulia Resort", type: "stays" }
-]
+CRITICAL: Places MUST be real, specific names that can be found on Google Maps.
 
-This ensures the map displays all locations with correct filter categories.
+Example for a Milan day:
+{
+  "location": "Milan",
+  "title": "Milan Art and Fashion",
+  "morning": "Visit Santa Maria delle Grazie to see The Last Supper",
+  "afternoon": "Explore the Duomo di Milano and Galleria Vittorio Emanuele II",
+  "evening": "Dinner at Terrazza Aperol with views of the Duomo",
+  "places": [
+    { "name": "Santa Maria delle Grazie", "type": "attraction" },
+    { "name": "Duomo di Milano", "type": "attraction" },
+    { "name": "Galleria Vittorio Emanuele II", "type": "attraction" },
+    { "name": "Terrazza Aperol", "type": "restaurants" }
+  ]
+}
+
+This ensures the map displays all locations correctly with proper coordinates.
 
 Always confirm with the user before saving trips. When tools return success, share the good news naturally.`;
 
@@ -192,7 +204,7 @@ export async function* streamAgent(
     userName?: string;
     currency?: { code: string; symbol: string; name: string };
   } = {}
-): AsyncGenerator<{ type: "token" | "tool_result" | "done"; content: string }> {
+): AsyncGenerator<{ type: "token" | "tool_call" | "tool_result" | "done"; content: string }> {
   const systemPrompt = buildSystemPrompt(options.userName, options.currency);
   const langChainMessages = convertToLangChainMessages(messages, systemPrompt);
   const app = createGraph();
@@ -210,8 +222,23 @@ export async function* streamAgent(
 
   for await (const update of stream) {
     if (update.agent?.messages) {
-      const msg = update.agent.messages.at(-1);
-      if (msg && typeof msg.content === "string") {
+      const msg = update.agent.messages.at(-1) as AIMessage;
+      
+      // Check for tool calls in the message
+      if (msg?.tool_calls?.length) {
+        for (const toolCall of msg.tool_calls) {
+          yield { 
+            type: "tool_call", 
+            content: JSON.stringify({ 
+              name: toolCall.name, 
+              args: toolCall.args 
+            }) 
+          };
+        }
+      }
+      
+      // Send text content
+      if (msg && typeof msg.content === "string" && msg.content) {
         yield { type: "token", content: msg.content };
       }
     }

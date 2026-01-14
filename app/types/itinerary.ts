@@ -38,6 +38,10 @@ export interface ItineraryDay {
   activities?: DayActivity;
   places?: Place[];
   expanded?: boolean;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 export interface TripLocation {

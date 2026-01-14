@@ -18,6 +18,23 @@ const nextConfig = {
         hostname: 'img.clerk.com',
         pathname: '/**',
       },
+      // Booking.com hotel images
+      {
+        protocol: 'https',
+        hostname: 'cf.bstatic.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cf2.bstatic.com',
+        pathname: '/**',
+      },
+      // Unsplash for mock hotel images
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        pathname: '/**',
+      },
     ],
   },
 };

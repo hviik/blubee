@@ -192,6 +192,36 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
   }, []);
 
   const handleItineraryReceived = useCallback((agentItinerary: any) => {
+    console.log('[ChatWithMap] Received itinerary from agent:', {
+      id: agentItinerary.id,
+      title: agentItinerary.title,
+      locationsCount: agentItinerary.locations?.length,
+      daysCount: agentItinerary.days?.length,
+    });
+    
+    // Log locations with coordinates for debugging
+    if (agentItinerary.locations) {
+      console.log('[ChatWithMap] Locations:', agentItinerary.locations.map((loc: any) => ({
+        name: loc.name,
+        lat: loc.coordinates?.lat,
+        lng: loc.coordinates?.lng
+      })));
+    }
+    
+    // Log places for debugging
+    if (agentItinerary.days) {
+      agentItinerary.days.forEach((day: any, idx: number) => {
+        if (day.places && day.places.length > 0) {
+          console.log(`[ChatWithMap] Day ${idx + 1} places:`, day.places.map((p: any) => ({
+            name: p.name,
+            type: p.type,
+            lat: p.location?.lat,
+            lng: p.location?.lng
+          })));
+        }
+      });
+    }
+
     const convertedItinerary: Itinerary = {
       id: agentItinerary.id || `trip_${Date.now()}`,
       title: agentItinerary.title || 'Trip',
@@ -208,13 +238,29 @@ export default function ChatWithMap({ initialMessage }: ChatWithMapProps) {
         title: day.title || `Day ${idx + 1}`,
         description: day.description || '',
         expanded: false,
-        places: day.places || [],
+        coordinates: day.coordinates || { lat: 0, lng: 0 },
+        places: (day.places || []).map((place: any, pIdx: number) => ({
+          id: place.id || `place_${idx}_${pIdx}`,
+          name: place.name,
+          type: place.type || 'attraction',
+          location: place.location || { lat: 0, lng: 0 },
+          address: place.address,
+          rating: place.rating,
+          placeId: place.placeId,
+        })),
         activities: day.activities
       })),
       totalDays: agentItinerary.totalDays || agentItinerary.days?.length || 0,
       startDate: agentItinerary.startDate || new Date().toISOString().split('T')[0],
       endDate: agentItinerary.endDate || new Date().toISOString().split('T')[0],
     };
+
+    // Count places with valid coordinates
+    const placesWithCoords = convertedItinerary.days.reduce((sum, day) => 
+      sum + (day.places?.filter((p: any) => p.location?.lat !== 0 && p.location?.lng !== 0).length || 0), 0
+    );
+    const totalPlaces = convertedItinerary.days.reduce((sum, day) => sum + (day.places?.length || 0), 0);
+    console.log(`[ChatWithMap] Converted itinerary: ${placesWithCoords}/${totalPlaces} places have coordinates`);
 
     setItinerary(convertedItinerary);
     setShowMap(true);

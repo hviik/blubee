@@ -10,6 +10,89 @@ const placeTypeMapping: Record<string, string> = {
   activities: 'park',
 };
 
+interface GeocodedPlace {
+  name: string;
+  type: string;
+  lat: number;
+  lng: number;
+  address?: string;
+  placeId?: string;
+}
+
+/**
+ * Geocode a specific place using Google Places Text Search
+ */
+async function geocodePlaceByName(
+  placeName: string, 
+  countryHint?: string,
+  placeType?: string
+): Promise<GeocodedPlace | null> {
+  if (!GOOGLE_MAPS_API_KEY) return null;
+
+  try {
+    const searchQuery = countryHint ? `${placeName}, ${countryHint}` : placeName;
+    const googleType = placeType ? placeTypeMapping[placeType] : undefined;
+    
+    // Use Text Search API for more accurate place finding
+    const params = new URLSearchParams({
+      query: searchQuery,
+      key: GOOGLE_MAPS_API_KEY,
+    });
+    
+    if (googleType) {
+      params.set('type', googleType);
+    }
+
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/place/textsearch/json?${params.toString()}`
+    );
+
+    if (!response.ok) {
+      console.error('[MapTools] Place search failed:', response.status);
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (data.status === 'OK' && data.results?.length > 0) {
+      const result = data.results[0];
+      return {
+        name: placeName,
+        type: placeType || 'attraction',
+        lat: result.geometry.location.lat,
+        lng: result.geometry.location.lng,
+        address: result.formatted_address,
+        placeId: result.place_id,
+      };
+    }
+
+    // Fallback to geocoding API if place search doesn't work
+    const geocodeResponse = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(searchQuery)}&key=${GOOGLE_MAPS_API_KEY}`
+    );
+
+    if (geocodeResponse.ok) {
+      const geocodeData = await geocodeResponse.json();
+      if (geocodeData.status === 'OK' && geocodeData.results?.length > 0) {
+        const result = geocodeData.results[0];
+        return {
+          name: placeName,
+          type: placeType || 'attraction',
+          lat: result.geometry.location.lat,
+          lng: result.geometry.location.lng,
+          address: result.formatted_address,
+          placeId: result.place_id,
+        };
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error('[MapTools] Place geocoding error:', error);
+    return null;
+  }
+}
+
 function inferPlaceType(types: string[]): string {
   if (types.includes('lodging') || types.includes('hotel')) return 'stays';
   if (types.includes('restaurant') || types.includes('cafe') || types.includes('food') || types.includes('meal_takeaway')) return 'restaurants';
@@ -176,6 +259,8 @@ export const createItineraryWithMapTool = tool(
       const allLocations = days.map(d => d.location);
       const uniqueLocations = [...new Set(allLocations)];
 
+      console.log('[MapTools] Geocoding locations:', uniqueLocations);
+
       const geocodedLocations: Array<{
         name: string;
         lat: number;
@@ -183,6 +268,7 @@ export const createItineraryWithMapTool = tool(
         address?: string;
       }> = [];
 
+      // Geocode main locations (cities/areas)
       for (const location of uniqueLocations) {
         const searchQuery = country ? `${location}, ${country}` : location;
 
@@ -195,6 +281,7 @@ export const createItineraryWithMapTool = tool(
             const data = await response.json();
             if (data.status === 'OK' && data.results?.length > 0) {
               const result = data.results[0];
+              console.log(`[MapTools] Geocoded ${location}:`, result.geometry.location);
               geocodedLocations.push({
                 name: location,
                 lat: result.geometry.location.lat,
@@ -202,6 +289,7 @@ export const createItineraryWithMapTool = tool(
                 address: result.formatted_address,
               });
             } else {
+              console.warn(`[MapTools] Failed to geocode location: ${location}`);
               geocodedLocations.push({ name: location, lat: 0, lng: 0 });
             }
           } else {
@@ -214,19 +302,82 @@ export const createItineraryWithMapTool = tool(
         }
       }
 
-      const processPlaces = (dayPlaces: any[]): any[] => {
+      // Process and geocode places for each day
+      const processPlaces = async (dayPlaces: any[], dayLocation: string): Promise<any[]> => {
         if (!dayPlaces || !Array.isArray(dayPlaces)) return [];
         
-        return dayPlaces.map((place, idx) => ({
-          id: `place_${Date.now()}_${idx}_${Math.random().toString(36).slice(2, 9)}`,
-          name: place.name,
-          type: place.type || 'attraction',
-          location: place.location || { lat: 0, lng: 0 },
-          address: place.address,
-          rating: place.rating,
-          placeId: place.placeId,
-        }));
+        const processedPlaces: any[] = [];
+        
+        for (let idx = 0; idx < dayPlaces.length; idx++) {
+          const place = dayPlaces[idx];
+          const placeId = `place_${Date.now()}_${idx}_${Math.random().toString(36).slice(2, 9)}`;
+          
+          // Try to geocode the place
+          const geocoded = await geocodePlaceByName(
+            place.name, 
+            country || dayLocation, 
+            place.type
+          );
+          
+          if (geocoded && geocoded.lat !== 0 && geocoded.lng !== 0) {
+            console.log(`[MapTools] Geocoded place ${place.name}:`, { lat: geocoded.lat, lng: geocoded.lng });
+            processedPlaces.push({
+              id: placeId,
+              name: place.name,
+              type: place.type || 'attraction',
+              location: { lat: geocoded.lat, lng: geocoded.lng },
+              address: geocoded.address || place.address,
+              rating: place.rating,
+              placeId: geocoded.placeId,
+            });
+          } else {
+            // Fallback: use the day's location coordinates as approximate location
+            const dayLocationData = geocodedLocations.find(l => l.name === dayLocation);
+            console.warn(`[MapTools] Could not geocode place ${place.name}, using day location fallback`);
+            processedPlaces.push({
+              id: placeId,
+              name: place.name,
+              type: place.type || 'attraction',
+              location: dayLocationData 
+                ? { lat: dayLocationData.lat, lng: dayLocationData.lng }
+                : { lat: 0, lng: 0 },
+              address: place.address,
+              rating: place.rating,
+              placeId: place.placeId,
+            });
+          }
+          
+          // Rate limiting - small delay between place geocodes
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        
+        return processedPlaces;
       };
+
+      // Build days with geocoded places
+      const processedDays = [];
+      for (let idx = 0; idx < days.length; idx++) {
+        const day = days[idx];
+        const locationData = geocodedLocations.find(l => l.name === day.location);
+        
+        const geocodedPlaces = await processPlaces(day.places || [], day.location);
+        
+        processedDays.push({
+          dayNumber: idx + 1,
+          date: new Date(Date.now() + idx * 86400000).toISOString().split('T')[0],
+          location: day.location,
+          title: day.title || `Day ${idx + 1}: ${day.location}`,
+          description: day.activities?.join('\n') || '',
+          coordinates: locationData ? { lat: locationData.lat, lng: locationData.lng } : { lat: 0, lng: 0 },
+          activities: {
+            morning: day.morning || '',
+            afternoon: day.afternoon || '',
+            evening: day.evening || ''
+          },
+          places: geocodedPlaces,
+          expanded: false
+        });
+      }
 
       // Build the structured itinerary
       const itinerary = {
@@ -244,32 +395,24 @@ export const createItineraryWithMapTool = tool(
           coordinates: { lat: loc.lat, lng: loc.lng },
           active: idx === 0
         })),
-        days: days.map((day, idx) => {
-          const locationData = geocodedLocations.find(l => l.name === day.location);
-          return {
-            dayNumber: idx + 1,
-            date: new Date(Date.now() + idx * 86400000).toISOString().split('T')[0],
-            location: day.location,
-            title: day.title || `Day ${idx + 1}: ${day.location}`,
-            description: day.activities?.join('\n') || '',
-            coordinates: locationData ? { lat: locationData.lat, lng: locationData.lng } : { lat: 0, lng: 0 },
-            activities: {
-              morning: day.morning || '',
-              afternoon: day.afternoon || '',
-              evening: day.evening || ''
-            },
-            places: processPlaces(day.places || []),
-            expanded: false
-          };
-        })
+        days: processedDays
       };
+
+      // Count geocoded places
+      const totalPlaces = processedDays.reduce((sum, day) => sum + day.places.length, 0);
+      const geocodedPlacesCount = processedDays.reduce((sum, day) => 
+        sum + day.places.filter((p: any) => p.location.lat !== 0 && p.location.lng !== 0).length, 0
+      );
+
+      console.log(`[MapTools] Created itinerary with ${totalPlaces} places, ${geocodedPlacesCount} geocoded`);
 
       return JSON.stringify({
         success: true,
-        message: `Created ${days.length}-day itinerary for ${title} with map coordinates`,
+        message: `Created ${days.length}-day itinerary for ${title} with map coordinates. Geocoded ${geocodedLocations.filter(l => l.lat !== 0).length}/${uniqueLocations.length} locations and ${geocodedPlacesCount}/${totalPlaces} places.`,
         itinerary
       });
     } catch (error: any) {
+      console.error('[MapTools] Error creating itinerary:', error);
       return JSON.stringify({
         success: false,
         error: error?.message || 'Failed to create itinerary'

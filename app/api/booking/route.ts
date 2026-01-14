@@ -8,6 +8,9 @@ import {
 const RAPIDAPI_KEY = process.env.RAPID_API_KEY;
 const RAPIDAPI_HOST = 'booking-com.p.rapidapi.com';
 
+// Log API key status at startup (without revealing the key)
+console.log('[Booking API] RAPID_API_KEY configured:', !!RAPIDAPI_KEY && RAPIDAPI_KEY !== 'YOUR_RAPIDAPI_KEY_HERE');
+
 export const dynamic = 'force-dynamic';
 
 export interface HotelSearchParams {
@@ -60,33 +63,40 @@ interface DestinationInfo {
  */
 async function getDestinationInfo(destination: string): Promise<DestinationInfo | null> {
   if (!RAPIDAPI_KEY || RAPIDAPI_KEY === 'YOUR_RAPIDAPI_KEY_HERE') {
-    console.warn('[Booking API] No API key configured, using mock data');
+    console.warn('[Booking API] No RapidAPI key configured, using mock data');
     return null;
   }
 
+  console.log('[Booking API] Looking up destination:', destination);
+
   try {
-    const response = await fetch(
-      `https://${RAPIDAPI_HOST}/v1/hotels/locations?name=${encodeURIComponent(destination)}&locale=en-gb`,
-      {
-        headers: {
-          'X-RapidAPI-Key': RAPIDAPI_KEY,
-          'X-RapidAPI-Host': RAPIDAPI_HOST,
-        },
-      }
-    );
+    const url = `https://${RAPIDAPI_HOST}/v1/hotels/locations?name=${encodeURIComponent(destination)}&locale=en-gb`;
+    console.log('[Booking API] Fetching locations from:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': RAPIDAPI_KEY,
+        'X-RapidAPI-Host': RAPIDAPI_HOST,
+      },
+    });
 
     if (!response.ok) {
-      console.error('[Booking API] Location search failed:', response.status, await response.text());
+      const errorText = await response.text();
+      console.error('[Booking API] Location search failed:', response.status, errorText);
       return null;
     }
 
     const data = await response.json();
-    console.log('[Booking API] Location search results:', JSON.stringify(data).slice(0, 500));
+    console.log('[Booking API] Location search results count:', Array.isArray(data) ? data.length : 'not an array');
     
     if (!Array.isArray(data) || data.length === 0) {
       console.warn('[Booking API] No locations found for:', destination);
       return null;
     }
+
+    // Log first result for debugging
+    console.log('[Booking API] First location result:', JSON.stringify(data[0]).slice(0, 300));
 
     // Find city or region destination with coordinates
     const cityDest = data.find((d: any) => 
@@ -95,27 +105,32 @@ async function getDestinationInfo(destination: string): Promise<DestinationInfo 
     );
     
     if (cityDest) {
-      return {
-        destId: cityDest.dest_id,
+      const info = {
+        destId: String(cityDest.dest_id),
         destType: cityDest.dest_type,
         latitude: parseFloat(cityDest.latitude),
         longitude: parseFloat(cityDest.longitude),
         name: cityDest.city_name || cityDest.name || destination,
       };
+      console.log('[Booking API] Found city destination:', info);
+      return info;
     }
 
     // Fallback to first result with coordinates
     const firstWithCoords = data.find((d: any) => d.latitude && d.longitude);
     if (firstWithCoords) {
-      return {
-        destId: firstWithCoords.dest_id,
+      const info = {
+        destId: String(firstWithCoords.dest_id),
         destType: firstWithCoords.dest_type || 'city',
         latitude: parseFloat(firstWithCoords.latitude),
         longitude: parseFloat(firstWithCoords.longitude),
         name: firstWithCoords.city_name || firstWithCoords.name || destination,
       };
+      console.log('[Booking API] Using first result with coords:', info);
+      return info;
     }
 
+    console.warn('[Booking API] No results with coordinates found');
     return null;
   } catch (error) {
     console.error('[Booking API] Location search error:', error);
@@ -131,8 +146,19 @@ async function searchHotelsByCoordinates(params: HotelSearchParams & {
   longitude: number 
 }): Promise<HotelResult[]> {
   if (!RAPIDAPI_KEY || RAPIDAPI_KEY === 'YOUR_RAPIDAPI_KEY_HERE') {
+    console.warn('[Booking API] No RapidAPI key, returning mock hotels');
     return getMockHotels(params);
   }
+
+  console.log('[Booking API] Searching hotels with params:', {
+    lat: params.latitude,
+    lng: params.longitude,
+    checkIn: params.checkInDate,
+    checkOut: params.checkOutDate,
+    adults: params.adults,
+    rooms: params.rooms,
+    currency: params.currency,
+  });
 
   try {
     // Build query parameters for search-by-coordinates endpoint
@@ -150,7 +176,7 @@ async function searchHotelsByCoordinates(params: HotelSearchParams & {
       page_number: '0',
     });
 
-    // Add currency filter
+    // Add currency filter - IMPORTANT: must be a valid currency
     if (params.currency) {
       queryParams.set('filter_by_currency', params.currency);
     }
@@ -163,16 +189,16 @@ async function searchHotelsByCoordinates(params: HotelSearchParams & {
       }
     }
 
-    // Add price filters
-    if (params.minPrice) {
+    // Add price filters (only if valid values)
+    if (params.minPrice && params.minPrice > 0) {
       queryParams.set('price_min', String(params.minPrice));
     }
-    if (params.maxPrice) {
+    if (params.maxPrice && params.maxPrice > 0) {
       queryParams.set('price_max', String(params.maxPrice));
     }
 
     const url = `https://${RAPIDAPI_HOST}/v1/hotels/search-by-coordinates?${queryParams.toString()}`;
-    console.log('[Booking API] Searching hotels at:', url.replace(RAPIDAPI_KEY, '***'));
+    console.log('[Booking API] Hotel search URL:', url.replace(RAPIDAPI_KEY || '', '***'));
 
     const response = await fetch(url, {
       method: 'GET',
@@ -181,6 +207,8 @@ async function searchHotelsByCoordinates(params: HotelSearchParams & {
         'X-RapidAPI-Host': RAPIDAPI_HOST,
       },
     });
+
+    console.log('[Booking API] Hotel search response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -191,15 +219,21 @@ async function searchHotelsByCoordinates(params: HotelSearchParams & {
     const data = await response.json();
     console.log('[Booking API] Search response keys:', Object.keys(data));
     
+    // Check for error in response
+    if (data.error) {
+      console.error('[Booking API] API returned error:', data.error);
+      return getMockHotels(params);
+    }
+    
     // Check for results in different response formats
     const results = data.result || data.results || data.hotels || [];
     
     if (!results || results.length === 0) {
-      console.warn('[Booking API] No hotels found for coordinates:', params.latitude, params.longitude);
+      console.warn('[Booking API] No hotels found. Response data:', JSON.stringify(data).slice(0, 500));
       return getMockHotels(params);
     }
 
-    console.log('[Booking API] Found', results.length, 'hotels');
+    console.log('[Booking API] Found', results.length, 'hotels. First hotel:', JSON.stringify(results[0]).slice(0, 300));
 
     // Transform results to our format
     return results.slice(0, 15).map((hotel: any) => {
@@ -207,6 +241,7 @@ async function searchHotelsByCoordinates(params: HotelSearchParams & {
       const totalPrice = hotel.min_total_price || 
                          hotel.composite_price_breakdown?.gross_amount?.value || 
                          hotel.price_breakdown?.gross_price?.value ||
+                         hotel.price ||
                          0;
       const pricePerNight = totalPrice > 0 ? Math.round(totalPrice / nights) : 0;
 
