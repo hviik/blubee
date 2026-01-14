@@ -11,6 +11,8 @@ const RAPIDAPI_HOST = 'booking-com.p.rapidapi.com';
 // Log API key status at startup (without revealing the key)
 console.log('[Booking API] RAPID_API_KEY configured:', !!RAPIDAPI_KEY && RAPIDAPI_KEY !== 'YOUR_RAPIDAPI_KEY_HERE');
 
+// Force Node.js runtime so RapidAPI fetch works on production (edge can block outbound)
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export interface HotelSearchParams {
@@ -75,6 +77,7 @@ async function getDestinationInfo(destination: string): Promise<DestinationInfo 
     
     const response = await fetch(url, {
       method: 'GET',
+      cache: 'no-store',
       headers: {
         'X-RapidAPI-Key': RAPIDAPI_KEY,
         'X-RapidAPI-Host': RAPIDAPI_HOST,
@@ -202,6 +205,7 @@ async function searchHotelsByCoordinates(params: HotelSearchParams & {
 
     const response = await fetch(url, {
       method: 'GET',
+      cache: 'no-store',
       headers: {
         'X-RapidAPI-Key': RAPIDAPI_KEY,
         'X-RapidAPI-Host': RAPIDAPI_HOST,
@@ -413,6 +417,16 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const dateContext = getCurrentDateContext();
     
+    if (!RAPIDAPI_KEY || RAPIDAPI_KEY === 'YOUR_RAPIDAPI_KEY_HERE') {
+      return NextResponse.json(
+        { 
+          error: 'RAPID_API_KEY is not configured on the server. Please set it in the environment.',
+          currentDate: dateContext.currentDate,
+        },
+        { status: 500 }
+      );
+    }
+    
     const destination = searchParams.get('destination');
     const checkInDate = searchParams.get('checkInDate');
     const checkOutDate = searchParams.get('checkOutDate');
@@ -506,6 +520,16 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const dateContext = getCurrentDateContext();
+    
+    if (!RAPIDAPI_KEY || RAPIDAPI_KEY === 'YOUR_RAPIDAPI_KEY_HERE') {
+      return NextResponse.json(
+        { 
+          error: 'RAPID_API_KEY is not configured on the server. Please set it in the environment.',
+          currentDate: dateContext.currentDate,
+        },
+        { status: 500 }
+      );
+    }
     
     const { 
       destination, 
