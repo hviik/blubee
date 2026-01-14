@@ -1,0 +1,11 @@
+# Blubeez Security Policy
+# https://www.blubeez.ai/.well-known/security.txt
+
+Contact: mailto:security@blubeez.ai
+Contact: https://www.blubeez.ai/security
+Expires: 2027-01-14T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://www.blubeez.ai/.well-known/security.txt
+Policy: https://www.blubeez.ai/security-policy
+
+# Thank you for helping keep Blubeez and our users safe!

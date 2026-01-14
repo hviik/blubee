@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Booking.com API via RapidAPI
-// PUT YOUR RAPIDAPI KEY HERE:
-const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY || 'YOUR_RAPIDAPI_KEY_HERE';
+const RAPIDAPI_KEY = process.env.RAPID_API_KEY;
 const RAPIDAPI_HOST = 'booking-com.p.rapidapi.com';
 
 export const dynamic = 'force-dynamic';
 
 export interface HotelSearchParams {
   destination: string;
-  checkInDate: string;  // YYYY-MM-DD
-  checkOutDate: string; // YYYY-MM-DD
+  checkInDate: string;  
+  checkOutDate: string;
   adults?: number;
   rooms?: number;
   currency?: string;
@@ -40,7 +38,6 @@ export interface HotelResult {
   lng?: number;
 }
 
-// Get destination ID from Booking.com
 async function getDestinationId(destination: string): Promise<string | null> {
   if (!RAPIDAPI_KEY || RAPIDAPI_KEY === 'YOUR_RAPIDAPI_KEY_HERE') {
     console.warn('[Booking API] No API key configured, using mock data');
@@ -70,8 +67,7 @@ async function getDestinationId(destination: string): Promise<string | null> {
     if (cityDest) {
       return cityDest.dest_id;
     }
-    
-    // Fall back to first result
+
     if (data.length > 0) {
       return data[0].dest_id;
     }

@@ -1,0 +1,66 @@
+# Blubeez - AI Travel Assistant
+
+> Blubeez is an AI-powered travel planning assistant that helps users create personalized trip itineraries, discover destinations, and book accommodations through natural conversation.
+
+## About Blubeez
+
+Blubeez (https://www.blubeez.ai) is a modern travel planning platform that uses artificial intelligence to help travelers plan their perfect vacation. Users can chat with "blu", our friendly AI travel agent, to:
+
+- Create custom day-by-day travel itineraries
+- Discover destinations based on preferences
+- Search and book hotels via Booking.com integration
+- Save trips and manage wishlists
+- Get personalized recommendations based on travel style, budget, and interests
+
+## Key Features
+
+### AI Travel Chat
+Natural conversation interface to plan trips. Simply tell blu where you want to go, when, and your preferences - and get a complete itinerary with hotels, activities, and restaurants.
+
+### Interactive Maps
+Visualize your entire trip on an interactive map showing hotels, restaurants, attractions, and activities for each day.
+
+### Hotel Booking
+Search hotels from Booking.com with filters for price, rating, and amenities. View options, compare prices, and book directly.
+
+### Trip Management
+Save your planned trips, create wishlists of destinations, and access your travel history anytime.
+
+### Destination Explorer
+Browse destinations by country with curated routes and must-visit places.
+
+## Supported Destinations
+
+Blubeez supports travel planning to destinations worldwide, with special focus on:
+- Southeast Asia: Vietnam, Thailand, Malaysia, Philippines, Indonesia, Laos, Cambodia
+- South Asia: India, Sri Lanka, Maldives, Nepal
+- South America: Peru, Brazil, Argentina, Colombia, Chile
+- Europe: All major destinations
+- And many more...
+
+## How to Use
+
+1. Visit https://www.blubeez.ai
+2. Start chatting with blu by typing your travel request
+3. Answer a few questions about your preferences
+4. Receive a personalized itinerary
+5. Browse hotel options and book your stay
+6. Save your trip for future reference
+
+## Contact
+
+Website: https://www.blubeez.ai
+Twitter: @blubeez
+
+## Technical Details
+
+- Built with Next.js and React
+- AI powered by GPT-4
+- Hotel data from Booking.com API
+- Maps powered by Google Maps
+- Authentication via Clerk
+- Database on Supabase
+
+---
+
+For API access or partnership inquiries, please contact us through the website.

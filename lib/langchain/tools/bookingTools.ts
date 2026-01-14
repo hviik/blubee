@@ -1,7 +1,6 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 
-// API base URL - works for both server and client
 const getApiBaseUrl = () => {
   if (typeof window !== 'undefined') {
     return window.location.origin;
@@ -157,5 +156,128 @@ export const getHotelDetailsTool = tool(
   }
 );
 
-export const bookingTools = [searchHotelsTool, getHotelDetailsTool];
+export const saveHotelBookingTool = tool(
+  async ({ hotelId, hotelName, destination, checkInDate, checkOutDate, pricePerNight, currency, tripId }) => {
+    try {
+      const baseUrl = getApiBaseUrl();
+      const response = await fetch(`${baseUrl}/api/booking/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          hotelId,
+          hotelName,
+          destination,
+          checkInDate,
+          checkOutDate,
+          pricePerNight,
+          currency: currency || 'USD',
+          tripId,
+        }),
+      });
 
+      if (!response.ok) {
+        const error = await response.json();
+        return JSON.stringify({
+          success: false,
+          error: error.error || 'Failed to save booking'
+        });
+      }
+
+      const data = await response.json();
+      
+      return JSON.stringify({
+        success: true,
+        message: `Hotel booking for ${hotelName} has been saved to your account.`,
+        booking: data.booking
+      });
+    } catch (error: any) {
+      return JSON.stringify({
+        success: false,
+        error: error?.message || 'Failed to save hotel booking'
+      });
+    }
+  },
+  {
+    name: "save_hotel_booking",
+    description: `Save a hotel booking reference to the user's account. Use this when:
+- User confirms they want to save a hotel for their trip
+- User asks to remember or track a hotel they're interested in
+- After user indicates they're booking a specific hotel
+
+This stores the booking reference in the database so users can track their bookings.`,
+    schema: z.object({
+      hotelId: z.string().describe("The hotel ID"),
+      hotelName: z.string().describe("Name of the hotel"),
+      destination: z.string().optional().describe("The destination city/area"),
+      checkInDate: z.string().optional().describe("Check-in date in YYYY-MM-DD format"),
+      checkOutDate: z.string().optional().describe("Check-out date in YYYY-MM-DD format"),
+      pricePerNight: z.number().optional().describe("Price per night"),
+      currency: z.string().optional().describe("Currency code (default: USD)"),
+      tripId: z.string().optional().describe("Optional trip ID to associate the booking with")
+    })
+  }
+);
+
+export const getUserBookingsTool = tool(
+  async ({ limit, offset }) => {
+    try {
+      const baseUrl = getApiBaseUrl();
+      const params = new URLSearchParams();
+      if (limit) params.set('limit', String(limit));
+      if (offset) params.set('offset', String(offset));
+      
+      const response = await fetch(`${baseUrl}/api/booking/save?${params.toString()}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        return JSON.stringify({
+          success: false,
+          error: error.error || 'Failed to fetch bookings'
+        });
+      }
+
+      const data = await response.json();
+      
+      if (!data.bookings || data.bookings.length === 0) {
+        return JSON.stringify({
+          success: true,
+          message: "You haven't saved any hotel bookings yet.",
+          bookings: []
+        });
+      }
+
+      return JSON.stringify({
+        success: true,
+        message: `Found ${data.bookings.length} saved hotel bookings.`,
+        bookings: data.bookings,
+        total: data.total
+      });
+    } catch (error: any) {
+      return JSON.stringify({
+        success: false,
+        error: error?.message || 'Failed to fetch hotel bookings'
+      });
+    }
+  },
+  {
+    name: "get_user_hotel_bookings",
+    description: `Get the user's saved hotel booking history. Use this when:
+- User asks about their past hotel bookings
+- User wants to see hotels they've saved or clicked on
+- User asks "what hotels have I looked at" or similar`,
+    schema: z.object({
+      limit: z.number().optional().describe("Maximum number of bookings to return (default: 20)"),
+      offset: z.number().optional().describe("Offset for pagination (default: 0)")
+    })
+  }
+);
+
+export const bookingTools = [
+  searchHotelsTool, 
+  getHotelDetailsTool, 
+  saveHotelBookingTool, 
+  getUserBookingsTool
+];

@@ -1,0 +1,127 @@
+openapi: 3.0.0
+info:
+  title: Blubeez Travel Assistant API
+  description: |
+    Blubeez is an AI-powered travel planning assistant that helps users create 
+    personalized trip itineraries, discover destinations, and book accommodations.
+    
+    The service provides:
+    - AI chat interface for natural language trip planning
+    - Hotel search via Booking.com integration
+    - Interactive travel maps
+    - Trip saving and wishlist management
+    - Destination discovery
+  version: "1.0.0"
+  contact:
+    name: Blubeez Support
+    url: https://www.blubeez.ai
+    email: hello@blubeez.ai
+  license:
+    name: Proprietary
+servers:
+  - url: https://www.blubeez.ai
+    description: Production server
+paths:
+  /:
+    get:
+      summary: Home page - AI Travel Assistant
+      description: The main interface for interacting with the Blubeez AI travel assistant
+      operationId: getHomePage
+      responses:
+        '200':
+          description: HTML page with AI travel chat interface
+          content:
+            text/html:
+              schema:
+                type: string
+      tags:
+        - Pages
+  /api/agent:
+    post:
+      summary: Chat with AI Travel Agent
+      description: Send messages to the AI travel assistant to plan trips
+      operationId: chatWithAgent
+      security:
+        - clerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        enum: [user, assistant]
+                      content:
+                        type: string
+      responses:
+        '200':
+          description: Streaming response from AI agent
+          content:
+            text/event-stream:
+              schema:
+                type: string
+      tags:
+        - Chat
+  /api/booking:
+    post:
+      summary: Search hotels
+      description: Search for hotels at a destination using Booking.com
+      operationId: searchHotels
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                destination:
+                  type: string
+                  description: City or destination name
+                checkInDate:
+                  type: string
+                  format: date
+                checkOutDate:
+                  type: string
+                  format: date
+                adults:
+                  type: integer
+                  default: 2
+                rooms:
+                  type: integer
+                  default: 1
+      responses:
+        '200':
+          description: List of available hotels
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  hotels:
+                    type: array
+                    items:
+                      type: object
+      tags:
+        - Hotels
+components:
+  securitySchemes:
+    clerkAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+tags:
+  - name: Pages
+    description: Web pages
+  - name: Chat
+    description: AI chat endpoints
+  - name: Hotels
+    description: Hotel search and booking

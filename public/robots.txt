@@ -1,9 +1,95 @@
-# *
+# Blubeez AI Travel Assistant - robots.txt
+# https://www.blubeez.ai
+
+# Allow all standard crawlers
 User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /creator/
+
+# Google
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Googlebot-News
+Allow: /
+
+# Bing
+User-agent: Bingbot
+Allow: /
+
+User-agent: BingPreview
+Allow: /
+
+# OpenAI / ChatGPT
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+# Anthropic / Claude
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+
+# You.com
+User-agent: YouBot
+Allow: /
+
+# Cohere
+User-agent: cohere-ai
+Allow: /
+
+# Meta / Facebook
+User-agent: FacebookBot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+# Twitter
+User-agent: Twitterbot
+Allow: /
+
+# LinkedIn
+User-agent: LinkedInBot
+Allow: /
+
+# Apple
+User-agent: Applebot
+Allow: /
+
+# DuckDuckGo
+User-agent: DuckDuckBot
+Allow: /
+
+# Yandex
+User-agent: YandexBot
+Allow: /
+
+# Baidu
+User-agent: Baiduspider
+Allow: /
+
+# Common Crawl (used by many AI models)
+User-agent: CCBot
 Allow: /
 
 # Host
-Host: https://blubeez.ai
+Host: https://www.blubeez.ai
 
 # Sitemaps
-Sitemap: https://blubeez.ai/sitemap.xml
+Sitemap: https://www.blubeez.ai/sitemap.xml
+
+# LLMs.txt for AI context
+# See: https://www.blubeez.ai/llms.txt

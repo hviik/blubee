@@ -2,7 +2,7 @@ export { tripTools, saveTripTool, getUserTripsTool, updateTripTool, deleteTripTo
 export { wishlistTools, addToWishlistTool, getWishlistTool, removeFromWishlistTool } from './wishlistTools';
 export { searchTools, searchDestinationsTool, getDestinationInfoTool, convertCurrencyTool } from './searchTools';
 export { mapTools, geocodeLocationsTool, searchNearbyPlacesTool, createItineraryWithMapTool } from './mapTools';
-export { bookingTools, searchHotelsTool, getHotelDetailsTool } from './bookingTools';
+export { bookingTools, searchHotelsTool, getHotelDetailsTool, saveHotelBookingTool, getUserBookingsTool } from './bookingTools';
 
 import { tripTools } from './tripTools';
 import { wishlistTools } from './wishlistTools';

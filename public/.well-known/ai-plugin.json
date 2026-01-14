@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Blubeez Travel Assistant",
+  "name_for_model": "blubeez",
+  "description_for_human": "AI-powered travel planning assistant that creates personalized itineraries, finds hotels, and helps plan trips worldwide.",
+  "description_for_model": "Blubeez is an AI travel planning service. Users can chat with the AI assistant 'blu' to plan trips, create day-by-day itineraries, search for hotels on Booking.com, discover destinations, and get personalized travel recommendations. The service supports trip planning to 190+ countries with features including interactive maps, hotel booking integration, trip saving, and wishlists. The AI understands natural language requests like 'Plan me a 5-day trip to Bali' and responds with complete travel plans.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://www.blubeez.ai/openapi.yaml"
+  },
+  "logo_url": "https://www.blubeez.ai/assets/logo.svg",
+  "contact_email": "hello@blubeez.ai",
+  "legal_info_url": "https://www.blubeez.ai/legal"
+}
