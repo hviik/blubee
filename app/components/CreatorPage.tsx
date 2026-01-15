@@ -927,7 +927,7 @@ export default function CreatorPage() {
                 color: COLORS.textSecondary 
               }}
             >
-              © 2024 Blubeez. All rights reserved.
+              © 2026 Blubeez. All rights reserved.
             </p>
           </div>
         </div>

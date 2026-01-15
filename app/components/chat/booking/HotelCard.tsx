@@ -81,13 +81,14 @@ export function HotelCard({ hotel, onBook, compact = false }: HotelCardProps) {
         className="group flex flex-col bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] overflow-hidden w-[220px] md:w-[250px] flex-shrink-0 hover:shadow-lg transition-all duration-200 cursor-pointer border border-gray-100 hover:border-[#2c3d5d]/20"
       >
         {/* Hotel Image */}
-        <div className="relative h-[110px] md:h-[120px] w-full overflow-hidden">
+        <div className="relative h-[110px] md:h-[120px] w-full overflow-hidden rounded-t-xl">
           {hotel.photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={hotel.photoUrl}
               alt={hotel.name}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-[#d9e3f0] to-[#a7b8c7] flex items-center justify-center">
@@ -154,13 +155,14 @@ export function HotelCard({ hotel, onBook, compact = false }: HotelCardProps) {
       className="group flex flex-col bg-white rounded-lg shadow-[0_0_16px_rgba(0,0,0,0.1),0_4px_4px_rgba(0,0,0,0.1)] overflow-hidden w-[250px] flex-shrink-0 hover:shadow-lg transition-shadow duration-200"
     >
       {/* Hotel Image */}
-      <div className="relative h-[120px] w-full overflow-hidden">
+      <div className="relative h-[120px] w-full overflow-hidden rounded-t-lg">
         {hotel.photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={hotel.photoUrl}
             alt={hotel.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-[#d9e3f0] to-[#a7b8c7] flex items-center justify-center">

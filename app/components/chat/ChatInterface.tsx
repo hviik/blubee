@@ -52,6 +52,7 @@ export default function ChatInterface({
   const prevMessageCount = useRef(0);
   const hasStartedStreamingRef = useRef(false);
   const pendingHotelDataRef = useRef<Message['hotelData'] | null>(null);
+  const wasLoadingRef = useRef(false);
 
   useEffect(() => {
     detectUserCurrency().then((currency) => {
@@ -84,6 +85,13 @@ export default function ChatInterface({
     }
     prevMessageCount.current = messages.length;
   }, [messages, scrollToBottom]);
+
+  useEffect(() => {
+    if (wasLoadingRef.current && !isLoading) {
+      inputRef.current?.focus();
+    }
+    wasLoadingRef.current = isLoading;
+  }, [isLoading]);
 
   const sendMessageToAPI = useCallback(
     async (messageText: string, currentMessages: Message[]) => {

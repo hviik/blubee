@@ -61,13 +61,14 @@ function HotelPanelCard({
   return (
     <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] overflow-hidden border border-gray-100">
       {/* Image Section */}
-      <div className="relative h-[180px] w-full">
+      <div className="relative h-[180px] w-full overflow-hidden rounded-2xl">
         {hotel.photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={hotel.photoUrl}
             alt={hotel.name}
             className="w-full h-full object-cover"
+            loading="lazy"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-[#d9e8f5] to-[#a7c4d7] flex items-center justify-center">
