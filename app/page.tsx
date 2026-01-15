@@ -16,8 +16,9 @@ import ExplorePage from './components/ExplorePage';
 import WishlistPage from './components/WishlistPage';
 import MyTripsPage from './components/MyTripsPage';
 import UpdatesPage from './components/UpdatesPage';
+import CreatorPage from './components/CreatorPage';
 
-type ActiveView = 'home' | 'chat' | 'explore' | 'wishlist' | 'updates' | 'mytrips';
+type ActiveView = 'home' | 'chat' | 'explore' | 'creator' | 'wishlist' | 'updates' | 'mytrips';
 
 export default function BlubeezHome() {
   const { isSignedIn } = useUser();
@@ -144,6 +145,10 @@ export default function BlubeezHome() {
     setActiveView('explore');
   }, []);
 
+  const handleCreatorClick = useCallback(() => {
+    setActiveView('creator');
+  }, []);
+
   const handleWishlistClick = useCallback(() => {
     if (!isSignedIn) {
       setIsAuthModalOpen(true);
@@ -207,6 +212,21 @@ export default function BlubeezHome() {
             }}
           >
             <ExplorePage compact={!isDesktop} onDestinationClick={handleDestinationClick} />
+          </div>
+        );
+      
+      case 'creator':
+        return (
+          <div 
+            className="fixed inset-x-0 z-10 transition-all duration-300 ease-in-out"
+            style={{
+              top: '0px',
+              height: 'calc(var(--vh, 1vh) * 100)',
+              paddingLeft: isDesktop ? `${sidebarWidth}px` : '0px',
+              maxHeight: '100vh',
+            }}
+          >
+            <CreatorPage sidebarOffset={isDesktop ? sidebarWidth : 0} />
           </div>
         );
       
@@ -313,14 +333,17 @@ export default function BlubeezHome() {
         onMobileOpenChange={setIsMobileSidebarOpen}
         isChatMode={isInContentView}
         onExploreClick={handleExploreClick}
+        onCreatorClick={handleCreatorClick}
         onWishlistClick={handleWishlistClick}
         onUpdatesClick={handleUpdatesClick}
         onMyTripsClick={handleMyTripsClick}
       />
-      <Header 
-        sidebarExpanded={isSidebarExpanded}
-        isChatMode={isInContentView}
-      />
+      {activeView !== 'creator' && (
+        <Header 
+          sidebarExpanded={isSidebarExpanded}
+          isChatMode={isInContentView}
+        />
+      )}
 
       {renderContent()}
 

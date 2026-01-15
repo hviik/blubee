@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import { SignUpButton } from '@clerk/nextjs';
 import { COLORS } from '../constants/colors';
 
 // Animated counter component
@@ -142,7 +143,7 @@ function DashboardCard({
   );
 }
 
-export default function CreatorPage() {
+export default function CreatorPage({ sidebarOffset = 0 }: { sidebarOffset?: number }) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -150,7 +151,10 @@ export default function CreatorPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f0f7ff] via-white to-[#f0f7ff] overflow-x-hidden">
+    <div
+      className="min-h-screen bg-gradient-to-b from-[#f0f7ff] via-white to-[#f0f7ff] overflow-x-hidden"
+      style={{ paddingLeft: sidebarOffset || 0 }}
+    >
       {/* Custom CSS for animations */}
       <style jsx global>{`
         @keyframes float {
@@ -184,7 +188,13 @@ export default function CreatorPage() {
       `}</style>
 
       {/* Header */}
-      <header className="w-full px-4 md:px-8 lg:px-16 py-4 md:py-6 flex justify-between items-center fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+      <header
+        className="w-full px-4 md:px-8 lg:px-16 py-4 md:py-6 flex justify-between items-center fixed top-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100"
+        style={{
+          left: sidebarOffset || 0,
+          width: sidebarOffset ? `calc(100% - ${sidebarOffset}px)` : '100%',
+        }}
+      >
         <div className="flex items-center gap-2">
           <Image
             src="/assets/logo-icon.svg"
@@ -235,15 +245,17 @@ export default function CreatorPage() {
             Rewards
           </a>
         </nav>
-        <button 
-          className="px-4 md:px-6 py-2 rounded-full text-sm font-medium text-white hover:opacity-90 transition-opacity"
-          style={{ 
-            backgroundColor: COLORS.blubeezNavy,
-            fontFamily: 'var(--font-bricolage-grotesque)'
-          }}
-        >
-          Join Waitlist
-        </button>
+        <SignUpButton mode="modal">
+          <button 
+            className="px-4 md:px-6 py-2 rounded-full text-sm font-medium text-white hover:opacity-90 transition-opacity"
+            style={{ 
+              backgroundColor: COLORS.blubeezNavy,
+              fontFamily: 'var(--font-bricolage-grotesque)'
+            }}
+          >
+            Join Now
+          </button>
+        </SignUpButton>
       </header>
 
       {/* Hero Section */}

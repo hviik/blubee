@@ -11,6 +11,7 @@ interface SidebarProps {
   onMobileOpenChange?: (open: boolean) => void;
   isChatMode?: boolean;
   onExploreClick?: () => void;
+  onCreatorClick?: () => void;
   onWishlistClick?: () => void;
   onUpdatesClick?: () => void;
   onMyTripsClick?: () => void;
@@ -21,6 +22,7 @@ export default function Sidebar({
   onMobileOpenChange, 
   isChatMode = false, 
   onExploreClick,
+  onCreatorClick,
   onWishlistClick,
   onUpdatesClick,
   onMyTripsClick
@@ -104,6 +106,7 @@ export default function Sidebar({
           <NavItems 
             isExpanded={isExpanded} 
             onExploreClick={onExploreClick}
+            onCreatorClick={onCreatorClick}
             onWishlistClick={onWishlistClick}
             onUpdatesClick={onUpdatesClick}
             onMyTripsClick={onMyTripsClick}
@@ -157,6 +160,10 @@ export default function Sidebar({
                   closeMobile();
                   onExploreClick?.();
                 }} 
+                onCreatorClick={() => {
+                  closeMobile();
+                  onCreatorClick?.();
+                }}
                 onWishlistClick={() => {
                   closeMobile();
                   onWishlistClick?.();
@@ -194,6 +201,7 @@ export default function Sidebar({
 interface NavItemsProps {
   isExpanded?: boolean;
   onExploreClick?: () => void;
+  onCreatorClick?: () => void;
   onWishlistClick?: () => void;
   onUpdatesClick?: () => void;
   onMyTripsClick?: () => void;
@@ -204,6 +212,7 @@ interface NavItemsProps {
 function NavItems({ 
   isExpanded, 
   onExploreClick, 
+  onCreatorClick,
   onWishlistClick,
   onUpdatesClick,
   onMyTripsClick,
@@ -223,6 +232,21 @@ function NavItems({
             style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.textQuaternary }}
           >
             Explore
+          </span>
+        )}
+      </button>
+
+      <button 
+        onClick={onCreatorClick}
+        className="flex items-center gap-3 hover:opacity-70 transition-opacity"
+      >
+        <Image src="/assets/person.svg" alt="Creators" width={24} height={24} />
+        {isExpanded && (
+          <span
+            className="text-[0.875rem] sm:text-[0.938rem] md:text-[1rem] font-normal whitespace-nowrap"
+            style={{ fontFamily: 'var(--font-bricolage-grotesque)', color: COLORS.textQuaternary }}
+          >
+            Creators
           </span>
         )}
       </button>
