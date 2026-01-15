@@ -248,6 +248,12 @@ async function searchHotelsByCoordinates(params: HotelSearchParams & {
                          hotel.price ||
                          0;
       const pricePerNight = totalPrice > 0 ? Math.round(totalPrice / nights) : 0;
+      const amenitiesRaw = hotel.hotel_facilities || hotel.facilities || [];
+      const amenities = Array.isArray(amenitiesRaw)
+        ? amenitiesRaw
+        : typeof amenitiesRaw === 'string'
+          ? amenitiesRaw.split(',').map((item: string) => item.trim()).filter(Boolean)
+          : [];
 
       return {
         id: String(hotel.hotel_id || hotel.id),
@@ -266,7 +272,7 @@ async function searchHotelsByCoordinates(params: HotelSearchParams & {
         currency: hotel.currencycode || hotel.currency_code || params.currency || 'USD',
         pricePerNight,
         bookingUrl: hotel.url || `https://www.booking.com/hotel/${hotel.hotel_id || hotel.id}.html`,
-        amenities: (hotel.hotel_facilities || hotel.facilities || []).slice(0, 5),
+        amenities: amenities.slice(0, 5),
         distanceFromCenter: hotel.distance_to_cc 
           ? `${hotel.distance_to_cc} km from center` 
           : hotel.distance 

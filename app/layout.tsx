@@ -370,7 +370,7 @@ export default function RootLayout({
             `}
           </Script>
           
-          <main id="main-content">
+          <main id="main-content" role="main" aria-label="Main content">
             {children}
           </main>
         </body>

@@ -11,7 +11,26 @@ const getApiBaseUrl = () => {
   if (typeof window !== 'undefined') {
     return window.location.origin;
   }
-  return process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+  // Server-side: prefer explicit base URL
+  if (process.env.NEXT_PUBLIC_BASE_URL) {
+    return process.env.NEXT_PUBLIC_BASE_URL;
+  }
+
+  // Vercel production (VERCEL_URL is hostname without protocol)
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  if (process.env.NEXT_PUBLIC_VERCEL_URL) {
+    return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
+  }
+
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL;
+  }
+
+  return 'http://localhost:3000';
 };
 
 export interface HotelResult {
