@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Resolve currency context (handles geo-detection and overrides)
-    const context = await resolveCurrencyContext(userOverride);
+    const context = resolveCurrencyContext(request.headers, userOverride);
 
     return NextResponse.json(context, {
       headers: {
@@ -247,7 +247,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Resolve new context based on geo
-    const context = await resolveCurrencyContext(null);
+    const context = resolveCurrencyContext(request.headers, null);
 
     return NextResponse.json({
       success: true,

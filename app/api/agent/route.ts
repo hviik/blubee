@@ -1,5 +1,4 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
-import { headers } from 'next/headers';
 import { streamAgent, ConversationMessage } from '@/lib/langchain/agent';
 import { ensureUserProfile } from '@/lib/ensureUserProfile';
 import { supabaseAdmin } from '@/lib/supabaseServer';
@@ -34,7 +33,7 @@ export const maxDuration = 60;
  */
 export async function POST(req: Request) {
   try {
-    const headersList = await headers();
+    const headersList = req.headers;
     const requestBody = await req.json();
 
     // Extract and validate messages

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { headers } from 'next/headers';
 import { 
   validateDateRange, 
   formatToISO, 
@@ -456,7 +455,7 @@ function getMockHotels(params: HotelSearchParams): HotelResult[] {
 
 export async function GET(request: NextRequest) {
   try {
-    const headersList = await headers();
+    const headersList = request.headers;
     const searchParams = request.nextUrl.searchParams;
     const dateContext = getCurrentDateContext();
     
@@ -572,7 +571,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const headersList = await headers();
+    const headersList = request.headers;
     const body = await request.json();
     const dateContext = getCurrentDateContext();
     

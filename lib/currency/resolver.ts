@@ -7,9 +7,11 @@
  * 3. Default fallback (USD/US)
  * 
  * All resolution happens on the server - never trust client-side locale.
+ * 
+ * NOTE: This module does NOT import next/headers. Instead, headers must be
+ * passed as parameters from the calling code (API routes, middleware, etc.)
  */
 
-import { headers } from 'next/headers';
 import {
   CurrencyContext,
   CurrencySource,
@@ -167,21 +169,21 @@ export function buildCurrencyContext(
 }
 
 /**
- * Resolve currency context from incoming request
+ * Resolve currency context from incoming request headers
  * 
  * Resolution order:
  * 1. User override (from header or stored preference)
  * 2. Geo-detected country → currency mapping
  * 3. Default fallback (USD/US)
  * 
+ * @param headersList Request headers (from request.headers or headers())
  * @param userOverride Optional user-stored currency preference
  * @returns Resolved currency context
  */
-export async function resolveCurrencyContext(
+export function resolveCurrencyContext(
+  headersList: Headers,
   userOverride?: { currency?: string; country?: string } | null
-): Promise<CurrencyContext> {
-  const headersList = await headers();
-  
+): CurrencyContext {
   // 1. Check for user override (highest priority)
   if (userOverride?.currency) {
     const currency = toISO4217(userOverride.currency);
