@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { headers } from 'next/headers';
 import { 
   validateDateRange, 
   formatToISO, 
   getCurrentDateContext 
 } from '@/lib/utils/dateResolver';
+import {
+  ISO4217CurrencyCode,
+  DEFAULT_CURRENCY,
+  DEFAULT_COUNTRY,
+  isISO4217,
+  toISO4217,
+  resolveCurrencyContextSync,
+} from '@/lib/currency';
 
 const RAPIDAPI_KEY = process.env.RAPID_API_KEY;
 const RAPIDAPI_HOST = 'booking-com.p.rapidapi.com';
@@ -24,6 +33,7 @@ export interface HotelSearchParams {
   childrenAges?: number[];
   rooms?: number;
   currency?: string;
+  country?: string;
   minPrice?: number;
   maxPrice?: number;
   sortBy?: 'popularity' | 'price' | 'review_score' | 'distance';
@@ -58,6 +68,28 @@ interface DestinationInfo {
   latitude: number;
   longitude: number;
   name: string;
+}
+
+/**
+ * Validate and normalize currency code
+ * Returns ISO-4217 currency code or default
+ */
+function validateCurrency(currency: string | undefined | null, headersList: Headers): {
+  currency: ISO4217CurrencyCode;
+  wasInjected: boolean;
+} {
+  if (currency) {
+    const normalized = toISO4217(currency);
+    if (normalized) {
+      return { currency: normalized, wasInjected: false };
+    }
+    console.warn(`[Booking API] Invalid currency code: ${currency}, using geo-detection`);
+  }
+  
+  // Auto-inject from geo-detection
+  const context = resolveCurrencyContextSync(headersList);
+  console.warn(`[Booking API] Currency auto-injected: ${context.currency} (source: ${context.source})`);
+  return { currency: context.currency, wasInjected: true };
 }
 
 /**
@@ -179,9 +211,9 @@ async function searchHotelsByCoordinates(params: HotelSearchParams & {
       page_number: '0',
     });
 
-    // Add currency filter - IMPORTANT: must be a valid currency
+    // Add currency filter - IMPORTANT: must be a valid ISO-4217 currency
     if (params.currency) {
-      queryParams.set('filter_by_currency', params.currency);
+      queryParams.set('filter_by_currency', params.currency.toUpperCase());
     }
 
     // Add children if specified
@@ -239,7 +271,9 @@ async function searchHotelsByCoordinates(params: HotelSearchParams & {
 
     console.log('[Booking API] Found', results.length, 'hotels. First hotel:', JSON.stringify(results[0]).slice(0, 300));
 
-    // Transform results to our format
+    // Transform results to our format - enforce single currency
+    const normalizedCurrency = params.currency?.toUpperCase() || DEFAULT_CURRENCY;
+    
     return results.slice(0, 15).map((hotel: any) => {
       const nights = getNights(params.checkInDate, params.checkOutDate);
       const totalPrice = hotel.min_total_price || 
@@ -269,7 +303,8 @@ async function searchHotelsByCoordinates(params: HotelSearchParams & {
         reviewScoreWord: hotel.review_score_word || getReviewWord(hotel.review_score),
         reviewCount: hotel.review_nr || hotel.review_count || 0,
         price: totalPrice,
-        currency: hotel.currencycode || hotel.currency_code || params.currency || 'USD',
+        // Single-currency invariant: always use the requested currency
+        currency: normalizedCurrency,
         pricePerNight,
         bookingUrl: hotel.url || `https://www.booking.com/hotel/${hotel.hotel_id || hotel.id}.html`,
         amenities: amenities.slice(0, 5),
@@ -310,6 +345,7 @@ function getMockHotels(params: HotelSearchParams): HotelResult[] {
   const destination = params.destination || 'Unknown';
   const nights = getNights(params.checkInDate, params.checkOutDate);
   const basePrice = params.maxPrice ? Math.min(params.maxPrice * 0.6, 150) : 150;
+  const currency = params.currency?.toUpperCase() || DEFAULT_CURRENCY;
   
   const mockHotels: HotelResult[] = [
     {
@@ -324,7 +360,7 @@ function getMockHotels(params: HotelSearchParams): HotelResult[] {
       reviewScoreWord: 'Excellent',
       reviewCount: 2847,
       price: Math.round(basePrice * 1.2 * nights),
-      currency: params.currency || 'USD',
+      currency,
       pricePerNight: Math.round(basePrice * 1.2),
       bookingUrl: 'https://www.booking.com',
       amenities: ['Free WiFi', 'Pool', 'Spa', 'Restaurant'],
@@ -344,7 +380,7 @@ function getMockHotels(params: HotelSearchParams): HotelResult[] {
       reviewScoreWord: 'Exceptional',
       reviewCount: 1523,
       price: Math.round(basePrice * 2 * nights),
-      currency: params.currency || 'USD',
+      currency,
       pricePerNight: Math.round(basePrice * 2),
       bookingUrl: 'https://www.booking.com',
       amenities: ['Beachfront', 'Pool', 'Spa', 'Fine Dining'],
@@ -362,7 +398,7 @@ function getMockHotels(params: HotelSearchParams): HotelResult[] {
       reviewScoreWord: 'Very Good',
       reviewCount: 956,
       price: Math.round(basePrice * 0.7 * nights),
-      currency: params.currency || 'USD',
+      currency,
       pricePerNight: Math.round(basePrice * 0.7),
       bookingUrl: 'https://www.booking.com',
       amenities: ['Free WiFi', 'Breakfast', 'Parking'],
@@ -380,7 +416,7 @@ function getMockHotels(params: HotelSearchParams): HotelResult[] {
       reviewScoreWord: 'Excellent',
       reviewCount: 1204,
       price: Math.round(basePrice * 1.5 * nights),
-      currency: params.currency || 'USD',
+      currency,
       pricePerNight: Math.round(basePrice * 1.5),
       bookingUrl: 'https://www.booking.com',
       amenities: ['Historic Building', 'Restaurant', 'Bar', 'Garden'],
@@ -398,7 +434,7 @@ function getMockHotels(params: HotelSearchParams): HotelResult[] {
       reviewScoreWord: 'Good',
       reviewCount: 678,
       price: Math.round(basePrice * 0.5 * nights),
-      currency: params.currency || 'USD',
+      currency,
       pricePerNight: Math.round(basePrice * 0.5),
       bookingUrl: 'https://www.booking.com',
       amenities: ['Free WiFi', 'Breakfast Included', '24h Reception'],
@@ -420,6 +456,7 @@ function getMockHotels(params: HotelSearchParams): HotelResult[] {
 
 export async function GET(request: NextRequest) {
   try {
+    const headersList = await headers();
     const searchParams = request.nextUrl.searchParams;
     const dateContext = getCurrentDateContext();
     
@@ -459,13 +496,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Validate and resolve currency
+    const { currency, wasInjected } = validateCurrency(
+      searchParams.get('currency'),
+      headersList
+    );
+
     const params: HotelSearchParams = {
       destination,
       checkInDate: dateValidation.checkInDate!,
       checkOutDate: dateValidation.checkOutDate!,
       adults: parseInt(searchParams.get('adults') || '2'),
       rooms: parseInt(searchParams.get('rooms') || '1'),
-      currency: searchParams.get('currency') || 'USD',
+      currency,
+      country: searchParams.get('country') || DEFAULT_COUNTRY,
       minPrice: searchParams.get('minPrice') ? parseInt(searchParams.get('minPrice')!) : undefined,
       maxPrice: searchParams.get('maxPrice') ? parseInt(searchParams.get('maxPrice')!) : undefined,
       sortBy: (searchParams.get('sortBy') as HotelSearchParams['sortBy']) || 'popularity',
@@ -484,6 +528,8 @@ export async function GET(request: NextRequest) {
         checkOutDate: params.checkOutDate,
         nights: dateValidation.nights,
         currentDate: dateContext.currentDate,
+        currency,
+        currencyInjected: wasInjected,
         hotels,
         note: 'Using sample data - could not locate destination',
       });
@@ -503,6 +549,8 @@ export async function GET(request: NextRequest) {
       checkOutDate: params.checkOutDate,
       nights: dateValidation.nights,
       currentDate: dateContext.currentDate,
+      currency,
+      currencyInjected: wasInjected,
       coordinates: {
         latitude: destInfo.latitude,
         longitude: destInfo.longitude,
@@ -524,6 +572,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const headersList = await headers();
     const body = await request.json();
     const dateContext = getCurrentDateContext();
     
@@ -545,7 +594,8 @@ export async function POST(request: NextRequest) {
       children,
       childrenAges,
       rooms, 
-      currency, 
+      currency: requestCurrency,
+      country: requestCountry,
       minPrice, 
       maxPrice, 
       sortBy,
@@ -575,6 +625,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate and resolve currency
+    const { currency, wasInjected } = validateCurrency(requestCurrency, headersList);
+
+    // Log if currency was auto-injected (for monitoring backward compatibility)
+    if (wasInjected) {
+      console.warn('[Booking API] Request missing currency - auto-injected:', {
+        path: '/api/booking',
+        injectedCurrency: currency,
+        destination,
+      });
+    }
+
     const params: HotelSearchParams = {
       destination,
       checkInDate: dateValidation.checkInDate!,
@@ -583,7 +645,8 @@ export async function POST(request: NextRequest) {
       children: children || 0,
       childrenAges: childrenAges || [],
       rooms: rooms || 1,
-      currency: currency || 'USD',
+      currency,
+      country: requestCountry || DEFAULT_COUNTRY,
       minPrice,
       maxPrice,
       sortBy: sortBy || 'popularity',
@@ -609,6 +672,8 @@ export async function POST(request: NextRequest) {
           checkOutDate: params.checkOutDate,
           nights: dateValidation.nights,
           currentDate: dateContext.currentDate,
+          currency,
+          currencyInjected: wasInjected,
           hotels,
           note: 'Using sample data - could not locate destination',
         });
@@ -633,6 +698,8 @@ export async function POST(request: NextRequest) {
       checkOutDate: params.checkOutDate,
       nights: dateValidation.nights,
       currentDate: dateContext.currentDate,
+      currency,
+      currencyInjected: wasInjected,
       coordinates: {
         latitude: searchLat,
         longitude: searchLng,

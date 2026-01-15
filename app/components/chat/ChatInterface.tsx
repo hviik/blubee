@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
 import { COLORS } from '../../constants/colors';
 import MarkdownMessage from './MarkdownMessage';
-import { detectUserCurrency, CurrencyInfo } from '@/app/utils/currencyDetection';
+import { useCurrencyContext, CurrencyContext } from '@/app/hooks/useCurrencyContext';
 import { HotelCarousel, HotelData } from './booking';
 
 interface Message {
@@ -44,7 +44,10 @@ export default function ChatInterface({
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [hasStartedStreaming, setHasStartedStreaming] = useState(false);
-  const [userCurrency, setUserCurrency] = useState<CurrencyInfo | null>(null);
+  
+  // Use server-provided currency context instead of client-side detection
+  const { currencyContext, isLoading: currencyLoading } = useCurrencyContext();
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -53,12 +56,6 @@ export default function ChatInterface({
   const hasStartedStreamingRef = useRef(false);
   const pendingHotelDataRef = useRef<Message['hotelData'] | null>(null);
   const wasLoadingRef = useRef(false);
-
-  useEffect(() => {
-    detectUserCurrency().then((currency) => {
-      setUserCurrency(currency);
-    });
-  }, []);
 
   useEffect(() => {
     if (onMessagesChange) onMessagesChange(messages);
@@ -113,14 +110,27 @@ export default function ChatInterface({
       try {
         const userName = user?.firstName || user?.fullName?.split(' ')[0] || null;
         
+        // Build request with canonical currency context
+        const requestBody: Record<string, unknown> = {
+          messages: updated,
+          userName: userName,
+        };
+        
+        // Include currency context if available (server-first approach)
+        if (currencyContext) {
+          requestBody.currency = currencyContext.currency;
+          requestBody.country = currencyContext.country;
+          requestBody.currencyContext = currencyContext;
+        }
+        
         const response = await fetch('/api/agent', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            messages: updated,
-            userName: userName,
-            currency: userCurrency
-          }),
+          headers: { 
+            'Content-Type': 'application/json',
+            // Include currency in header for middleware
+            ...(currencyContext?.currency && { 'X-User-Currency': currencyContext.currency }),
+          },
+          body: JSON.stringify(requestBody),
         });
 
         if (!response.ok || !response.body) {
@@ -318,7 +328,7 @@ export default function ChatInterface({
         pendingHotelDataRef.current = null;
       }
     },
-    [isLoading, onSendMessage, scrollToBottom, user, userCurrency]
+    [isLoading, onSendMessage, scrollToBottom, user, currencyContext, onItineraryReceived]
   );
 
   useEffect(() => {

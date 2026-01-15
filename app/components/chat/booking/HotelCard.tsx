@@ -78,16 +78,16 @@ export function HotelCard({ hotel, onBook, compact = false }: HotelCardProps) {
     return (
       <div 
         onClick={handleCardClick}
-        className="group flex flex-col bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] overflow-hidden w-[220px] md:w-[250px] flex-shrink-0 hover:shadow-lg transition-all duration-200 cursor-pointer border border-gray-100 hover:border-[#2c3d5d]/20"
+        className="group flex flex-col bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] overflow-hidden w-[210px] md:w-[240px] flex-shrink-0 hover:shadow-lg transition-all duration-200 cursor-pointer border border-gray-100 hover:border-[#2c3d5d]/20"
       >
         {/* Hotel Image */}
-        <div className="relative h-[110px] md:h-[120px] w-full overflow-hidden rounded-t-xl">
+        <div className="relative h-[104px] md:h-[112px] w-full overflow-hidden rounded-t-xl">
           {hotel.photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={hotel.photoUrl}
               alt={hotel.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-cover rounded-t-xl group-hover:scale-105 transition-transform duration-300"
               loading="lazy"
             />
           ) : (
@@ -116,14 +116,14 @@ export function HotelCard({ hotel, onBook, compact = false }: HotelCardProps) {
         </div>
 
         {/* Hotel Info */}
-        <div className="flex flex-col gap-1.5 p-3">
+        <div className="flex flex-col gap-1.5 p-2.5">
           {/* Name */}
-          <h3 className="font-semibold text-[13px] text-[#132341] truncate leading-tight" title={hotel.name}>
+          <h3 className="font-semibold text-[12px] text-[#132341] truncate leading-tight" title={hotel.name}>
             {hotel.name}
           </h3>
           
           {/* Location */}
-          <p className="text-[11px] text-[#6c7f8f] truncate flex items-center gap-1" title={hotel.distanceFromCenter || hotel.city}>
+          <p className="text-[10px] text-[#6c7f8f] truncate flex items-center gap-1" title={hotel.distanceFromCenter || hotel.city}>
             <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             </svg>
@@ -132,15 +132,17 @@ export function HotelCard({ hotel, onBook, compact = false }: HotelCardProps) {
 
           {/* Review info */}
           <div className="flex items-center gap-1.5 text-[10px] text-[#8595a4]">
-            <span className="font-medium text-[#475f73]">{hotel.reviewScoreWord || 'No rating'}</span>
-            <span>·</span>
-            <span>{formatNumber(hotel.reviewCount)} reviews</span>
+            <span className="font-medium text-[#475f73]">
+              {hotel.reviewScore > 0 ? hotel.reviewScore.toFixed(1) : '-'}
+            </span>
+            <span className="text-[#8595a4]">·</span>
+            <span className="truncate">{hotel.reviewScoreWord || 'No rating'}</span>
           </div>
 
           {/* Price */}
-          <div className="flex items-baseline justify-between mt-1 pt-2 border-t border-gray-100">
+          <div className="flex items-baseline justify-between mt-1 pt-1.5 border-t border-gray-100">
             <span className="text-[10px] text-[#8595a4]">per night</span>
-            <span className="font-bold text-[15px] text-[#132341]">
+            <span className="font-bold text-[13px] text-[#132341]">
               {getCurrencySymbol(hotel.currency)}{hotel.pricePerNight}
             </span>
           </div>

@@ -4,8 +4,31 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
 import { COLORS } from '../constants/colors';
-import { getDestinationImage, getFlagImage, getCountryDisplayName } from '../utils/countryData';
+import { TripCard, TripDetailView } from './trips';
+import { getDestinationImage, getFlagImage, getCountryDisplayName, getISO2Code } from '../utils/countryData';
 import HeartButton from './HeartButton';
+
+interface DayActivity {
+  morning?: string;
+  afternoon?: string;
+  evening?: string;
+}
+
+interface Place {
+  name: string;
+  type: 'stays' | 'restaurants' | 'attraction' | 'activities';
+  address?: string;
+}
+
+interface ItineraryDay {
+  dayNumber: number;
+  date?: string;
+  location: string;
+  title: string;
+  description?: string;
+  activities?: DayActivity;
+  places?: Place[];
+}
 
 interface Trip {
   id: string;
@@ -22,6 +45,11 @@ interface Trip {
     duration?: string;
     iso2?: string;
     description?: string;
+    country?: string;
+    itinerary?: ItineraryDay[];
+    travelers?: number;
+    days?: number;
+    nights?: number;
   };
   created_at: string;
 }
@@ -35,6 +63,7 @@ export default function MyTripsPage({ onTripClick }: MyTripsPageProps) {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
 
   useEffect(() => {
     const fetchTrips = async () => {
@@ -64,6 +93,9 @@ export default function MyTripsPage({ onTripClick }: MyTripsPageProps) {
     e?.stopPropagation();
   
     setTrips(prev => prev.filter(t => t.id !== tripId));
+    if (selectedTrip?.id === tripId) {
+      setSelectedTrip(null);
+    }
   
     try {
       const response = await fetch(`/api/trips?id=${tripId}`, {
@@ -80,15 +112,61 @@ export default function MyTripsPage({ onTripClick }: MyTripsPageProps) {
         setTrips(data.trips || []);
       }
     }
-  }, []);
-  
+  }, [selectedTrip]);
 
+  const handleTripClick = (trip: Trip) => {
+    setSelectedTrip(trip);
+  };
+
+  const handleCloseDetail = () => {
+    setSelectedTrip(null);
+  };
+  
   const filteredTrips = trips.filter(trip => {
     const matchesSearch = !searchQuery || 
       trip.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       trip.preferences.route?.some(r => r.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesSearch;
   });
+
+  // Convert Trip to format expected by TripCard
+  const formatTripForCard = (trip: Trip) => {
+    const parseTitle = (title: string): { name: string; country: string } => {
+      const match = title.match(/^(.+?)\s*\(([A-Z]{2})\)$/i);
+      if (match) {
+        return { name: match[1].trim(), country: match[1].trim() };
+      }
+      return { name: title, country: trip.preferences.country || title };
+    };
+    
+    const { name, country } = parseTitle(trip.title);
+    const startDate = trip.start_date ? new Date(trip.start_date) : null;
+    const endDate = trip.end_date ? new Date(trip.end_date) : null;
+    
+    let days = trip.preferences.days || 5;
+    let nights = trip.preferences.nights || 4;
+    
+    if (startDate && endDate) {
+      days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      nights = days - 1;
+    }
+
+    return {
+      id: trip.id,
+      title: name,
+      country: country,
+      iso2: trip.preferences.iso2 || getISO2Code(country),
+      duration: trip.preferences.duration || `${days} Days, ${nights} Nights`,
+      days,
+      nights,
+      tripType: trip.trip_type || undefined,
+      travelers: trip.number_of_people || trip.preferences.travelers,
+      startDate: trip.start_date || undefined,
+      endDate: trip.end_date || undefined,
+      destinations: trip.preferences.route,
+      itinerary: trip.preferences.itinerary,
+    };
+  };
 
   const wishlistTrips = filteredTrips.filter(t => t.status === 'wishlist');
   const plannedTrips = filteredTrips.filter(t => t.status === 'planned' || t.status === 'completed');
@@ -114,8 +192,21 @@ export default function MyTripsPage({ onTripClick }: MyTripsPageProps) {
     );
   }
 
+  // Show detail view when a trip is selected
+  if (selectedTrip) {
+    const formattedTrip = formatTripForCard(selectedTrip);
+    return (
+      <TripDetailView
+        trip={formattedTrip}
+        onClose={handleCloseDetail}
+        onDelete={() => handleDeleteTrip(selectedTrip.id)}
+      />
+    );
+  }
+
   return (
     <div className="w-full h-full flex flex-col bg-transparent overflow-hidden">
+      {/* Header */}
       <div className="px-4 md:px-6 pt-4 pb-2 shrink-0">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 rounded-full overflow-hidden bg-[#e6f0f7] flex items-center justify-center">
@@ -149,6 +240,7 @@ export default function MyTripsPage({ onTripClick }: MyTripsPageProps) {
           </div>
         </div>
 
+        {/* Search */}
         <div
           className="flex items-center justify-between px-4 py-[10px] rounded-xl border max-w-md"
           style={{
@@ -201,262 +293,66 @@ export default function MyTripsPage({ onTripClick }: MyTripsPageProps) {
             </p>
           </div>
         ) : (
-          <div className="space-y-6 mt-4">
+          <div className="mt-4">
+            {/* Wishlist Section */}
             {wishlistTrips.length > 0 && (
-              <div>
-                <h2 className="text-lg font-semibold text-[#475f73] mb-3" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>
+              <div className="mb-8">
+                <h2 className="text-lg font-semibold text-[#475f73] mb-4" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>
                   Saved Destinations
                 </h2>
-                <div className="space-y-3">
-                  {wishlistTrips.map(trip => (
-                    <WishlistTripCard
-                      key={trip.id}
-                      trip={trip}
-                      onClick={() => onTripClick?.(trip)}
-                      onRemove={() => handleDeleteTrip(trip.id)}
-                    />
-                  ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                  {wishlistTrips.map(trip => {
+                    const formattedTrip = formatTripForCard(trip);
+                    return (
+                      <TripCard
+                        key={trip.id}
+                        trip={formattedTrip}
+                        onClick={() => handleTripClick(trip)}
+                        onDelete={(e) => handleDeleteTrip(trip.id, e)}
+                      />
+                    );
+                  })}
                 </div>
               </div>
             )}
 
+            {/* Planned Trips Section */}
             {plannedTrips.length > 0 && (
               <div>
                 {wishlistTrips.length > 0 && (
-                  <h2 className="text-lg font-semibold text-[#475f73] mb-3 mt-6" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>
+                  <h2 className="text-lg font-semibold text-[#475f73] mb-4 mt-2" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>
                     Your Trips
                   </h2>
                 )}
-                <div className="space-y-3">
-                  {plannedTrips.map(trip => (
-                    <PlannedTripCard
-                      key={trip.id}
-                      trip={trip}
-                      onClick={() => onTripClick?.(trip)}
-                      onDelete={(e) => handleDeleteTrip(trip.id, e)}
-                    />
-                  ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                  {plannedTrips.map(trip => {
+                    const formattedTrip = formatTripForCard(trip);
+                    return (
+                      <TripCard
+                        key={trip.id}
+                        trip={formattedTrip}
+                        onClick={() => handleTripClick(trip)}
+                        onDelete={(e) => handleDeleteTrip(trip.id, e)}
+                      />
+                    );
+                  })}
                 </div>
               </div>
             )}
           </div>
         )}
       </div>
+
+      {/* Custom scrollbar styles */}
+      <style jsx global>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 }
-
-interface WishlistTripCardProps {
-  trip: Trip;
-  onClick: () => void;
-  onRemove: () => void;
-}
-
-function WishlistTripCard({ trip, onClick, onRemove }: WishlistTripCardProps) {
-  const parseTitle = (title: string): string => {
-    const match = title.match(/^(.+?)\s*\(([A-Z]{2})\)$/i);
-    if (match) {
-      return match[1].trim();
-    }
-    return title;
-  };
-  
-  const countryName = parseTitle(trip.title);
-  const displayName = getCountryDisplayName(countryName);
-  const route = trip.preferences.route || [];
-  const duration = trip.preferences.duration || '5 Days, 4 Nights';
-  const priceINR = trip.preferences.price_inr;
-
-  return (
-    <div
-      className="relative w-full aspect-[16/9] md:aspect-[2.5/1] rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 group"
-      onClick={onClick}
-    >
-      <div className="absolute inset-0">
-        <Image
-          src={getDestinationImage(countryName)}
-          alt={countryName}
-          fill
-          className="object-cover object-center"
-          unoptimized
-          sizes="(max-width: 768px) 100vw, 50vw"
-        />
-      </div>
-
-      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
-
-      <div className="absolute top-3 right-3 md:top-4 md:right-4 z-10">
-        <HeartButton
-          isLiked={true}
-          onToggle={onRemove}
-          size="sm"
-        />
-      </div>
-
-      <div className="absolute top-3 left-3 md:top-4 md:left-4">
-        <div className="w-10 h-6 md:w-12 md:h-7 relative overflow-hidden rounded shadow-md">
-          <Image
-            src={getFlagImage(countryName)}
-            alt={`${displayName} flag`}
-            fill
-            className="object-cover"
-            unoptimized
-          />
-        </div>
-      </div>
-
-      <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4">
-        <div className="flex items-end justify-between">
-          <div className="flex-1 min-w-0">
-            <h3
-              className="text-lg md:text-2xl font-bold text-white mb-1 truncate"
-              style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}
-            >
-              {displayName}
-            </h3>
-            <div className="flex items-center gap-2 text-white/80 text-xs md:text-sm" style={{ fontFamily: 'var(--font-poppins)' }}>
-              <span>{duration}</span>
-              {priceINR && (
-                <>
-                  <span>•</span>
-                  <span>₹{priceINR.toLocaleString()}</span>
-                </>
-              )}
-            </div>
-            {route.length > 0 && (
-              <div className="flex items-center gap-1 mt-1.5 flex-wrap">
-                {route.slice(0, 3).map((loc, i) => (
-                  <div key={i} className="flex items-center gap-1">
-                    <span className="text-[10px] md:text-xs text-white/70" style={{ fontFamily: 'var(--font-poppins)' }}>
-                      {loc}
-                    </span>
-                    {i < Math.min(route.length, 3) - 1 && (
-                      <span className="text-white/50">→</span>
-                    )}
-                  </div>
-                ))}
-                {route.length > 3 && (
-                  <span className="text-[10px] md:text-xs text-white/50">+{route.length - 3} more</span>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-interface PlannedTripCardProps {
-  trip: Trip;
-  onClick: () => void;
-  onDelete: (e: React.MouseEvent) => void;
-}
-
-function PlannedTripCard({ trip, onClick, onDelete }: PlannedTripCardProps) {
-  const parseTitle = (title: string): string => {
-    const match = title.match(/^(.+?)\s*\(([A-Z]{2})\)$/i);
-    if (match) {
-      return match[1].trim();
-    }
-    return title;
-  };
-  
-  const displayTitle = parseTitle(trip.title);
-  const route = trip.preferences.route || [];
-  const startDate = trip.start_date ? new Date(trip.start_date) : null;
-  const endDate = trip.end_date ? new Date(trip.end_date) : null;
-  
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
-
-  const getDuration = () => {
-    if (startDate && endDate) {
-      const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-      return `${days} Days, ${days - 1} Nights`;
-    }
-    return trip.preferences.duration || 'Duration TBD';
-  };
-
-  return (
-    <div
-      className="relative bg-white rounded-xl border border-[#e0e8f0] p-4 cursor-pointer hover:shadow-md transition-shadow group"
-      onClick={onClick}
-    >
-      <div className="flex gap-4">
-        {/* Thumbnail */}
-        <div className="w-24 h-24 md:w-32 md:h-32 rounded-xl overflow-hidden flex-shrink-0 relative">
-          <Image
-            src={getDestinationImage(displayTitle)}
-            alt={displayTitle}
-            fill
-            className="object-cover"
-            unoptimized
-          />
-          {/* Status badge */}
-          <div className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-medium ${
-            trip.status === 'completed' 
-              ? 'bg-green-500 text-white' 
-              : 'bg-[#475f73] text-white'
-          }`}>
-            {trip.status === 'completed' ? 'Completed' : 'Planned'}
-          </div>
-        </div>
-
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs text-[#7286b0] mb-1" style={{ fontFamily: 'var(--font-poppins)' }}>
-                {startDate ? formatDate(startDate) : 'Dates TBD'} • {getDuration()}
-              </p>
-              <h3 className="text-lg font-semibold text-[#475f73] mb-2" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>
-                {displayTitle}
-              </h3>
-            </div>
-            
-            {/* Delete button */}
-            <button
-              onClick={onDelete}
-              className="w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="#ef4444"/>
-              </svg>
-            </button>
-          </div>
-
-          {/* Route */}
-          {route.length > 0 && (
-            <div className="flex items-center gap-2 flex-wrap">
-              {route.map((loc, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 rounded-full bg-[#2f4f93]" />
-                    <span className="text-sm text-[#475f73]" style={{ fontFamily: 'var(--font-poppins)' }}>
-                      {loc}
-                    </span>
-                  </div>
-                  {i < route.length - 1 && (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-[#a8c2e1]">
-                      <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/>
-                    </svg>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Description if available */}
-          {trip.preferences.description && (
-            <p className="text-sm text-[#7286b0] mt-2 line-clamp-2" style={{ fontFamily: 'var(--font-poppins)' }}>
-              {trip.preferences.description}
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-

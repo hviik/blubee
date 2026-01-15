@@ -1,119 +1,98 @@
+/**
+ * @deprecated This module is deprecated. Use lib/currency instead.
+ * 
+ * This file is kept for backward compatibility during migration.
+ * All new code should use:
+ * - import { useCurrencyContext } from '@/app/hooks/useCurrencyContext' for React components
+ * - import { resolveCurrencyContext } from '@/lib/currency' for server-side resolution
+ * 
+ * Migration path:
+ * 1. Replace detectUserCurrency() with useCurrencyContext() hook
+ * 2. Replace CurrencyInfo with CurrencyContext from lib/currency
+ * 3. Remove this import after migration is complete
+ */
+
+import {
+  CurrencyContext,
+  getCurrencyMetadata,
+  DEFAULT_CURRENCY,
+} from '@/lib/currency';
+
+/**
+ * @deprecated Use CurrencyContext from lib/currency instead
+ */
 export interface CurrencyInfo {
   code: string;
   symbol: string;
   name: string;
 }
 
-const currencySymbols: Record<string, string> = {
-  USD: '$',
-  EUR: '€',
-  GBP: '£',
-  JPY: '¥',
-  AUD: 'A$',
-  CAD: 'C$',
-  CHF: 'Fr',
-  CNY: '¥',
-  INR: '₹',
-  AED: 'د.إ',
-  SGD: 'S$',
-  HKD: 'HK$',
-  NZD: 'NZ$',
-  KRW: '₩',
-  MXN: '$',
-  BRL: 'R$',
-  ZAR: 'R',
-  SEK: 'kr',
-  NOK: 'kr',
-  DKK: 'kr',
-  PLN: 'zł',
-  THB: '฿',
-  IDR: 'Rp',
-  MYR: 'RM',
-  PHP: '₱',
-  VND: '₫',
-};
-
-const currencyNames: Record<string, string> = {
-  USD: 'US Dollars',
-  EUR: 'Euros',
-  GBP: 'British Pounds',
-  JPY: 'Japanese Yen',
-  AUD: 'Australian Dollars',
-  CAD: 'Canadian Dollars',
-  CHF: 'Swiss Francs',
-  CNY: 'Chinese Yuan',
-  INR: 'Indian Rupees',
-  AED: 'UAE Dirhams',
-  SGD: 'Singapore Dollars',
-  HKD: 'Hong Kong Dollars',
-  NZD: 'New Zealand Dollars',
-  KRW: 'South Korean Won',
-  MXN: 'Mexican Pesos',
-  BRL: 'Brazilian Reais',
-  ZAR: 'South African Rand',
-  SEK: 'Swedish Kronor',
-  NOK: 'Norwegian Krone',
-  DKK: 'Danish Krone',
-  PLN: 'Polish Zloty',
-  THB: 'Thai Baht',
-  IDR: 'Indonesian Rupiah',
-  MYR: 'Malaysian Ringgit',
-  PHP: 'Philippine Pesos',
-  VND: 'Vietnamese Dong',
-};
-
+/**
+ * @deprecated Use useCurrencyContext() hook or resolveCurrencyContext() instead.
+ * This function now fetches from the server API instead of using client-side detection.
+ */
 export async function detectUserCurrency(): Promise<CurrencyInfo> {
+  console.warn(
+    '[DEPRECATED] detectUserCurrency() is deprecated. ' +
+    'Use useCurrencyContext() hook for React components or ' +
+    'resolveCurrencyContext() for server-side resolution.'
+  );
+
+  // Check sessionStorage cache first (for backward compatibility)
   const cached = sessionStorage.getItem('userCurrency');
   if (cached) {
     try {
       return JSON.parse(cached);
     } catch {
+      // Invalid cache
     }
   }
 
-  const defaultCurrency: CurrencyInfo = {
-    code: 'INR',
-    symbol: '₹',
-    name: 'Indian Rupees',
-  };
-
+  // Fall back to server API
   try {
-    const response = await fetch('https://ipapi.co/json/', {
-      signal: AbortSignal.timeout(5000),
+    const response = await fetch('/api/currency', {
+      method: 'GET',
+      credentials: 'include',
     });
 
-    if (!response.ok) {
-      console.warn('Currency detection failed, using default INR');
-      return defaultCurrency;
+    if (response.ok) {
+      const context: CurrencyContext = await response.json();
+      const currencyInfo: CurrencyInfo = {
+        code: context.currency,
+        symbol: context.symbol,
+        name: context.name,
+      };
+      
+      // Cache for backward compatibility
+      sessionStorage.setItem('userCurrency', JSON.stringify(currencyInfo));
+      return currencyInfo;
     }
-
-    const data = await response.json();
-    const currencyCode = data.currency;
-
-    if (!currencyCode) {
-      console.warn('No currency in response, using default INR');
-      return defaultCurrency;
-    }
-
-    const currencyInfo: CurrencyInfo = {
-      code: currencyCode,
-      symbol: currencySymbols[currencyCode] || currencyCode,
-      name: currencyNames[currencyCode] || currencyCode,
-    };
-
-    sessionStorage.setItem('userCurrency', JSON.stringify(currencyInfo));
-
-    return currencyInfo;
   } catch (error) {
-    console.error('Failed to detect currency:', error);
-    return defaultCurrency;
+    console.error('[DEPRECATED] Failed to fetch currency from API:', error);
   }
+
+  // Fallback to USD
+  const defaultMeta = getCurrencyMetadata(DEFAULT_CURRENCY);
+  return {
+    code: DEFAULT_CURRENCY,
+    symbol: defaultMeta.symbol,
+    name: defaultMeta.name,
+  };
 }
 
+/**
+ * @deprecated Exchange rates should be handled server-side.
+ * This function is kept for backward compatibility but may be removed.
+ */
 export async function getExchangeRate(
   fromCurrency: string,
   toCurrency: string
 ): Promise<number> {
+  console.warn(
+    '[DEPRECATED] getExchangeRate() is deprecated. ' +
+    'Use single-currency pricing instead of client-side conversion.'
+  );
+
   if (fromCurrency === toCurrency) return 1;
 
   try {
@@ -137,6 +116,9 @@ export async function getExchangeRate(
   }
 }
 
+/**
+ * @deprecated Use formatPrice from lib/currency/format instead
+ */
 export function formatPrice(
   amount: number,
   currencyInfo: CurrencyInfo
@@ -153,11 +135,19 @@ export function formatPrice(
   }
 }
 
+/**
+ * @deprecated Use formatPrice from lib/currency/format with single currency
+ */
 export function convertAndFormat(
   amountINR: number,
   targetCurrency: CurrencyInfo,
   exchangeRate: number
 ): string {
+  console.warn(
+    '[DEPRECATED] convertAndFormat() is deprecated. ' +
+    'Use single-currency pricing instead of client-side conversion.'
+  );
+
   if (targetCurrency.code === 'INR') {
     return formatPrice(amountINR, targetCurrency);
   }
@@ -166,4 +156,3 @@ export function convertAndFormat(
   
   return formatPrice(convertedAmount, targetCurrency);
 }
-

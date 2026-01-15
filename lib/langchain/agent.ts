@@ -4,6 +4,12 @@ import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { StateGraph, MessagesAnnotation, START, END } from "@langchain/langgraph";
 import { allTools } from "./tools";
 import { getAgentDateContext, getCurrentDateContext } from "../utils/dateResolver";
+import { 
+  CurrencyContext, 
+  DEFAULT_CURRENCY, 
+  DEFAULT_COUNTRY,
+  getCurrencyMetadata,
+} from "../currency";
 
 const SYSTEM_PROMPT = `You are blu, a warm, caring, and friendly female travel agent. Your role is to help travelers plan perfect trips through natural conversation.
 
@@ -143,9 +149,15 @@ function convertToLangChainMessages(
   return out;
 }
 
+/**
+ * Build system prompt with canonical currency context
+ * 
+ * @param userName User's display name
+ * @param currencyContext Canonical currency context (ISO-4217/ISO-3166)
+ */
 function buildSystemPrompt(
   userName?: string,
-  currency?: { code: string; symbol: string; name: string }
+  currencyContext?: CurrencyContext
 ) {
   let prompt = SYSTEM_PROMPT;
 
@@ -162,8 +174,28 @@ Use this to validate all dates - never accept dates before ${fullDateContext.cur
     prompt += `\n\nThe user's name is ${userName}. Address them warmly by name when appropriate.`;
   }
 
-  if (currency?.code) {
-    prompt += `\n\nIMPORTANT: The user's preferred currency is ${currency.name} (${currency.code}, symbol: ${currency.symbol}). ALWAYS use ${currency.code} when mentioning prices or budgets and when searching for hotels.`;
+  // Add canonical currency context
+  if (currencyContext) {
+    prompt += `\n\nCURRENCY CONTEXT (SINGLE-CURRENCY INVARIANT):
+- Currency Code: ${currencyContext.currency} (ISO-4217)
+- Currency Symbol: ${currencyContext.symbol}
+- Currency Name: ${currencyContext.name}
+- User Country: ${currencyContext.country} (ISO-3166-1)
+- Source: ${currencyContext.source}
+
+CRITICAL: You MUST use ${currencyContext.currency} for ALL prices, budgets, and cost estimates.
+- When searching for hotels, ALWAYS pass currency="${currencyContext.currency}"
+- When mentioning prices, use the format: ${currencyContext.symbol}X or X ${currencyContext.currency}
+- NEVER mix currencies in a single conversation
+- If the user mentions a different currency, convert to ${currencyContext.currency} for consistency`;
+  } else {
+    // Fallback to default currency
+    const defaultMeta = getCurrencyMetadata(DEFAULT_CURRENCY);
+    prompt += `\n\nCURRENCY CONTEXT (DEFAULT):
+- Currency: ${DEFAULT_CURRENCY} (${defaultMeta.name})
+- Symbol: ${defaultMeta.symbol}
+
+Use ${DEFAULT_CURRENCY} for all prices and cost estimates.`;
   }
 
   return prompt;
@@ -174,10 +206,26 @@ export async function invokeAgent(
   options: {
     userId?: string;
     userName?: string;
+    currencyContext?: CurrencyContext;
+    // Legacy support - will be removed in future versions
     currency?: { code: string; symbol: string; name: string };
   } = {}
 ): Promise<string> {
-  const systemPrompt = buildSystemPrompt(options.userName, options.currency);
+  // Convert legacy currency format to CurrencyContext
+  let currencyContext = options.currencyContext;
+  if (!currencyContext && options.currency?.code) {
+    const meta = getCurrencyMetadata(options.currency.code);
+    currencyContext = {
+      currency: options.currency.code as any,
+      country: DEFAULT_COUNTRY,
+      source: 'default',
+      symbol: options.currency.symbol || meta.symbol,
+      name: options.currency.name || meta.name,
+      resolvedAt: new Date().toISOString(),
+    };
+  }
+
+  const systemPrompt = buildSystemPrompt(options.userName, currencyContext);
   const langChainMessages = convertToLangChainMessages(messages, systemPrompt);
   const app = createGraph();
 
@@ -186,7 +234,8 @@ export async function invokeAgent(
     {
       configurable: {
         userId: options.userId,
-        thread_id: options.userId || "default"
+        thread_id: options.userId || "default",
+        currencyContext, // Pass to tools
       }
     }
   );
@@ -202,10 +251,27 @@ export async function* streamAgent(
   options: {
     userId?: string;
     userName?: string;
+    currencyContext?: CurrencyContext;
+    // Legacy support - will be removed in future versions
     currency?: { code: string; symbol: string; name: string };
   } = {}
 ): AsyncGenerator<{ type: "token" | "tool_call" | "tool_result" | "done"; content: string }> {
-  const systemPrompt = buildSystemPrompt(options.userName, options.currency);
+  // Convert legacy currency format to CurrencyContext
+  let currencyContext = options.currencyContext;
+  if (!currencyContext && options.currency?.code) {
+    const meta = getCurrencyMetadata(options.currency.code);
+    currencyContext = {
+      currency: options.currency.code as any,
+      country: DEFAULT_COUNTRY,
+      source: 'default',
+      symbol: options.currency.symbol || meta.symbol,
+      name: options.currency.name || meta.name,
+      resolvedAt: new Date().toISOString(),
+    };
+    console.warn('[Agent] Using legacy currency format - please update to currencyContext');
+  }
+
+  const systemPrompt = buildSystemPrompt(options.userName, currencyContext);
   const langChainMessages = convertToLangChainMessages(messages, systemPrompt);
   const app = createGraph();
 
@@ -214,7 +280,8 @@ export async function* streamAgent(
     {
       configurable: {
         userId: options.userId,
-        thread_id: options.userId || "default"
+        thread_id: options.userId || "default",
+        currencyContext, // Pass to tools
       },
       streamMode: "updates"
     }
