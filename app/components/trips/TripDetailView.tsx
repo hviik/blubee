@@ -252,7 +252,7 @@ export function TripDetailView({ trip, onClose, onDelete, onStartPlanning, showP
               className="text-sm text-[#7286b0] max-w-[250px] mb-6"
               style={{ fontFamily: 'var(--font-poppins)' }}
             >
-              This trip doesn't have a detailed itinerary. Start planning to add activities for each day!
+              This trip does not have a detailed itinerary. Start planning to add activities for each day!
             </p>
             {(showPlanButton || onStartPlanning) && (
               <button

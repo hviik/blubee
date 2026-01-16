@@ -93,7 +93,7 @@ export function MapPanel({
     return extractedPlaces;
   }, [days]);
 
-  // Initialize map
+  // Initialize map (only once on mount, center/zoom are initial values)
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -123,6 +123,7 @@ export function MapPanel({
       mapInstanceRef.current = map;
       isInitializedRef.current = true;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Update location markers
