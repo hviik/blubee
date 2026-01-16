@@ -226,7 +226,11 @@ export default function BlubeezHome() {
               maxHeight: '100vh',
             }}
           >
-            <CreatorPage sidebarOffset={isDesktop ? sidebarWidth : 0} />
+            <CreatorPage
+              sidebarOffset={isDesktop ? sidebarWidth : 0}
+              onOpenSidebar={() => setIsMobileSidebarOpen(true)}
+              onExploreClick={handleExploreClick}
+            />
           </div>
         );
       
@@ -334,6 +338,7 @@ export default function BlubeezHome() {
       <Sidebar
         onExpandChange={setIsSidebarExpanded}
         onMobileOpenChange={setIsMobileSidebarOpen}
+        mobileOpen={isMobileSidebarOpen}
         isChatMode={isInContentView}
         onExploreClick={handleExploreClick}
         onCreatorClick={handleCreatorClick}

@@ -1,14 +1,16 @@
 'use client';
 
 import Image from 'next/image';
-import { SignUpButton } from '@clerk/nextjs';
+import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { COLORS } from '../constants/colors';
 
 interface CreatorPageProps {
   sidebarOffset?: number;
+  onOpenSidebar?: () => void;
+  onExploreClick?: () => void;
 }
 
-export default function CreatorPage({ sidebarOffset = 0 }: CreatorPageProps) {
+export default function CreatorPage({ sidebarOffset = 0, onOpenSidebar, onExploreClick }: CreatorPageProps) {
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Header */}
@@ -17,6 +19,15 @@ export default function CreatorPage({ sidebarOffset = 0 }: CreatorPageProps) {
         style={{ paddingLeft: sidebarOffset > 0 ? `${sidebarOffset + 16}px` : undefined }}
       >
         <div className="flex items-center gap-2">
+          <SignedIn>
+            <button
+              className="md:hidden p-1.5"
+              aria-label="Open menu"
+              onClick={onOpenSidebar}
+            >
+              <Image src="/assets/dehaze.svg" alt="" width={18} height={18} />
+            </button>
+          </SignedIn>
           <Image
             src="/assets/logo-icon.svg"
             alt="Blubeez"
@@ -37,17 +48,22 @@ export default function CreatorPage({ sidebarOffset = 0 }: CreatorPageProps) {
         <div className="flex items-center gap-4 md:gap-8">
           <span className="hidden md:inline text-sm font-medium text-[#475f73]" style={{ fontFamily: 'var(--font-poppins)' }}>Creators</span>
           <span className="hidden md:inline text-sm font-medium text-[#475f73]" style={{ fontFamily: 'var(--font-poppins)' }}>Explore</span>
-          <SignUpButton mode="modal">
-            <button 
-              className="px-4 md:px-6 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium text-white hover:opacity-90 transition-opacity"
-              style={{ 
-                backgroundColor: COLORS.blubeezNavy,
-                fontFamily: 'var(--font-bricolage-grotesque)'
-              }}
-            >
-              Log In
-            </button>
-          </SignUpButton>
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button 
+                className="px-4 md:px-6 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium text-white hover:opacity-90 transition-opacity"
+                style={{ 
+                  backgroundColor: COLORS.blubeezNavy,
+                  fontFamily: 'var(--font-bricolage-grotesque)'
+                }}
+              >
+                Log In
+              </button>
+            </SignInButton>
+          </SignedOut>
+          <SignedIn>
+            <UserButton afterSignOutUrl="/" />
+          </SignedIn>
         </div>
       </header>
 
@@ -97,17 +113,31 @@ export default function CreatorPage({ sidebarOffset = 0 }: CreatorPageProps) {
                 Love travelling and sharing your experiences with others?<br className="hidden md:block" />
                 Turn your favourite journeys into Income. Join blubeez and start earning from your travel adventures!
               </p>
-              <SignUpButton mode="modal">
-                <button 
+              <SignedOut>
+                <SignUpButton mode="modal">
+                  <button 
+                    className="px-5 md:px-7 py-2.5 md:py-3 rounded-full text-sm font-medium text-white hover:opacity-90 transition-opacity"
+                    style={{ 
+                      backgroundColor: COLORS.blubeezNavy,
+                      fontFamily: 'var(--font-bricolage-grotesque)'
+                    }}
+                  >
+                    Join Now
+                  </button>
+                </SignUpButton>
+              </SignedOut>
+              <SignedIn>
+                <button
                   className="px-5 md:px-7 py-2.5 md:py-3 rounded-full text-sm font-medium text-white hover:opacity-90 transition-opacity"
                   style={{ 
                     backgroundColor: COLORS.blubeezNavy,
                     fontFamily: 'var(--font-bricolage-grotesque)'
                   }}
+                  onClick={onExploreClick}
                 >
-                  Join Now
+                  Explore
                 </button>
-              </SignUpButton>
+              </SignedIn>
             </div>
           </div>
 
@@ -417,17 +447,31 @@ export default function CreatorPage({ sidebarOffset = 0 }: CreatorPageProps) {
         >
           Your experiences deserve more than memories.
         </p>
-        <SignUpButton mode="modal">
-          <button 
+        <SignedOut>
+          <SignUpButton mode="modal">
+            <button 
+              className="px-6 py-2.5 rounded-full bg-white text-sm font-medium hover:bg-gray-100 transition-colors"
+              style={{ 
+                color: COLORS.blubeezNavy,
+                fontFamily: 'var(--font-bricolage-grotesque)'
+              }}
+            >
+              Join Now!
+            </button>
+          </SignUpButton>
+        </SignedOut>
+        <SignedIn>
+          <button
             className="px-6 py-2.5 rounded-full bg-white text-sm font-medium hover:bg-gray-100 transition-colors"
             style={{ 
               color: COLORS.blubeezNavy,
               fontFamily: 'var(--font-bricolage-grotesque)'
             }}
+            onClick={onExploreClick}
           >
-            Join Now!
+            Explore
           </button>
-        </SignUpButton>
+        </SignedIn>
       </section>
 
       {/* Footer */}
@@ -491,7 +535,7 @@ export default function CreatorPage({ sidebarOffset = 0 }: CreatorPageProps) {
 
           {/* Bottom Row */}
           <div className="flex flex-col md:flex-row justify-center items-center gap-2 md:gap-4 text-[10px] md:text-xs text-[#6c7f8f]" style={{ fontFamily: 'var(--font-poppins)' }}>
-            <span>© 2025 Blubeez</span>
+            <span>© 2026 Blubeez</span>
             <span className="hidden md:inline">|</span>
             <a href="#" className="hover:text-[#2d4e92]">Privacy policy</a>
             <span className="hidden md:inline">|</span>

@@ -9,6 +9,7 @@ import HowToUseModal from './HowToUseModal';
 interface SidebarProps {
   onExpandChange?: (expanded: boolean) => void;
   onMobileOpenChange?: (open: boolean) => void;
+  mobileOpen?: boolean;
   isChatMode?: boolean;
   onExploreClick?: () => void;
   onCreatorClick?: () => void;
@@ -20,6 +21,7 @@ interface SidebarProps {
 export default function Sidebar({ 
   onExpandChange, 
   onMobileOpenChange, 
+  mobileOpen,
   isChatMode = false, 
   onExploreClick,
   onCreatorClick,
@@ -67,6 +69,12 @@ export default function Sidebar({
       document.body.style.overflow = '';
     };
   }, [isMobileOpen, closeMobile]);
+
+  useEffect(() => {
+    if (typeof mobileOpen === 'boolean' && mobileOpen !== isMobileOpen) {
+      setIsMobileOpen(mobileOpen);
+    }
+  }, [mobileOpen, isMobileOpen]);
 
   return (
     <SignedIn>

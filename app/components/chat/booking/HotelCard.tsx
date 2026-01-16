@@ -97,17 +97,16 @@ export function HotelCard({ hotel, onBook, compact = false }: HotelCardProps) {
     return (
       <div 
         onClick={handleCardClick}
-        className="group flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden w-[180px] md:w-[200px] flex-shrink-0 hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-100/80"
+        className="group flex flex-col bg-white rounded-lg shadow-sm overflow-hidden w-[250px] flex-shrink-0 hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-100/80 text-left"
       >
         {/* Hotel Image with rounded corners */}
-        <div className="relative h-[90px] md:h-[100px] w-full overflow-hidden">
+        <div className="relative h-[120px] w-full overflow-hidden rounded-t-lg">
           {hotel.photoUrl && !imgError ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={hotel.photoUrl}
               alt={hotel.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              style={{ borderRadius: '16px 16px 0 0' }}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 rounded-t-lg"
               loading="lazy"
               onError={() => setImgError(true)}
             />
@@ -117,47 +116,57 @@ export function HotelCard({ hotel, onBook, compact = false }: HotelCardProps) {
           
           {/* Rating Badge */}
           {hotel.reviewScore > 0 && (
-            <div className="absolute top-2 left-2 bg-[#2f4f93] rounded-lg px-1.5 py-0.5 shadow-sm">
-              <span className="font-bold text-[10px] text-white">
+            <div className="absolute top-2 left-2 bg-[#2c3d5d] rounded-lg px-2 py-1 shadow-sm">
+              <span className="font-semibold text-[11px] text-white">
                 {hotel.reviewScore.toFixed(1)}
               </span>
             </div>
           )}
 
           {/* External Link Icon */}
-          <div className="absolute top-2 right-2 bg-white/95 hover:bg-white rounded-lg p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
+          <div className="absolute top-2 right-2 bg-white/70 rounded-lg p-1.5 shadow-sm">
             <svg className="w-3.5 h-3.5 text-[#475f73]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
           </div>
         </div>
 
-        {/* Hotel Info - More concise */}
-        <div className="flex flex-col gap-1 p-2.5">
+        {/* Hotel Info - compact + left aligned */}
+        <div className="flex flex-col gap-2 p-2">
           {/* Name */}
-          <h3 
-            className="font-semibold text-[11px] md:text-[12px] text-[#132341] leading-tight line-clamp-1" 
-            title={hotel.name}
-          >
-            {truncateText(hotel.name, 28)}
-          </h3>
-          
-          {/* Location & Rating in one row */}
-          <div className="flex items-center justify-between text-[9px] md:text-[10px] text-[#7286b0]">
-            <span className="truncate flex-1" title={hotel.city}>
-              {truncateText(hotel.distanceFromCenter || hotel.city, 18)}
-            </span>
-            {hotel.reviewScoreWord && (
-              <span className="text-[#2f4f93] font-medium ml-1">
-                {truncateText(hotel.reviewScoreWord, 10)}
-              </span>
-            )}
+          <div className="flex flex-col gap-0.5">
+            <h3 
+              className="font-semibold text-[12px] text-[#475f73] leading-tight line-clamp-1" 
+              title={hotel.name}
+            >
+              {truncateText(hotel.name, 30)}
+            </h3>
+            <p className="text-[10px] text-[#8595a4] truncate" title={hotel.address || hotel.city}>
+              {truncateText(hotel.address || hotel.city, 28)}
+            </p>
           </div>
 
-          {/* Price - prominent */}
-          <div className="flex items-baseline justify-between mt-0.5 pt-1.5 border-t border-gray-100">
-            <span className="text-[9px] text-[#a7b8c7]">per night</span>
-            <span className="font-bold text-[13px] md:text-[14px] text-[#132341]">
+          {/* Rating Row */}
+          <div className="flex items-center gap-2">
+            <div className="bg-[#2c3d5d] rounded-lg px-2 py-1">
+              <span className="text-[11px] text-white font-medium">
+                {hotel.reviewScore.toFixed(1)}
+              </span>
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="text-[11px] text-[#475f73] font-medium">
+                {hotel.reviewScoreWord || 'Excellent'}
+              </span>
+              <span className="text-[10px] text-[#8595a4]">
+                {formatNumber(hotel.reviewCount)} reviews
+              </span>
+            </div>
+          </div>
+
+          {/* Price */}
+          <div className="flex items-baseline gap-2 justify-start">
+            <span className="text-[10px] text-[#6c7f8f]">Starting from</span>
+            <span className="font-semibold text-[14px] text-[#475f73]">
               {getCurrencySymbol(hotel.currency)}{hotel.pricePerNight.toLocaleString()}
             </span>
           </div>
