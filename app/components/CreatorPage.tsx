@@ -53,6 +53,25 @@ export default function CreatorPage({ sidebarOffset = 0 }: CreatorPageProps) {
 
       {/* Hero Section */}
       <section className="relative pt-14 md:pt-16">
+        {/* Background image layer */}
+        <div className="absolute inset-0">
+          <Image
+            src="/assets/creator/hero-bg.png"
+            alt="Creators hero background"
+            fill
+            className="object-cover object-center"
+            priority
+          />
+          <Image
+            src="/assets/creator/hero-bg-overlay.png"
+            alt=""
+            fill
+            className="object-cover object-center opacity-30"
+            priority
+          />
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-white" />
+        </div>
+
         <div className="relative min-h-[calc(100vh-56px)] md:min-h-[600px] lg:min-h-[700px] flex flex-col md:flex-row">
           {/* Left Content */}
           <div 
@@ -92,69 +111,59 @@ export default function CreatorPage({ sidebarOffset = 0 }: CreatorPageProps) {
             </div>
           </div>
 
-          {/* Right Hero Image */}
+          {/* Right Hero Overlay */}
           <div className="relative flex-1 min-h-[280px] md:min-h-full">
-            <div className="absolute inset-0 md:left-0 overflow-hidden">
-              <Image
-                src="/assets/destinations/bali.jpg"
-                alt="Travel Adventure"
-                fill
-                className="object-cover object-center"
-                style={{ 
-                  clipPath: 'polygon(15% 0, 100% 0, 100% 100%, 0% 100%)'
-                }}
-                priority
-              />
-            </div>
-
             {/* Floating Social Stats - Desktop only */}
-            <div className="absolute top-[18%] right-[12%] hidden md:flex flex-col gap-2.5">
-              <div className="bg-white rounded-xl shadow-lg px-3 py-1.5 flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-[#2d4e92]" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"/>
-                </svg>
-                <span className="font-bold text-sm text-[#132341]" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>248</span>
+            <div className="absolute top-[18%] right-[14%] hidden md:flex flex-col gap-3">
+              <div className="relative w-[74px] h-[60px]">
+                <Image src="/assets/creator/comments-bubble.svg" alt="Comments" fill />
+                <Image src="/assets/creator/comments-icon.svg" alt="" width={16} height={16} className="absolute left-[10px] top-[12px]" />
+                <span className="absolute right-[10px] top-[12px] text-[14px] text-white" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>
+                  99K
+                </span>
               </div>
-              
-              <div className="bg-white rounded-xl shadow-lg px-3 py-1.5 flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-[#2d4e92]" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
-                </svg>
-                <span className="font-bold text-sm text-[#132341]" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>1.2K</span>
+              <div className="relative w-[64px] h-[44px]">
+                <Image src="/assets/creator/followers-bubble.svg" alt="Followers" fill />
+                <Image src="/assets/creator/followers-icon.svg" alt="" width={8} height={8} className="absolute left-[16px] top-[12px]" />
+                <Image src="/assets/creator/followers-line.svg" alt="" width={14} height={5} className="absolute left-[13px] top-[20px]" />
+                <span className="absolute right-[10px] top-[10px] text-[14px] text-white" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>
+                  2k
+                </span>
               </div>
-              
-              <div className="bg-white rounded-xl shadow-lg px-3 py-1.5 flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-[#FF6B6B]" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-                <span className="font-bold text-sm text-[#132341]" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>3.4K</span>
+              <div className="relative w-[74px] h-[60px]">
+                <Image src="/assets/creator/likes-bubble.svg" alt="Likes" fill />
+                <Image src="/assets/creator/likes-icon.svg" alt="" width={16} height={16} className="absolute left-[12px] top-[12px]" />
+                <span className="absolute right-[12px] top-[12px] text-[14px] text-white" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>
+                  55
+                </span>
               </div>
             </div>
 
             {/* Comment Bubble - Desktop only */}
             <div className="absolute top-[42%] right-[22%] hidden md:block">
               <div className="bg-white rounded-full px-3 py-1.5 shadow-lg text-xs text-[#475f73]" style={{ fontFamily: 'var(--font-poppins)' }}>
-                Perfect diversity! 🌴
+                Perfect itinerary!
               </div>
             </div>
 
             {/* Floating Hearts - Desktop only */}
-            <div className="absolute bottom-[25%] right-[6%] hidden md:flex flex-col items-end gap-1.5">
-              {[20, 14, 10, 6, 4].map((size, i) => (
-                <svg 
-                  key={i} 
-                  className="text-[#FF6B6B] animate-pulse" 
-                  style={{ 
-                    width: size, 
-                    height: size,
-                    animationDelay: `${i * 0.3}s`,
-                    marginRight: `${i * 6}px`
-                  }} 
-                  fill="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
+            <div className="absolute bottom-[24%] right-[6%] hidden md:flex flex-col items-end gap-1.5">
+              {[
+                { src: '/assets/creator/heart-1.svg', size: 22, offset: 0 },
+                { src: '/assets/creator/heart-2.svg', size: 16, offset: 6 },
+                { src: '/assets/creator/heart-3.svg', size: 12, offset: 12 },
+                { src: '/assets/creator/heart-4.svg', size: 8, offset: 16 },
+                { src: '/assets/creator/heart-5.svg', size: 6, offset: 20 },
+              ].map((heart, i) => (
+                <Image
+                  key={heart.src}
+                  src={heart.src}
+                  alt=""
+                  width={heart.size}
+                  height={heart.size}
+                  className="animate-pulse"
+                  style={{ marginRight: `${heart.offset}px`, animationDelay: `${i * 0.25}s` }}
+                />
               ))}
             </div>
           </div>
@@ -204,42 +213,21 @@ export default function CreatorPage({ sidebarOffset = 0 }: CreatorPageProps) {
 
             {/* Right: Phone Mockups - Desktop only */}
             <div className="hidden md:flex flex-1 justify-center items-center relative min-h-[300px]">
-              <div className="relative w-full max-w-[500px] h-[350px]">
-                {/* Trip Cards mockup */}
-                <div className="absolute left-0 top-8 w-[140px] h-[180px] bg-gradient-to-br from-cyan-400 to-blue-600 rounded-xl shadow-xl overflow-hidden transform -rotate-6">
-                  <div className="absolute inset-0 flex flex-col">
-                    <div className="h-[60%] relative">
-                      <Image src="/assets/destinations/bali.jpg" alt="Bali" fill className="object-cover" />
-                    </div>
-                    <div className="p-2 bg-white flex-1">
-                      <p className="text-[8px] font-bold text-[#132341]">TOP</p>
-                      <p className="text-[7px] text-[#6c7f8f]">7 things I need to do on a trip</p>
-                    </div>
-                  </div>
+              <div className="relative w-full max-w-[520px] h-[360px]">
+                <div className="absolute left-0 top-10 w-[190px] h-[310px] rotate-[-6deg] shadow-[0_0_30px_rgba(0,0,0,0.25)] rounded-[16px] overflow-hidden">
+                  <Image src="/assets/creator/phone-left.png" alt="Creator preview left" fill className="object-cover" />
                 </div>
-                
-                <div className="absolute right-0 top-4 w-[140px] h-[180px] bg-gradient-to-br from-orange-400 to-pink-500 rounded-xl shadow-xl overflow-hidden transform rotate-6">
-                  <div className="absolute inset-0 flex flex-col">
-                    <div className="h-[60%] relative">
-                      <Image src="/assets/destinations/japan.jpg" alt="Japan" fill className="object-cover" />
-                    </div>
-                    <div className="p-2 bg-white flex-1">
-                      <p className="text-[8px] font-bold text-[#132341]">Trip Guide</p>
-                      <p className="text-[7px] text-[#6c7f8f]">Best spots in Japan</p>
-                    </div>
-                  </div>
+                <div className="absolute right-0 top-10 w-[190px] h-[310px] rotate-[6deg] shadow-[0_0_30px_rgba(0,0,0,0.25)] rounded-[16px] overflow-hidden">
+                  <Image src="/assets/creator/phone-right.png" alt="Creator preview right" fill className="object-cover" />
                 </div>
-                
-                <div className="absolute left-1/2 -translate-x-1/2 top-0 w-[150px] h-[200px] bg-white rounded-2xl shadow-2xl overflow-hidden z-10">
-                  <div className="absolute inset-0 flex flex-col">
-                    <div className="h-[65%] relative">
-                      <Image src="/assets/destinations/thailand.jpg" alt="Thailand" fill className="object-cover" />
-                    </div>
-                    <div className="p-2 bg-white flex-1">
-                      <p className="text-[8px] font-bold text-[#132341]">Featured</p>
-                      <p className="text-[7px] text-[#6c7f8f]">Thailand adventure</p>
-                    </div>
-                  </div>
+                <div className="absolute left-1/2 -translate-x-1/2 top-0 w-[210px] h-[330px] shadow-[0_0_50px_rgba(0,0,0,0.4)] rounded-[18px] overflow-hidden z-10">
+                  <Image src="/assets/creator/phone-center.png" alt="Creator preview center" fill className="object-cover" />
+                </div>
+                <div className="absolute left-[10px] top-[80px] w-[50px] h-[40px] rotate-[-12deg]">
+                  <Image src="/assets/creator/like-left.svg" alt="" fill />
+                </div>
+                <div className="absolute right-[20px] top-[10px] w-[48px] h-[38px] rotate-[10deg]">
+                  <Image src="/assets/creator/like-right.svg" alt="" fill />
                 </div>
               </div>
             </div>

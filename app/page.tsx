@@ -218,11 +218,11 @@ export default function BlubeezHome() {
       case 'creator':
         return (
           <div 
-            className="fixed inset-x-0 z-10 transition-all duration-300 ease-in-out"
+            className="fixed inset-x-0 z-10 transition-all duration-300 ease-in-out overflow-y-auto overflow-x-hidden"
             style={{
               top: '0px',
               height: 'calc(var(--vh, 1vh) * 100)',
-              paddingLeft: isDesktop ? `${sidebarWidth}px` : '0px',
+              paddingLeft: '0px',
               maxHeight: '100vh',
             }}
           >
