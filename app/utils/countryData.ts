@@ -128,8 +128,11 @@ export function getDestinationImageByISO(iso2: string): string {
   if (!iso2 || iso2.length !== 2 || iso2.toLowerCase() === 'xx') {
     return '/assets/destinations/th.jpg';
   }
-  // Check common image extensions
-  return `/assets/destinations/${iso2.toLowerCase()}.jpg`;
+  const lowerISO = iso2.toLowerCase();
+  // Some destinations are stored as .png instead of .jpg
+  const pngDestinations = new Set(['br', 'in', 'la', 'mv', 'my', 'pe', 'ph', 'vn']);
+  const ext = pngDestinations.has(lowerISO) ? 'png' : 'jpg';
+  return `/assets/destinations/${lowerISO}.${ext}`;
 }
 
 /**
