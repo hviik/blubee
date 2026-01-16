@@ -110,7 +110,6 @@ export const searchHotelsTool = tool(
           children: children || 0,
           childrenAges: childrenAges || [],
           rooms: rooms || 1,
-          // Single-currency invariant: pass validated ISO-4217 code
           currency: validatedCurrency,
           country: validatedCountry,
           minPrice,
