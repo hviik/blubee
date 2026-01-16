@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
 import { COLORS } from '../constants/colors';
 import { detectUserCurrency, getExchangeRate, CurrencyInfo } from '../utils/currencyDetection';
-import { getDestinationImage, getFlagImage, getISO2Code } from '../utils/countryData';
+import { getDestinationImageByISO, getFlagImageByISO, getISO2Code, getCountryFromISO } from '../utils/countryData';
 import HeartButton, { DoubleTapHeartOverlay } from './HeartButton';
 import { TripDetailView } from './trips';
 
@@ -276,12 +276,13 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
           throw new Error(responseData.error || 'Failed to remove from wishlist');
         }
       } else {
-        const destinationImage = getDestinationImage(destination.name);
-        const flagImage = getFlagImage(destination.name);
+        const destinationImage = getDestinationImageByISO(destination.iso2);
+        const flagImage = getFlagImageByISO(destination.iso2);
+        const countryName = getCountryFromISO(destination.iso2);
         
         const payload = {
           destinationId: destination.id,
-          destinationName: destination.name,
+          destinationName: countryName,
           route: destination.route,
           priceINR: destination.priceINR,
           duration: destination.duration,
@@ -289,7 +290,7 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
           image: destinationImage,
           flag: flagImage,
           itinerary: destination.itinerary,
-          country: destination.name,
+          country: countryName,
           days: 5,
           nights: 4,
         };
@@ -372,7 +373,8 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
 
   const handleStartPlanning = useCallback(() => {
     if (selectedDestination && onDestinationClick) {
-      onDestinationClick(selectedDestination.name, selectedDestination.route);
+      const countryName = getCountryFromISO(selectedDestination.iso2);
+      onDestinationClick(countryName, selectedDestination.route);
     }
   }, [selectedDestination, onDestinationClick]);
 
@@ -389,10 +391,15 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
 
   // Show detail view when a destination is selected
   if (selectedDestination) {
+    // Get proper country display name from ISO2 code
+    const countryName = selectedDestination.iso2 
+      ? getCountryFromISO(selectedDestination.iso2)
+      : selectedDestination.name.charAt(0) + selectedDestination.name.slice(1).toLowerCase();
+    
     const tripData = {
       id: selectedDestination.id,
-      title: selectedDestination.name.charAt(0) + selectedDestination.name.slice(1).toLowerCase(),
-      country: selectedDestination.name.charAt(0) + selectedDestination.name.slice(1).toLowerCase(),
+      title: countryName,
+      country: countryName,
       iso2: selectedDestination.iso2,
       duration: selectedDestination.duration,
       days: 5,
@@ -488,8 +495,8 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
 
               <div className="absolute inset-0">
                 <Image
-                  src={getDestinationImage(d.name)}
-                  alt={d.name}
+                  src={getDestinationImageByISO(d.iso2)}
+                  alt={getCountryFromISO(d.iso2)}
                   fill
                   className="object-cover object-center brightness-[0.95] contrast-[1.08]"
                   style={{
@@ -559,8 +566,8 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                 <div className="flex flex-col items-center gap-1.5 md:gap-2 w-full mb-1.5 md:mb-2">
                   <div className="w-7 h-3.5 md:w-8 md:h-4 relative overflow-hidden rounded-sm">
                     <Image
-                      src={getFlagImage(d.name)}
-                      alt={`${d.name} flag`}
+                      src={getFlagImageByISO(d.iso2)}
+                      alt={`${getCountryFromISO(d.iso2)} flag`}
                       fill
                       className="object-cover"
                       unoptimized
@@ -581,7 +588,7 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
                     fontWeight: 900,
                   }}
                 >
-                  {d.name}
+                  {getCountryFromISO(d.iso2)}
                 </h3>
 
                 <div className="flex items-center gap-0.5 md:gap-1 justify-center w-full flex-wrap">

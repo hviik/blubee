@@ -77,15 +77,58 @@ export function TripDetailView({ trip, onClose, onDelete, onStartPlanning, showP
   const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set([1]));
   const [flagError, setFlagError] = useState(false);
 
-  // Get country info - prioritize iso2 for reliable lookups
-  const iso2 = trip.iso2 || getISO2Code(trip.country || trip.title);
-  const country = trip.country || getCountryFromISO(iso2) || getCountryDisplayName(trip.title);
-  const displayCountry = getCountryDisplayName(country);
+  // Get country info - try multiple sources
+  let iso2 = trip.iso2;
+  
+  // Try to get ISO2 from country name if not provided
+  if (!iso2 || iso2 === 'xx') {
+    iso2 = getISO2Code(trip.country || '');
+  }
+  
+  // Try to get ISO2 from destinations/route
+  const allDestinations = [...(trip.destinations || []), ...(trip.route || [])];
+  if ((!iso2 || iso2 === 'xx') && allDestinations.length > 0) {
+    for (const dest of allDestinations) {
+      const destISO = getISO2Code(dest);
+      if (destISO !== 'xx') {
+        iso2 = destISO;
+        break;
+      }
+    }
+  }
+  
+  // Resolve display country name
+  let displayCountry = trip.country || '';
+  
+  // If we have a valid ISO2, get the proper country name
+  if (iso2 && iso2 !== 'xx') {
+    displayCountry = getCountryFromISO(iso2);
+  } else if (trip.country) {
+    displayCountry = getCountryDisplayName(trip.country);
+  }
+  
+  // Final fallback to first destination's country
+  if ((!displayCountry || displayCountry === trip.title) && allDestinations.length > 0) {
+    for (const dest of allDestinations) {
+      const derived = getCountryDisplayName(dest);
+      if (derived !== dest) {
+        displayCountry = derived;
+        // Also get the ISO2 for this
+        iso2 = getISO2Code(dest);
+        break;
+      }
+    }
+  }
+  
+  // Ensure we have something to display
+  if (!displayCountry || displayCountry === 'Trip') {
+    displayCountry = 'Unknown';
+  }
   
   // Get flag URL using iso2 for reliability
   const flagUrl = iso2 && iso2 !== 'xx' 
     ? getFlagImageByISO(iso2) 
-    : getFlagImage(country);
+    : getFlagImage(displayCountry);
 
   // Display title - use country name if title is generic
   const displayTitle = trip.title === 'Trip' || !trip.title 

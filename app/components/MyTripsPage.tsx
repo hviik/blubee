@@ -152,7 +152,6 @@ export default function MyTripsPage({ onTripClick, onStartPlanning }: MyTripsPag
     };
     
     const { name, country, iso2: parsedISO2 } = parseTitle(trip.title);
-    const displayCountry = getCountryDisplayName(country);
     const startDate = trip.start_date ? new Date(trip.start_date) : null;
     const endDate = trip.end_date ? new Date(trip.end_date) : null;
     
@@ -164,14 +163,45 @@ export default function MyTripsPage({ onTripClick, onStartPlanning }: MyTripsPag
       nights = days - 1;
     }
 
-    // Get ISO2 code - prioritize preferences, then parsed from title, then lookup
-    const iso2 = trip.preferences.iso2 || parsedISO2 || getISO2Code(country);
+    // Try multiple sources for ISO2 code
+    let iso2 = trip.preferences.iso2 || parsedISO2;
+    
+    // If no iso2 yet, try to derive from country
+    if (!iso2 || iso2 === 'xx') {
+      iso2 = getISO2Code(country);
+    }
+    
+    // If still no valid iso2, try from destinations/route
+    if ((!iso2 || iso2 === 'xx') && trip.preferences.route && trip.preferences.route.length > 0) {
+      for (const dest of trip.preferences.route) {
+        const destISO2 = getISO2Code(dest);
+        if (destISO2 !== 'xx') {
+          iso2 = destISO2;
+          break;
+        }
+      }
+    }
+    
+    // Get display country name from ISO2 if we have a valid one
+    let displayCountry = getCountryDisplayName(country);
+    if ((!displayCountry || displayCountry === country || displayCountry === 'Trip') && iso2 && iso2 !== 'xx') {
+      displayCountry = getCountryFromISO(iso2);
+    }
+    
+    // Final fallback - try first destination
+    if ((!displayCountry || displayCountry === 'Trip') && trip.preferences.route && trip.preferences.route.length > 0) {
+      const firstDest = trip.preferences.route[0];
+      const derivedCountry = getCountryDisplayName(firstDest);
+      if (derivedCountry !== firstDest) {
+        displayCountry = derivedCountry;
+      }
+    }
 
     return {
       id: trip.id,
       title: name === 'Trip' ? displayCountry : name,
       country: displayCountry,
-      iso2,
+      iso2: iso2 || 'xx',
       duration: trip.preferences.duration || `${days} Days, ${nights} Nights`,
       days,
       nights,

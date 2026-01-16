@@ -36,18 +36,60 @@ export function TripCard({ trip, onClick, onDelete, onHeart, isWishlisted = fals
   const totalNights = trip.nights || (totalDays > 1 ? totalDays - 1 : 0);
   const durationText = trip.duration || `${totalDays} Days, ${totalNights} Nights`;
   
-  // Get country info - prioritize iso2 for reliable lookups
-  const iso2 = trip.iso2 || getISO2Code(trip.country || trip.title);
-  const country = trip.country || getCountryFromISO(iso2) || getCountryDisplayName(trip.title);
-  const displayCountry = getCountryDisplayName(country);
+  // Get country info - try multiple sources
+  let iso2 = trip.iso2;
+  
+  // Try to get ISO2 from country name if not provided
+  if (!iso2 || iso2 === 'xx') {
+    iso2 = getISO2Code(trip.country || '');
+  }
+  
+  // Try to get ISO2 from destinations
+  if ((!iso2 || iso2 === 'xx') && trip.destinations && trip.destinations.length > 0) {
+    for (const dest of trip.destinations) {
+      const destISO = getISO2Code(dest);
+      if (destISO !== 'xx') {
+        iso2 = destISO;
+        break;
+      }
+    }
+  }
+  
+  // Resolve display country name
+  let displayCountry = trip.country || '';
+  
+  // If we have a valid ISO2, get the proper country name
+  if (iso2 && iso2 !== 'xx') {
+    displayCountry = getCountryFromISO(iso2);
+  } else if (trip.country) {
+    displayCountry = getCountryDisplayName(trip.country);
+  }
+  
+  // Final fallback to first destination's country
+  if ((!displayCountry || displayCountry === trip.title) && trip.destinations && trip.destinations.length > 0) {
+    for (const dest of trip.destinations) {
+      const derived = getCountryDisplayName(dest);
+      if (derived !== dest) {
+        displayCountry = derived;
+        // Also get the ISO2 for this
+        iso2 = getISO2Code(dest);
+        break;
+      }
+    }
+  }
+  
+  // Ensure we have something to display
+  if (!displayCountry || displayCountry === 'Trip') {
+    displayCountry = 'Unknown';
+  }
   
   // Get flag URL using iso2 for reliability
   const flagUrl = iso2 && iso2 !== 'xx' 
     ? getFlagImageByISO(iso2) 
-    : getFlagImage(country);
+    : getFlagImage(displayCountry);
   
   // Get destination image
-  const imageUrl = trip.imageUrl || getDestinationImage(country);
+  const imageUrl = trip.imageUrl || getDestinationImage(displayCountry);
   
   // Fallback images
   const fallbackImage = '/assets/destinations/th.jpg';

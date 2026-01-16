@@ -1,26 +1,45 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabaseServer";
+import countriesData from "@/lib/countries.json";
 
-// Country name to ISO2 code mapping for common destinations
-const COUNTRY_ISO_MAP: Record<string, string> = {
-  'vietnam': 'vn', 'thailand': 'th', 'indonesia': 'id', 'bali': 'id', 'japan': 'jp',
-  'india': 'in', 'malaysia': 'my', 'singapore': 'sg', 'philippines': 'ph', 'cambodia': 'kh',
-  'laos': 'la', 'myanmar': 'mm', 'south korea': 'kr', 'korea': 'kr', 'china': 'cn',
-  'australia': 'au', 'new zealand': 'nz', 'france': 'fr', 'italy': 'it', 'spain': 'es',
-  'germany': 'de', 'united kingdom': 'gb', 'uk': 'gb', 'england': 'gb', 'usa': 'us',
-  'united states': 'us', 'canada': 'ca', 'mexico': 'mx', 'brazil': 'br', 'peru': 'pe',
-  'argentina': 'ar', 'chile': 'cl', 'colombia': 'co', 'egypt': 'eg', 'morocco': 'ma',
-  'south africa': 'za', 'kenya': 'ke', 'tanzania': 'tz', 'greece': 'gr', 'turkey': 'tr',
-  'uae': 'ae', 'dubai': 'ae', 'maldives': 'mv', 'sri lanka': 'lk', 'nepal': 'np',
-  'switzerland': 'ch', 'austria': 'at', 'netherlands': 'nl', 'portugal': 'pt',
-  'iceland': 'is', 'norway': 'no', 'sweden': 'se', 'finland': 'fi', 'denmark': 'dk',
-  'ireland': 'ie', 'scotland': 'gb', 'croatia': 'hr', 'czech republic': 'cz', 'hungary': 'hu',
-};
+// Build lookup map from the unified countries JSON
+const iso2ToCountry = new Map<string, string>();
+const nameToISO2 = new Map<string, string>();
+const aliasToISO2 = new Map<string, string>();
 
-function getISO2FromCountry(country: string): string {
-  const lower = country.toLowerCase().trim();
-  return COUNTRY_ISO_MAP[lower] || 'xx';
+countriesData.countries.forEach((c: { iso2: string; name: string; aliases?: string[] }) => {
+  iso2ToCountry.set(c.iso2.toLowerCase(), c.name);
+  nameToISO2.set(c.name.toLowerCase(), c.iso2);
+  c.aliases?.forEach(alias => {
+    aliasToISO2.set(alias.toLowerCase(), c.iso2);
+  });
+});
+
+function getISO2FromCountry(input: string): string {
+  if (!input) return 'xx';
+  const lower = input.toLowerCase().trim();
+  
+  // Check if it's already an ISO2 code
+  if (lower.length === 2 && iso2ToCountry.has(lower)) {
+    return lower;
+  }
+  
+  // Try exact country name match
+  if (nameToISO2.has(lower)) {
+    return nameToISO2.get(lower)!;
+  }
+  
+  // Try alias match (cities, regions)
+  if (aliasToISO2.has(lower)) {
+    return aliasToISO2.get(lower)!;
+  }
+  
+  return 'xx';
+}
+
+function getCountryNameFromISO2(iso2: string): string {
+  return iso2ToCountry.get(iso2.toLowerCase()) || '';
 }
 
 /**
@@ -37,11 +56,35 @@ export const saveTripTool = tool(
     try {
       // Derive ISO2 code if not provided
       let resolvedISO2 = iso2;
+      let resolvedCountry = country;
+      
+      // Try to get ISO2 from country name
       if (!resolvedISO2 && country) {
         resolvedISO2 = getISO2FromCountry(country);
       }
-      if (!resolvedISO2 && destinations && destinations.length > 0) {
-        resolvedISO2 = getISO2FromCountry(destinations[0]);
+      
+      // Try to get ISO2 from first destination
+      if ((!resolvedISO2 || resolvedISO2 === 'xx') && destinations && destinations.length > 0) {
+        for (const dest of destinations) {
+          const destISO2 = getISO2FromCountry(dest);
+          if (destISO2 !== 'xx') {
+            resolvedISO2 = destISO2;
+            break;
+          }
+        }
+      }
+      
+      // Resolve country name from ISO2 if we don't have it
+      if (!resolvedCountry && resolvedISO2 && resolvedISO2 !== 'xx') {
+        resolvedCountry = getCountryNameFromISO2(resolvedISO2);
+      }
+      
+      // If we still don't have country, try first destination
+      if (!resolvedCountry && destinations && destinations.length > 0) {
+        const firstDestISO2 = getISO2FromCountry(destinations[0]);
+        if (firstDestISO2 !== 'xx') {
+          resolvedCountry = getCountryNameFromISO2(firstDestISO2);
+        }
       }
 
       // Calculate days and nights
@@ -84,8 +127,8 @@ export const saveTripTool = tool(
           status: 'planned',
           total_budget: budget || null,
           preferences: {
-            country: country || (destinations?.[0]),
-            iso2: resolvedISO2,
+            country: resolvedCountry || country || (destinations?.[0]),
+            iso2: resolvedISO2 || 'xx',
             route: destinations || [],
             itinerary: formattedItinerary || [],
             days,

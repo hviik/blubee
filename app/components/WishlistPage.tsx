@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
 import { COLORS } from '../constants/colors';
 import { TripCard, TripDetailView } from './trips';
-import { getDestinationImage, getFlagImage, getCountryDisplayName, getISO2Code } from '../utils/countryData';
+import { getDestinationImage, getFlagImage, getCountryDisplayName, getISO2Code, getCountryFromISO } from '../utils/countryData';
 
 interface DayActivity {
   morning?: string;
@@ -215,8 +215,48 @@ export default function WishlistPage({ onDestinationClick }: WishlistPageProps) 
 
   // Convert WishlistItem to format expected by TripCard
   const formatItemForCard = (item: WishlistItem) => {
-    const countryName = parseTitle(item.title);
-    const displayName = getCountryDisplayName(countryName);
+    const parsedTitle = parseTitle(item.title);
+    
+    // Try multiple sources for ISO2 code
+    let iso2 = item.preferences.iso2;
+    
+    // If no iso2, try from country preference
+    if (!iso2 || iso2 === 'xx') {
+      iso2 = getISO2Code(item.preferences.country || '');
+    }
+    
+    // If still no iso2, try from title
+    if (!iso2 || iso2 === 'xx') {
+      iso2 = getISO2Code(parsedTitle);
+    }
+    
+    // If still no valid iso2, try from destinations/route
+    if ((!iso2 || iso2 === 'xx') && item.preferences.route && item.preferences.route.length > 0) {
+      for (const dest of item.preferences.route) {
+        const destISO2 = getISO2Code(dest);
+        if (destISO2 !== 'xx') {
+          iso2 = destISO2;
+          break;
+        }
+      }
+    }
+    
+    // Get display country name from ISO2 if we have a valid one
+    let displayName = item.preferences.country || parsedTitle;
+    if (iso2 && iso2 !== 'xx') {
+      displayName = getCountryFromISO(iso2);
+    } else {
+      displayName = getCountryDisplayName(displayName);
+    }
+    
+    // Final fallback to first destination
+    if ((!displayName || displayName === parsedTitle) && item.preferences.route && item.preferences.route.length > 0) {
+      const firstDest = item.preferences.route[0];
+      const derivedCountry = getCountryDisplayName(firstDest);
+      if (derivedCountry !== firstDest) {
+        displayName = derivedCountry;
+      }
+    }
     
     let days = item.preferences.days || 5;
     let nights = item.preferences.nights || 4;
@@ -225,7 +265,7 @@ export default function WishlistPage({ onDestinationClick }: WishlistPageProps) 
       id: item.id,
       title: displayName,
       country: displayName,
-      iso2: item.preferences.iso2 || getISO2Code(countryName),
+      iso2: iso2 || 'xx',
       duration: item.preferences.duration || `${days} Days, ${nights} Nights`,
       days,
       nights,
