@@ -50,6 +50,9 @@ export async function GET(req: NextRequest) {
   }
 }
 
+// Maximum number of trips per user
+const MAX_TRIPS_PER_USER = 25;
+
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth();
@@ -87,6 +90,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ 
         error: 'Failed to initialize user profile. Please try again.'
       }, { status: 500 });
+    }
+
+    // Check current trip count and clean up old trips if needed
+    const { data: existingTrips, error: countError } = await supabaseAdmin
+      .from('trips')
+      .select('id, created_at')
+      .eq('user_id', userId)
+      .neq('status', 'wishlist') // Don't count wishlist items
+      .order('created_at', { ascending: false });
+
+    if (!countError && existingTrips && existingTrips.length >= MAX_TRIPS_PER_USER) {
+      // Delete oldest trips to make room (keep only recent 24 to make room for new one)
+      const tripsToDelete = existingTrips.slice(MAX_TRIPS_PER_USER - 1);
+      if (tripsToDelete.length > 0) {
+        const idsToDelete = tripsToDelete.map(t => t.id);
+        await supabaseAdmin
+          .from('trips')
+          .delete()
+          .in('id', idsToDelete);
+      }
     }
 
     const { data, error } = await supabaseAdmin

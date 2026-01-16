@@ -32,21 +32,21 @@ export function HotelCarousel({
     setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
     
     // Calculate current index based on scroll position
-    const cardWidth = 236; // 220px card + 16px gap on mobile
+    const cardWidth = 196; // 180px card + 16px gap on mobile (compact cards)
     const newIndex = Math.round(scrollLeft / cardWidth);
     setCurrentIndex(Math.min(newIndex, hotels.length - 1));
   };
 
   const scroll = (direction: 'left' | 'right') => {
     if (!scrollRef.current) return;
-    const cardWidth = 236;
+    const cardWidth = 196;
     const scrollAmount = direction === 'left' ? -cardWidth * 2 : cardWidth * 2;
     scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
   };
 
   const scrollToIndex = (index: number) => {
     if (!scrollRef.current) return;
-    const cardWidth = 236;
+    const cardWidth = 196;
     scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
   };
 

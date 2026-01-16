@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
 import { COLORS } from '../constants/colors';
 import { TripCard, TripDetailView } from './trips';
-import { getDestinationImage, getFlagImage, getCountryDisplayName, getISO2Code } from '../utils/countryData';
+import { getDestinationImage, getFlagImage, getCountryDisplayName, getISO2Code, getCountryFromISO } from '../utils/countryData';
 import HeartButton from './HeartButton';
 
 interface DayActivity {
@@ -56,9 +56,10 @@ interface Trip {
 
 interface MyTripsPageProps {
   onTripClick?: (trip: Trip) => void;
+  onStartPlanning?: (countryName: string, route: string[]) => void;
 }
 
-export default function MyTripsPage({ onTripClick }: MyTripsPageProps) {
+export default function MyTripsPage({ onTripClick, onStartPlanning }: MyTripsPageProps) {
   const { isSignedIn, user } = useUser();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
@@ -121,6 +122,15 @@ export default function MyTripsPage({ onTripClick }: MyTripsPageProps) {
   const handleCloseDetail = () => {
     setSelectedTrip(null);
   };
+
+  const handleStartPlanningTrip = () => {
+    if (selectedTrip && onStartPlanning) {
+      const formattedTrip = formatTripForCard(selectedTrip);
+      const countryName = formattedTrip.country || formattedTrip.title;
+      const route = formattedTrip.destinations || [];
+      onStartPlanning(countryName, route);
+    }
+  };
   
   const filteredTrips = trips.filter(trip => {
     const matchesSearch = !searchQuery || 
@@ -131,15 +141,18 @@ export default function MyTripsPage({ onTripClick }: MyTripsPageProps) {
 
   // Convert Trip to format expected by TripCard
   const formatTripForCard = (trip: Trip) => {
-    const parseTitle = (title: string): { name: string; country: string } => {
+    const parseTitle = (title: string): { name: string; country: string; iso2?: string } => {
       const match = title.match(/^(.+?)\s*\(([A-Z]{2})\)$/i);
       if (match) {
-        return { name: match[1].trim(), country: match[1].trim() };
+        const iso2 = match[2].toLowerCase();
+        const countryFromISO = getCountryFromISO(iso2);
+        return { name: match[1].trim(), country: countryFromISO || match[1].trim(), iso2 };
       }
       return { name: title, country: trip.preferences.country || title };
     };
     
-    const { name, country } = parseTitle(trip.title);
+    const { name, country, iso2: parsedISO2 } = parseTitle(trip.title);
+    const displayCountry = getCountryDisplayName(country);
     const startDate = trip.start_date ? new Date(trip.start_date) : null;
     const endDate = trip.end_date ? new Date(trip.end_date) : null;
     
@@ -151,11 +164,14 @@ export default function MyTripsPage({ onTripClick }: MyTripsPageProps) {
       nights = days - 1;
     }
 
+    // Get ISO2 code - prioritize preferences, then parsed from title, then lookup
+    const iso2 = trip.preferences.iso2 || parsedISO2 || getISO2Code(country);
+
     return {
       id: trip.id,
-      title: name,
-      country: country,
-      iso2: trip.preferences.iso2 || getISO2Code(country),
+      title: name === 'Trip' ? displayCountry : name,
+      country: displayCountry,
+      iso2,
       duration: trip.preferences.duration || `${days} Days, ${nights} Nights`,
       days,
       nights,
@@ -165,6 +181,7 @@ export default function MyTripsPage({ onTripClick }: MyTripsPageProps) {
       endDate: trip.end_date || undefined,
       destinations: trip.preferences.route,
       itinerary: trip.preferences.itinerary,
+      route: trip.preferences.route,
     };
   };
 
@@ -200,6 +217,8 @@ export default function MyTripsPage({ onTripClick }: MyTripsPageProps) {
         trip={formattedTrip}
         onClose={handleCloseDetail}
         onDelete={() => handleDeleteTrip(selectedTrip.id)}
+        onStartPlanning={handleStartPlanningTrip}
+        showPlanButton={true}
       />
     );
   }

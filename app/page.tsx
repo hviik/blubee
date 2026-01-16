@@ -271,7 +271,10 @@ export default function BlubeezHome() {
               maxHeight: isDesktop ? 'calc(100vh - 80px)' : 'calc(100vh - 64px)',
             }}
           >
-            <MyTripsPage onTripClick={(trip) => handleDestinationClick(trip.title, trip.preferences.route || [])} />
+            <MyTripsPage 
+              onTripClick={(trip) => handleDestinationClick(trip.title, trip.preferences.route || [])}
+              onStartPlanning={handleDestinationClick}
+            />
           </div>
         );
       

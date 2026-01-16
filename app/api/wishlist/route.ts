@@ -57,6 +57,9 @@ export async function GET() {
   }
 }
 
+// Maximum number of wishlist items per user
+const MAX_WISHLIST_ITEMS = 25;
+
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth();
@@ -66,7 +69,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { destinationId, destinationName, route, priceINR, duration, image, flag, iso2 } = body;
+    const { destinationId, destinationName, route, priceINR, duration, image, flag, iso2, itinerary, country, days, nights } = body;
 
     if (!destinationId || !destinationName) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -91,9 +94,10 @@ export async function POST(req: NextRequest) {
 
     const { data: allWishlistItems, error: checkError } = await supabaseAdmin
       .from('trips')
-      .select('id, preferences')
+      .select('id, preferences, created_at')
       .eq('user_id', userId)
-      .eq('status', 'wishlist');
+      .eq('status', 'wishlist')
+      .order('created_at', { ascending: false });
 
     if (checkError) {
     }
@@ -112,6 +116,19 @@ export async function POST(req: NextRequest) {
         trip: existing,
         action: 'exists'
       });
+    }
+
+    // Check wishlist count and clean up old items if needed
+    if (allWishlistItems && allWishlistItems.length >= MAX_WISHLIST_ITEMS) {
+      // Delete oldest wishlist items to make room (keep only recent 24 to make room for new one)
+      const itemsToDelete = allWishlistItems.slice(MAX_WISHLIST_ITEMS - 1);
+      if (itemsToDelete.length > 0) {
+        const idsToDelete = itemsToDelete.map(t => t.id);
+        await supabaseAdmin
+          .from('trips')
+          .delete()
+          .in('id', idsToDelete);
+      }
     }
 
     const iso2Upper = (iso2 || destinationId).toUpperCase();
@@ -135,7 +152,11 @@ export async function POST(req: NextRequest) {
           duration: duration,
           image: image || null,
           flag: flag || null,
-          iso2: iso2 || destinationId
+          iso2: iso2 || destinationId,
+          country: country || formattedName,
+          itinerary: itinerary || null,
+          days: days || null,
+          nights: nights || null
         }
       })
       .select()

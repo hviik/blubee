@@ -7,10 +7,27 @@ import { COLORS } from '../constants/colors';
 import { detectUserCurrency, getExchangeRate, CurrencyInfo } from '../utils/currencyDetection';
 import { getDestinationImage, getFlagImage, getISO2Code } from '../utils/countryData';
 import HeartButton, { DoubleTapHeartOverlay } from './HeartButton';
+import { TripDetailView } from './trips';
 
 interface ExplorePageProps {
   compact?: boolean;
   onDestinationClick?: (countryName: string, route: string[]) => void;
+}
+
+interface DayActivity {
+  morning?: string;
+  afternoon?: string;
+  evening?: string;
+}
+
+interface ItineraryDay {
+  dayNumber: number;
+  date?: string;
+  location: string;
+  title: string;
+  description?: string;
+  activities?: DayActivity;
+  places?: { name: string; type: 'stays' | 'restaurants' | 'attraction' | 'activities' }[];
 }
 
 export interface Destination {
@@ -21,7 +38,68 @@ export interface Destination {
   priceINR: number;
   priceDetail: string;
   route: string[];
+  itinerary?: ItineraryDay[];
 }
+
+// Sample itineraries for explore destinations
+const sampleItineraries: Record<string, ItineraryDay[]> = {
+  'vn': [
+    { dayNumber: 1, location: 'Hanoi', title: 'Arrival in Hanoi', activities: { morning: 'Arrive at Noi Bai International Airport and transfer to hotel', afternoon: 'Explore the Old Quarter and Hoan Kiem Lake', evening: 'Enjoy Vietnamese street food and water puppet show' } },
+    { dayNumber: 2, location: 'Hanoi', title: 'Hanoi Exploration', activities: { morning: 'Visit Ho Chi Minh Mausoleum and Temple of Literature', afternoon: 'Explore the Vietnam Museum of Ethnology', evening: 'Walking food tour through Hanoi' } },
+    { dayNumber: 3, location: 'Ha Long Bay', title: 'Ha Long Bay Cruise', activities: { morning: 'Drive to Ha Long Bay and board overnight cruise', afternoon: 'Cruise through limestone karsts and visit caves', evening: 'Sunset kayaking and seafood dinner on the boat' } },
+    { dayNumber: 4, location: 'Ho Chi Minh City', title: 'Flight to Ho Chi Minh City', activities: { morning: 'Morning Tai Chi on the cruise deck, return to Hanoi', afternoon: 'Fly to Ho Chi Minh City', evening: 'Explore Ben Thanh Market and Nguyen Hue Walking Street' } },
+    { dayNumber: 5, location: 'Ho Chi Minh City', title: 'Departure', activities: { morning: 'Visit Cu Chi Tunnels or War Remnants Museum', afternoon: 'Last-minute shopping and departure' } },
+  ],
+  'my': [
+    { dayNumber: 1, location: 'Kuala Lumpur', title: 'Arrival in Kuala Lumpur', activities: { morning: 'Arrive at KLIA and transfer to hotel', afternoon: 'Visit Petronas Twin Towers and KLCC Park', evening: 'Dinner at Jalan Alor food street' } },
+    { dayNumber: 2, location: 'Kuala Lumpur', title: 'KL City Tour', activities: { morning: 'Batu Caves and Hindu temple visit', afternoon: 'Explore Chinatown and Central Market', evening: 'Visit the KL Tower for panoramic night views' } },
+    { dayNumber: 3, location: 'Penang', title: 'Penang Heritage', activities: { morning: 'Fly to Penang, explore George Town street art', afternoon: 'Visit Kek Lok Si Temple', evening: 'Penang hawker food at Gurney Drive' } },
+    { dayNumber: 4, location: 'Langkawi', title: 'Langkawi Paradise', activities: { morning: 'Ferry to Langkawi, cable car ride', afternoon: 'Island hopping tour', evening: 'Sunset cruise with dinner' } },
+    { dayNumber: 5, location: 'Langkawi', title: 'Departure', activities: { morning: 'Relax at Cenang Beach or duty-free shopping', afternoon: 'Departure from Langkawi' } },
+  ],
+  'pe': [
+    { dayNumber: 1, location: 'Lima', title: 'Arrival in Lima', activities: { morning: 'Arrive at Jorge Chavez Airport', afternoon: 'Explore Miraflores district and Larcomar', evening: 'Dinner featuring Peruvian cuisine' } },
+    { dayNumber: 2, location: 'Cusco', title: 'Gateway to the Incas', activities: { morning: 'Fly to Cusco, acclimatize to altitude', afternoon: 'Walking tour of Plaza de Armas and San Pedro Market', evening: 'Traditional dinner with live Andean music' } },
+    { dayNumber: 3, location: 'Sacred Valley', title: 'Sacred Valley Tour', activities: { morning: 'Visit Pisac ruins and market', afternoon: 'Explore Ollantaytambo fortress', evening: 'Return to Cusco or stay in the Valley' } },
+    { dayNumber: 4, location: 'Machu Picchu', title: 'Machu Picchu Wonder', activities: { morning: 'Early train to Aguas Calientes, guided tour of Machu Picchu', afternoon: 'Free time to explore the citadel', evening: 'Return to Cusco' } },
+    { dayNumber: 5, location: 'Lima', title: 'Departure', activities: { morning: 'Fly back to Lima', afternoon: 'Departure or extend in Lima' } },
+  ],
+  'ph': [
+    { dayNumber: 1, location: 'Manila', title: 'Manila Arrival', activities: { morning: 'Arrive at NAIA', afternoon: 'Explore Intramuros and Fort Santiago', evening: 'Dinner at Manila Bay' } },
+    { dayNumber: 2, location: 'Cebu', title: 'Cebu Island', activities: { morning: 'Fly to Cebu, Magellan\'s Cross visit', afternoon: 'Whale shark watching in Oslob', evening: 'Seafood dinner in Cebu City' } },
+    { dayNumber: 3, location: 'Cebu', title: 'Cebu Adventures', activities: { morning: 'Canyoneering at Kawasan Falls', afternoon: 'Visit Moalboal for snorkeling', evening: 'Beach relaxation' } },
+    { dayNumber: 4, location: 'Palawan', title: 'Palawan Paradise', activities: { morning: 'Fly to Puerto Princesa or El Nido', afternoon: 'Underground River tour or island hopping', evening: 'Beach dinner under the stars' } },
+    { dayNumber: 5, location: 'Palawan', title: 'Departure', activities: { morning: 'Lagoon kayaking or snorkeling', afternoon: 'Departure from Palawan' } },
+  ],
+  'br': [
+    { dayNumber: 1, location: 'Rio de Janeiro', title: 'Welcome to Rio', activities: { morning: 'Arrive at Galeão Airport', afternoon: 'Copacabana and Ipanema beach walk', evening: 'Samba show in Lapa' } },
+    { dayNumber: 2, location: 'Rio de Janeiro', title: 'Rio Landmarks', activities: { morning: 'Christ the Redeemer via Corcovado train', afternoon: 'Sugarloaf Mountain cable car', evening: 'Dinner at a churrascaria' } },
+    { dayNumber: 3, location: 'São Paulo', title: 'São Paulo Culture', activities: { morning: 'Fly to São Paulo', afternoon: 'Visit MASP and Paulista Avenue', evening: 'Explore Vila Madalena nightlife' } },
+    { dayNumber: 4, location: 'Iguazu Falls', title: 'Iguazu Falls', activities: { morning: 'Fly to Foz do Iguaçu', afternoon: 'Brazilian side of the falls', evening: 'Return to hotel, relax' } },
+    { dayNumber: 5, location: 'Iguazu Falls', title: 'Departure', activities: { morning: 'Optional visit to Argentine side', afternoon: 'Departure' } },
+  ],
+  'in': [
+    { dayNumber: 1, location: 'Delhi', title: 'Delhi Arrival', activities: { morning: 'Arrive at Indira Gandhi Airport', afternoon: 'Visit India Gate and Humayun\'s Tomb', evening: 'Explore Connaught Place' } },
+    { dayNumber: 2, location: 'Delhi', title: 'Old Delhi Heritage', activities: { morning: 'Red Fort and Jama Masjid', afternoon: 'Chandni Chowk street food tour', evening: 'Qutub Minar at sunset' } },
+    { dayNumber: 3, location: 'Agra', title: 'Taj Mahal Day', activities: { morning: 'Early drive to Agra, sunrise Taj Mahal visit', afternoon: 'Agra Fort exploration', evening: 'Drive to Jaipur' } },
+    { dayNumber: 4, location: 'Jaipur', title: 'Pink City', activities: { morning: 'Amber Fort elephant ride', afternoon: 'City Palace and Hawa Mahal', evening: 'Shopping at Johari Bazaar' } },
+    { dayNumber: 5, location: 'Jaipur', title: 'Departure', activities: { morning: 'Jantar Mantar observatory', afternoon: 'Return to Delhi for departure' } },
+  ],
+  'mv': [
+    { dayNumber: 1, location: 'Male', title: 'Maldives Arrival', activities: { morning: 'Arrive at Velana Airport', afternoon: 'Speedboat/seaplane to resort in Ari Atoll', evening: 'Welcome dinner and beach relaxation' } },
+    { dayNumber: 2, location: 'Ari Atoll', title: 'Ocean Adventures', activities: { morning: 'Snorkeling at house reef', afternoon: 'Dolphin watching cruise', evening: 'Romantic beach dinner' } },
+    { dayNumber: 3, location: 'Ari Atoll', title: 'Water Sports', activities: { morning: 'Scuba diving or whale shark excursion', afternoon: 'Spa treatment overwater', evening: 'Sunset fishing trip' } },
+    { dayNumber: 4, location: 'Vaavu', title: 'Island Hopping', activities: { morning: 'Visit local island and village', afternoon: 'Sandbank picnic lunch', evening: 'Night snorkeling with manta rays' } },
+    { dayNumber: 5, location: 'Male', title: 'Departure', activities: { morning: 'Final snorkeling or beach time', afternoon: 'Transfer back to Male for departure' } },
+  ],
+  'la': [
+    { dayNumber: 1, location: 'Luang Prabang', title: 'Arrival in Luang Prabang', activities: { morning: 'Arrive at Luang Prabang Airport', afternoon: 'Explore the UNESCO heritage town', evening: 'Night market and traditional dinner' } },
+    { dayNumber: 2, location: 'Luang Prabang', title: 'Cultural Immersion', activities: { morning: 'Alms giving ceremony at dawn, Kuang Si Falls', afternoon: 'Visit Wat Xieng Thong and Royal Palace', evening: 'Mekong River sunset cruise' } },
+    { dayNumber: 3, location: 'Vang Vieng', title: 'Vang Vieng Adventure', activities: { morning: 'Drive to Vang Vieng through scenic route', afternoon: 'Tubing or kayaking on Nam Song River', evening: 'Caves exploration' } },
+    { dayNumber: 4, location: 'Vientiane', title: 'Capital City', activities: { morning: 'Drive to Vientiane', afternoon: 'Patuxai Monument and Pha That Luang', evening: 'French colonial quarter and local Lao BBQ' } },
+    { dayNumber: 5, location: 'Vientiane', title: 'Departure', activities: { morning: 'Buddha Park excursion', afternoon: 'Departure from Wattay Airport' } },
+  ],
+};
 
 const destinations: Destination[] = [
   {
@@ -32,6 +110,7 @@ const destinations: Destination[] = [
     priceINR: 74500,
     priceDetail: 'Per person',
     route: ['Hanoi', 'Ha Long Bay', 'Ho Chi Minh City'],
+    itinerary: sampleItineraries['vn'],
   },
   {
     id: 'my',
@@ -41,6 +120,7 @@ const destinations: Destination[] = [
     priceINR: 68900,
     priceDetail: 'Per person',
     route: ['Kuala Lumpur', 'Penang', 'Langkawi'],
+    itinerary: sampleItineraries['my'],
   },
   {
     id: 'pe',
@@ -50,6 +130,7 @@ const destinations: Destination[] = [
     priceINR: 215000,
     priceDetail: 'Per person',
     route: ['Lima', 'Cusco', 'Machu Picchu'],
+    itinerary: sampleItineraries['pe'],
   },
   {
     id: 'ph',
@@ -59,6 +140,7 @@ const destinations: Destination[] = [
     priceINR: 82400,
     priceDetail: 'Per person',
     route: ['Manila', 'Cebu', 'Palawan'],
+    itinerary: sampleItineraries['ph'],
   },
   {
     id: 'br',
@@ -68,6 +150,7 @@ const destinations: Destination[] = [
     priceINR: 245000,
     priceDetail: 'Per person',
     route: ['Rio de Janeiro', 'São Paulo', 'Iguazu Falls'],
+    itinerary: sampleItineraries['br'],
   },
   {
     id: 'in',
@@ -77,6 +160,7 @@ const destinations: Destination[] = [
     priceINR: 38500,
     priceDetail: 'Per person',
     route: ['Delhi', 'Agra', 'Jaipur'],
+    itinerary: sampleItineraries['in'],
   },
   {
     id: 'mv',
@@ -86,6 +170,7 @@ const destinations: Destination[] = [
     priceINR: 112000,
     priceDetail: 'Per person',
     route: ['Male', 'Ari Atoll', 'Vaavu'],
+    itinerary: sampleItineraries['mv'],
   },
   {
     id: 'la',
@@ -95,6 +180,7 @@ const destinations: Destination[] = [
     priceINR: 71200,
     priceDetail: 'Per person',
     route: ['Luang Prabang', 'Vang Vieng', 'Vientiane'],
+    itinerary: sampleItineraries['la'],
   },
 ];
 
@@ -106,6 +192,7 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
   const [likedDestinations, setLikedDestinations] = useState<Set<string>>(new Set());
   const [loadingLikes, setLoadingLikes] = useState<Set<string>>(new Set());
   const [showHeartOverlay, setShowHeartOverlay] = useState<string | null>(null);
+  const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
   
   const lastTapTimeRef = useRef<{ [key: string]: number }>({});
 
@@ -201,6 +288,10 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
           iso2: destination.iso2,
           image: destinationImage,
           flag: flagImage,
+          itinerary: destination.itinerary,
+          country: destination.name,
+          days: 5,
+          nights: 4,
         };
         
         const response = await fetch('/api/wishlist', {
@@ -273,10 +364,21 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
     if (!wasDoubleTap) {
       pendingClickRef.current[destination.id] = setTimeout(() => {
         delete pendingClickRef.current[destination.id];
-        onDestinationClick?.(destination.name, destination.route);
+        // Open detail view instead of redirecting to chat
+        setSelectedDestination(destination);
       }, 300);
     }
-  }, [handleCardDoubleTap, onDestinationClick]);
+  }, [handleCardDoubleTap]);
+
+  const handleStartPlanning = useCallback(() => {
+    if (selectedDestination && onDestinationClick) {
+      onDestinationClick(selectedDestination.name, selectedDestination.route);
+    }
+  }, [selectedDestination, onDestinationClick]);
+
+  const handleCloseDetail = () => {
+    setSelectedDestination(null);
+  };
 
   const filteredDestinations = searchQuery
     ? destinations.filter(d => 
@@ -284,6 +386,32 @@ export default function ExplorePage({ compact = false, onDestinationClick }: Exp
         d.route.some(r => r.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     : destinations;
+
+  // Show detail view when a destination is selected
+  if (selectedDestination) {
+    const tripData = {
+      id: selectedDestination.id,
+      title: selectedDestination.name.charAt(0) + selectedDestination.name.slice(1).toLowerCase(),
+      country: selectedDestination.name.charAt(0) + selectedDestination.name.slice(1).toLowerCase(),
+      iso2: selectedDestination.iso2,
+      duration: selectedDestination.duration,
+      days: 5,
+      nights: 4,
+      destinations: selectedDestination.route,
+      itinerary: selectedDestination.itinerary,
+      priceINR: selectedDestination.priceINR,
+      route: selectedDestination.route,
+    };
+
+    return (
+      <TripDetailView
+        trip={tripData}
+        onClose={handleCloseDetail}
+        onStartPlanning={handleStartPlanning}
+        showPlanButton={true}
+      />
+    );
+  }
 
   return (
     <div className="w-full h-full flex flex-col bg-transparent overflow-hidden">

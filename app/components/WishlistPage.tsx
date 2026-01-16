@@ -4,8 +4,30 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
 import { COLORS } from '../constants/colors';
-import { getDestinationImage, getFlagImage, getCountryDisplayName } from '../utils/countryData';
-import HeartButton from './HeartButton';
+import { TripCard, TripDetailView } from './trips';
+import { getDestinationImage, getFlagImage, getCountryDisplayName, getISO2Code } from '../utils/countryData';
+
+interface DayActivity {
+  morning?: string;
+  afternoon?: string;
+  evening?: string;
+}
+
+interface Place {
+  name: string;
+  type: 'stays' | 'restaurants' | 'attraction' | 'activities';
+  address?: string;
+}
+
+interface ItineraryDay {
+  dayNumber: number;
+  date?: string;
+  location: string;
+  title: string;
+  description?: string;
+  activities?: DayActivity;
+  places?: Place[];
+}
 
 interface WishlistItem {
   id: string;
@@ -16,6 +38,10 @@ interface WishlistItem {
     price_inr?: number;
     duration?: string;
     iso2?: string;
+    country?: string;
+    itinerary?: ItineraryDay[];
+    days?: number;
+    nights?: number;
   };
   created_at: string;
 }
@@ -24,11 +50,83 @@ interface WishlistPageProps {
   onDestinationClick?: (countryName: string, route: string[]) => void;
 }
 
+// Confirmation Modal Component
+function RemoveConfirmModal({ 
+  isOpen, 
+  itemName, 
+  onConfirm, 
+  onCancel 
+}: { 
+  isOpen: boolean; 
+  itemName: string; 
+  onConfirm: () => void; 
+  onCancel: () => void;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div 
+        className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 animate-scaleIn"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex flex-col items-center text-center">
+          <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </div>
+          <h3 
+            className="text-lg font-semibold text-[#475f73] mb-2"
+            style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}
+          >
+            Remove from Wishlist?
+          </h3>
+          <p 
+            className="text-sm text-[#7286b0] mb-6"
+            style={{ fontFamily: 'var(--font-poppins)' }}
+          >
+            Are you sure you want to remove <span className="font-medium text-[#475f73]">{itemName}</span> from your wishlist?
+          </p>
+          <div className="flex gap-3 w-full">
+            <button
+              onClick={onCancel}
+              className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium text-sm transition-colors"
+              style={{ fontFamily: 'var(--font-poppins)' }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onConfirm}
+              className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium text-sm transition-colors"
+              style={{ fontFamily: 'var(--font-poppins)' }}
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <style jsx>{`
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .animate-scaleIn {
+          animation: scaleIn 0.2s ease-out;
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function WishlistPage({ onDestinationClick }: WishlistPageProps) {
   const { isSignedIn, user } = useUser();
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedItem, setSelectedItem] = useState<WishlistItem | null>(null);
+  const [confirmRemove, setConfirmRemove] = useState<WishlistItem | null>(null);
   const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -59,8 +157,12 @@ export default function WishlistPage({ onDestinationClick }: WishlistPageProps) 
     const destinationId = item.preferences.destination_id;
     
     setRemovingIds(prev => new Set(prev).add(destinationId));
-    
     setWishlist(prev => prev.filter(w => w.preferences.destination_id !== destinationId));
+    setConfirmRemove(null);
+    
+    if (selectedItem?.id === item.id) {
+      setSelectedItem(null);
+    }
 
     try {
       const response = await fetch(`/api/wishlist?destinationId=${destinationId}`, {
@@ -80,11 +182,58 @@ export default function WishlistPage({ onDestinationClick }: WishlistPageProps) 
         return newSet;
       });
     }
-  }, []);
+  }, [selectedItem]);
 
-  const handleCardClick = (item: WishlistItem) => {
-    const route = item.preferences.route || [];
-    onDestinationClick?.(item.title, route);
+  const handleItemClick = (item: WishlistItem) => {
+    setSelectedItem(item);
+  };
+
+  const handleCloseDetail = () => {
+    setSelectedItem(null);
+  };
+
+  const handleStartPlanning = () => {
+    if (selectedItem && onDestinationClick) {
+      const route = selectedItem.preferences.route || [];
+      const countryName = parseTitle(selectedItem.title);
+      onDestinationClick(countryName, route);
+    }
+  };
+
+  const handleHeartClick = (item: WishlistItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setConfirmRemove(item);
+  };
+
+  const parseTitle = (title: string): string => {
+    const match = title.match(/^(.+?)\s*\(([A-Z]{2})\)$/i);
+    if (match) {
+      return match[1].trim();
+    }
+    return title;
+  };
+
+  // Convert WishlistItem to format expected by TripCard
+  const formatItemForCard = (item: WishlistItem) => {
+    const countryName = parseTitle(item.title);
+    const displayName = getCountryDisplayName(countryName);
+    
+    let days = item.preferences.days || 5;
+    let nights = item.preferences.nights || 4;
+    
+    return {
+      id: item.id,
+      title: displayName,
+      country: displayName,
+      iso2: item.preferences.iso2 || getISO2Code(countryName),
+      duration: item.preferences.duration || `${days} Days, ${nights} Nights`,
+      days,
+      nights,
+      destinations: item.preferences.route,
+      itinerary: item.preferences.itinerary,
+      priceINR: item.preferences.price_inr,
+      route: item.preferences.route,
+    };
   };
 
   const filteredWishlist = searchQuery
@@ -115,8 +264,31 @@ export default function WishlistPage({ onDestinationClick }: WishlistPageProps) 
     );
   }
 
+  // Show detail view when an item is selected
+  if (selectedItem) {
+    const formattedItem = formatItemForCard(selectedItem);
+    return (
+      <>
+        <TripDetailView
+          trip={formattedItem}
+          onClose={handleCloseDetail}
+          onDelete={() => setConfirmRemove(selectedItem)}
+          onStartPlanning={handleStartPlanning}
+          showPlanButton={true}
+        />
+        <RemoveConfirmModal
+          isOpen={confirmRemove !== null}
+          itemName={confirmRemove ? parseTitle(confirmRemove.title) : ''}
+          onConfirm={() => confirmRemove && handleRemoveFromWishlist(confirmRemove)}
+          onCancel={() => setConfirmRemove(null)}
+        />
+      </>
+    );
+  }
+
   return (
     <div className="w-full h-full flex flex-col bg-transparent overflow-hidden">
+      {/* Header */}
       <div className="px-4 md:px-6 pt-4 pb-2 shrink-0">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 rounded-full overflow-hidden bg-[#e6f0f7] flex items-center justify-center">
@@ -150,6 +322,7 @@ export default function WishlistPage({ onDestinationClick }: WishlistPageProps) 
           </div>
         </div>
 
+        {/* Search */}
         <div
           className="flex items-center justify-between px-4 py-[10px] rounded-xl border max-w-md"
           style={{
@@ -161,7 +334,7 @@ export default function WishlistPage({ onDestinationClick }: WishlistPageProps) 
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search..."
+            placeholder="Search wishlist..."
             className="flex-1 bg-transparent text-sm outline-none placeholder-gray-400"
             style={{ fontFamily: 'var(--font-poppins)', color: '#333' }}
           />
@@ -174,6 +347,7 @@ export default function WishlistPage({ onDestinationClick }: WishlistPageProps) 
         </div>
       </div>
 
+      {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 md:px-6 pb-6 bg-transparent">
         {loading ? (
           <div className="flex items-center justify-center h-64">
@@ -199,183 +373,42 @@ export default function WishlistPage({ onDestinationClick }: WishlistPageProps) 
             </p>
           </div>
         ) : (
-          <div
-            className="grid gap-4 md:gap-6 lg:gap-8 mt-4 justify-center"
-            style={{
-              gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 220px))',
-            }}
-          >
-            {filteredWishlist.map((item) => (
-              <WishlistCard
-                key={item.id}
-                item={item}
-                onClick={() => handleCardClick(item)}
-                onRemove={() => handleRemoveFromWishlist(item)}
-                isRemoving={removingIds.has(item.preferences.destination_id)}
-              />
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-4">
+            {filteredWishlist.map(item => {
+              const formattedItem = formatItemForCard(item);
+              return (
+                <TripCard
+                  key={item.id}
+                  trip={formattedItem}
+                  onClick={() => handleItemClick(item)}
+                  onHeart={(e) => handleHeartClick(item, e)}
+                  isWishlisted={true}
+                  showHeart={true}
+                />
+              );
+            })}
           </div>
         )}
       </div>
-    </div>
-  );
-}
 
-interface WishlistCardProps {
-  item: WishlistItem;
-  onClick: () => void;
-  onRemove: () => void;
-  isRemoving: boolean;
-}
+      {/* Confirmation Modal */}
+      <RemoveConfirmModal
+        isOpen={confirmRemove !== null}
+        itemName={confirmRemove ? parseTitle(confirmRemove.title) : ''}
+        onConfirm={() => confirmRemove && handleRemoveFromWishlist(confirmRemove)}
+        onCancel={() => setConfirmRemove(null)}
+      />
 
-function WishlistCard({ item, onClick, onRemove, isRemoving }: WishlistCardProps) {
-  const parseTitle = (title: string): string => {
-    const match = title.match(/^(.+?)\s*\(([A-Z]{2})\)$/i);
-    if (match) {
-      return match[1].trim();
-    }
-    return title;
-  };
-  
-  const countryName = parseTitle(item.title);
-  const displayName = getCountryDisplayName(countryName);
-  const route = item.preferences.route || [];
-  const duration = item.preferences.duration || '5 Days, 4 Nights';
-  const priceINR = item.preferences.price_inr;
-
-  return (
-    <div
-      className="relative w-full aspect-[3/4] md:aspect-[4/5] rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform duration-300"
-      onClick={onClick}
-    >
-      <div className="absolute inset-0">
-        <Image
-          src={getDestinationImage(countryName)}
-          alt={countryName}
-          fill
-          className="object-cover object-center brightness-[0.95] contrast-[1.08]"
-          style={{
-            transform: 'translateZ(0)',
-            willChange: 'filter',
-          }}
-          unoptimized
-          sizes="(max-width: 768px) 45vw, 220px"
-        />
-      </div>
-
-      <div
-        className="absolute top-0 left-0 right-0 h-20 md:h-24 p-3 md:p-[18px] flex items-start justify-between"
-        style={{
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%)',
-        }}
-      >
-        <div className="flex flex-col text-white">
-          {priceINR && (
-            <>
-              <p
-                className="text-[10px] md:text-[12px] font-medium leading-tight"
-                style={{ fontFamily: 'var(--font-poppins)' }}
-              >
-                ₹ {priceINR.toLocaleString()}
-              </p>
-              <p
-                className="text-[8px] md:text-[9px] font-medium opacity-90"
-                style={{ fontFamily: 'var(--font-poppins)' }}
-              >
-                Per person
-              </p>
-            </>
-          )}
-        </div>
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 14 14"
-          fill="none"
-          className="hover:scale-110 transition-transform md:w-[14px] md:h-[14px]"
-        >
-          <path
-            d="M1 13L13 1M13 1H1M13 1V13"
-            stroke="white"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </div>
-
-      <div className="absolute bottom-3 md:bottom-4 right-3 md:right-4 z-10">
-        <HeartButton
-          isLiked={true}
-          onToggle={onRemove}
-          size="sm"
-          disabled={isRemoving}
-        />
-      </div>
-
-      <div
-        className="absolute bottom-0 left-0 right-0 h-40 md:h-48 p-3 md:p-[18px] flex flex-col items-center justify-end"
-        style={{
-          background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
-        }}
-      >
-        <div className="flex flex-col items-center gap-1.5 md:gap-2 w-full mb-1.5 md:mb-2">
-          <div className="w-7 h-3.5 md:w-8 md:h-4 relative overflow-hidden rounded-sm">
-            <Image
-              src={getFlagImage(countryName)}
-              alt={`${displayName} flag`}
-              fill
-              className="object-cover"
-              unoptimized
-            />
-          </div>
-          <p
-            className="text-[10px] md:text-[12px] font-medium text-center text-white"
-            style={{ fontFamily: 'var(--font-poppins)' }}
-          >
-            {duration}
-          </p>
-        </div>
-
-        <h3
-          className="text-[18px] md:text-[24px] font-black italic text-center text-white uppercase w-full mb-0.5 md:mb-1"
-          style={{
-            fontFamily: 'var(--font-poppins)',
-            fontWeight: 900,
-          }}
-        >
-          {displayName}
-        </h3>
-
-        <div className="flex items-center gap-0.5 md:gap-1 justify-center w-full flex-wrap">
-          {route.map((loc, i) => (
-            <div key={i} className="flex items-center gap-0.5 md:gap-1">
-              <span
-                className="text-[8px] md:text-[9px] text-white"
-                style={{ fontFamily: 'var(--font-poppins)' }}
-              >
-                {loc}
-              </span>
-              {i < route.length - 1 && (
-                <svg
-                  width="9"
-                  height="9"
-                  viewBox="0 0 11 11"
-                  fill="none"
-                  className="rotate-90 md:w-[10.5px] md:h-[10.5px]"
-                >
-                  <path
-                    d="M1 1L10 10"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Custom scrollbar styles */}
+      <style jsx global>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 }
