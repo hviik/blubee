@@ -198,6 +198,27 @@ export default function CreatorPage({ sidebarOffset = 0, onOpenSidebar, onExplor
             </div>
           </div>
         </div>
+
+        {/* Mobile phone mockups */}
+        <div className="md:hidden px-4 pb-8 pt-4">
+          <div className="relative w-full h-[270px]">
+            <div className="absolute left-0 top-6 w-[130px] h-[242px] rotate-[-4deg] shadow-[0_8px_24px_rgba(0,0,0,0.2)] rounded-[14px] overflow-hidden">
+              <Image src="/assets/creator/phone-left.png" alt="Creator preview left" fill className="object-cover" />
+            </div>
+            <div className="absolute right-0 top-4 w-[130px] h-[242px] rotate-[4deg] shadow-[0_8px_24px_rgba(0,0,0,0.2)] rounded-[14px] overflow-hidden">
+              <Image src="/assets/creator/phone-right.png" alt="Creator preview right" fill className="object-cover" />
+            </div>
+            <div className="absolute left-1/2 -translate-x-1/2 top-0 w-[120px] h-[258px] shadow-[0_10px_30px_rgba(0,0,0,0.3)] rounded-[16px] overflow-hidden z-10">
+              <Image src="/assets/creator/phone-center.png" alt="Creator preview center" fill className="object-cover" />
+            </div>
+            <div className="absolute left-0 top-0 w-[28px] h-[22px] rotate-[-10deg]">
+              <Image src="/assets/creator/like-left.svg" alt="" fill />
+            </div>
+            <div className="absolute right-1 top-2 w-[26px] h-[20px] rotate-[10deg]">
+              <Image src="/assets/creator/like-right.svg" alt="" fill />
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Section 2: Become a Travel Storyteller */}
@@ -301,73 +322,106 @@ export default function CreatorPage({ sidebarOffset = 0, onOpenSidebar, onExplor
         <div className="max-w-[1328px] mx-auto">
           <div className="flex flex-col md:flex-row gap-8 md:gap-12 lg:gap-16">
             {/* Left: Dashboard Mockup */}
-            <div className="flex-1 relative min-h-[250px] md:min-h-[350px]">
-              <div className="relative max-w-[380px] mx-auto md:mx-0">
-                {/* Dashboard Card */}
-                <div className="bg-white rounded-xl shadow-xl p-3 md:p-4">
-                  {/* Dashboard Header */}
-                  <div className="flex items-center gap-1.5 mb-3">
-                    <Image src="/assets/logo-icon.svg" alt="Blubeez" width={14} height={12} />
-                    <span className="text-[10px] font-medium text-[#475f73]">Dashboard</span>
-                  </div>
-                  
-                  {/* User Info & Earnings */}
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500" />
-                      <div>
-                        <p className="text-xs font-semibold text-[#132341]">Luke R.</p>
-                        <div className="w-14 h-1 bg-[#e8f0f8] rounded-full mt-0.5" />
+            <div className="flex-1 relative min-h-[260px] md:min-h-[420px]">
+              <div className="relative w-full h-[320px] md:h-[420px]">
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 origin-top-left scale-[0.42] md:scale-[0.6]">
+                  <div className="relative w-[830px] h-[595px]">
+                    {/* Grid background */}
+                    <Image
+                      src="/assets/creator-dashboard/dashboard-grid-h.svg"
+                      alt=""
+                      width={749}
+                      height={572}
+                      className="absolute left-[-94px] top-[-80px] opacity-50"
+                    />
+                    <Image
+                      src="/assets/creator-dashboard/dashboard-grid-v.svg"
+                      alt=""
+                      width={805}
+                      height={528}
+                      className="absolute left-[-112px] top-[-45px] opacity-50"
+                    />
+
+                    {/* Floating cards around */}
+                    {[
+                      { src: '/assets/creator-dashboard/dashboard-card-3.png', left: 34, top: 36, width: 66, height: 84, rotate: 15 },
+                      { src: '/assets/creator-dashboard/dashboard-card-1.png', left: 234, top: 10, width: 88, height: 112, rotate: 4 },
+                      { src: '/assets/creator-dashboard/dashboard-card-2.png', left: 458, top: 44, width: 63, height: 80, rotate: 3 },
+                      { src: '/assets/creator-dashboard/dashboard-card-4.png', left: 481, top: 157, width: 61, height: 78, rotate: 5 },
+                      { src: '/assets/creator-dashboard/dashboard-card-8.png', left: 2, top: 158, width: 88, height: 112, rotate: -5 },
+                      { src: '/assets/creator-dashboard/dashboard-card-7.png', left: 79, top: 311, width: 54, height: 68, rotate: -10 },
+                      { src: '/assets/creator-dashboard/dashboard-card-6.png', left: 243, top: 299, width: 88, height: 112, rotate: -4 },
+                      { src: '/assets/creator-dashboard/dashboard-card-5.png', left: 458, top: 284, width: 75, height: 95, rotate: 0 },
+                    ].map((card) => (
+                      <Image
+                        key={`${card.src}-${card.left}`}
+                        src={card.src}
+                        alt=""
+                        width={card.width}
+                        height={card.height}
+                        className="absolute shadow-[0_10px_30px_rgba(0,0,0,0.15)] rounded-[6px]"
+                        style={{
+                          left: `${card.left}px`,
+                          top: `${card.top}px`,
+                          transform: `rotate(${card.rotate}deg)`,
+                        }}
+                      />
+                    ))}
+
+                    {/* Central dashboard card */}
+                    <div
+                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-[10px] shadow-[0_0_70px_rgba(0,0,0,0.25)] w-[400px] p-4"
+                    >
+                      <div className="flex items-center gap-2 mb-3">
+                        <Image src="/assets/logo-icon.svg" alt="Blubeez" width={16} height={14} />
+                        <span className="text-[10px] text-[#2c4c91]" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>
+                          Your dashboard
+                        </span>
+                      </div>
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="relative w-[38px] h-[38px]">
+                            <Image src="/assets/creator-dashboard/dashboard-avatar-ring.svg" alt="" fill />
+                            <Image src="/assets/creator-dashboard/dashboard-avatar.png" alt="Luka R" fill className="rounded-full" />
+                          </div>
+                          <div>
+                            <p className="text-[14px] font-semibold text-[#2c4c91]" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>
+                              Luka R
+                            </p>
+                            <div className="w-[90px] h-1 bg-[#e9f0ff] rounded-full mt-1" />
+                          </div>
+                        </div>
+                        <div className="bg-white rounded-lg shadow-[0_0_30px_rgba(44,76,145,0.1)] px-3 py-2">
+                          <p className="text-[10px] text-[#2c4c91]" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>
+                            Total earnings
+                          </p>
+                          <p className="text-[14px] text-[#6d7fa7]" style={{ fontFamily: 'var(--font-bricolage-grotesque)' }}>
+                            $$$$$$
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-6 text-[12px] text-[#6d7fa7] mb-3">
+                        <div>
+                          <p className="font-semibold">1.2k</p>
+                          <div className="w-9 h-1 bg-[#e9f0ff] rounded-full mt-1" />
+                        </div>
+                        <div>
+                          <p className="font-semibold">$$$$$$</p>
+                          <div className="w-9 h-1 bg-[#e9f0ff] rounded-full mt-1" />
+                        </div>
+                        <div>
+                          <p className="font-semibold">324</p>
+                          <div className="w-9 h-1 bg-[#e9f0ff] rounded-full mt-1" />
+                        </div>
+                      </div>
+                      <div className="h-1 bg-[#2c4c91] rounded-full w-16 mb-2" />
+                      <div className="border-t border-[#e9f0ff] mb-2" />
+                      <div className="flex items-center gap-4 text-[10px] text-[#6d7fa7]">
+                        <span>$$$$$$</span>
+                        <span>$$$$$$</span>
+                        <span>$$$$$$</span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-[8px] text-[#6c7f8f]">Total Earnings</p>
-                      <p className="text-sm font-bold text-[#132341]">$99999</p>
-                    </div>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="flex gap-3 text-[10px] text-[#6c7f8f] mb-3">
-                    <div>
-                      <p className="font-semibold text-[#132341] text-xs">1.2K</p>
-                      <div className="w-8 h-0.5 bg-[#e8f0f8] rounded-full mt-0.5" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-[#132341] text-xs">$4000</p>
-                      <div className="w-8 h-0.5 bg-[#e8f0f8] rounded-full mt-0.5" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-[#132341] text-xs">200</p>
-                      <div className="w-8 h-0.5 bg-[#e8f0f8] rounded-full mt-0.5" />
-                    </div>
-                  </div>
-
-                  {/* Graph placeholder */}
-                  <div className="h-12 flex items-end gap-1.5">
-                    {[35, 55, 40, 70, 45, 60, 50].map((h, i) => (
-                      <div key={i} className="flex-1 bg-gradient-to-t from-[#2d4e92]/20 to-[#2d4e92]/40 rounded-t" style={{ height: `${h}%` }} />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Floating Trip Cards */}
-                <div className="absolute -top-2 -right-2 md:-top-4 md:-right-4 w-14 md:w-16 bg-white rounded-lg shadow-lg overflow-hidden">
-                  <div className="h-10 bg-gradient-to-br from-orange-400 to-pink-500 relative">
-                    <Image src="/assets/destinations/bali.jpg" alt="Bali" fill className="object-cover" />
-                  </div>
-                  <div className="p-1">
-                    <p className="text-[6px] font-bold text-[#132341]">$299</p>
-                    <p className="text-[5px] text-[#6c7f8f]">Bali</p>
-                  </div>
-                </div>
-                
-                <div className="absolute bottom-0 -right-1 md:-right-2 w-12 md:w-14 bg-white rounded-lg shadow-lg overflow-hidden">
-                  <div className="h-8 bg-gradient-to-br from-blue-400 to-teal-500 relative">
-                    <Image src="/assets/destinations/japan.jpg" alt="Japan" fill className="object-cover" />
-                  </div>
-                  <div className="p-1">
-                    <p className="text-[5px] font-bold text-[#132341]">$199</p>
-                    <p className="text-[4px] text-[#6c7f8f]">Japan</p>
                   </div>
                 </div>
               </div>
