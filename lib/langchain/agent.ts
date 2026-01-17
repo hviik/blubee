@@ -275,45 +275,51 @@ export async function* streamAgent(
   const langChainMessages = convertToLangChainMessages(messages, systemPrompt);
   const app = createGraph();
 
-  const stream = await app.stream(
+  // Use streamEvents for true token-by-token streaming
+  const eventStream = app.streamEvents(
     { messages: langChainMessages },
     {
+      version: "v2",
       configurable: {
         userId: options.userId,
         thread_id: options.userId || "default",
         currencyContext, // Pass to tools
       },
-      streamMode: "updates"
     }
   );
 
-  for await (const update of stream) {
-    if (update.agent?.messages) {
-      const msg = update.agent.messages.at(-1) as AIMessage;
-      
-      // Check for tool calls in the message
-      if (msg?.tool_calls?.length) {
-        for (const toolCall of msg.tool_calls) {
-          yield { 
-            type: "tool_call", 
-            content: JSON.stringify({ 
-              name: toolCall.name, 
-              args: toolCall.args 
-            }) 
-          };
-        }
-      }
-      
-      // Send text content
-      if (msg && typeof msg.content === "string" && msg.content) {
-        yield { type: "token", content: msg.content };
+  for await (const event of eventStream) {
+    const eventType = event.event;
+    
+    // Handle token streaming from the chat model
+    if (eventType === "on_chat_model_stream") {
+      const chunk = event.data?.chunk;
+      if (chunk?.content && typeof chunk.content === "string") {
+        yield { type: "token", content: chunk.content };
       }
     }
-
-    if (update.tools) {
+    
+    // Handle tool calls starting
+    if (eventType === "on_tool_start") {
+      const toolName = event.name;
+      const toolInput = event.data?.input;
+      yield { 
+        type: "tool_call", 
+        content: JSON.stringify({ 
+          name: toolName, 
+          args: toolInput 
+        }) 
+      };
+    }
+    
+    // Handle tool results
+    if (eventType === "on_tool_end") {
       yield {
         type: "tool_result",
-        content: JSON.stringify(update.tools)
+        content: JSON.stringify({ 
+          name: event.name,
+          output: event.data?.output 
+        })
       };
     }
   }
