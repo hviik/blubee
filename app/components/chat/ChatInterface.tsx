@@ -470,27 +470,22 @@ export default function ChatInterface({
                 </div>
                  <div className="flex-1 min-w-0 pt-0.5 md:pt-1">
                    {message.role === 'assistant' ? (
-                     <div className="text-[14px] md:text-[0.938rem] lg:text-[1rem]">
+                     <div className={`text-[14px] md:text-[0.938rem] lg:text-[1rem] ${message.isStreaming ? 'streaming-content' : ''}`}>
                        {message.content ? (
-                         <div className="relative">
+                         <>
                            <MarkdownMessage content={message.content} />
                            {message.isStreaming && (
-                             <span className="inline-flex items-center ml-1 align-middle">
-                               <span className="streaming-dot" />
-                             </span>
+                             <span className="streaming-cursor" />
                            )}
-                         </div>
-                       ) : message.isUsingTool ? (
+                         </>
+                       ) : message.isStreaming || message.isUsingTool ? (
                          <div className="flex items-center gap-2 text-sm text-[#7286b0]">
                            <span className="streaming-dot" />
-                           <span>{getToolActivityMessage(message.toolName)}</span>
+                           {message.isUsingTool && (
+                             <span>{getToolActivityMessage(message.toolName)}</span>
+                           )}
                          </div>
-                       ) : (
-                         <div className="flex items-center gap-2">
-                           <span className="streaming-dot" />
-                           <span className="text-sm text-[#7286b0]">Thinking...</span>
-                         </div>
-                       )}
+                       ) : null}
                      </div>
                    ) : (
                      <p
