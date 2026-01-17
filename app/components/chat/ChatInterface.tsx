@@ -85,7 +85,10 @@ export default function ChatInterface({
 
   useEffect(() => {
     if (wasLoadingRef.current && !isLoading) {
-      inputRef.current?.focus();
+      // Small delay to ensure input is re-enabled before focusing
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
     }
     wasLoadingRef.current = isLoading;
   }, [isLoading]);
