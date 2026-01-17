@@ -99,7 +99,9 @@ Always confirm with the user before saving trips. When tools return success, sha
 function createModel() {
   const model = new ChatOpenAI({
     model: "gpt-4o-mini",
-    temperature: 0.7
+    temperature: 0.7,
+    // Required for token-level streaming via streamEvents
+    streaming: true
   });
 
   return model.bindTools(allTools);
